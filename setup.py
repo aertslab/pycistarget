@@ -1,0 +1,26 @@
+from setuptools import setup, find_packages
+
+def read_requirements(fname):
+    with open(fname, 'r', encoding='utf-8') as file:
+        return [line.rstrip() for line in file]
+
+
+setup(
+     name='pyCistrome',
+     use_scm_version=True,
+     setup_requires=['setuptools_scm'],
+     packages=find_packages(),
+     include_dirs=["."],
+     install_requires=read_requirements('requirements.txt'),
+     author="Carmen Bravo",
+     author_email="carmen.bravogonzalezblas@kuleuven.be",
+     description="pyCistrome is a python module to perform motif enrichment analysis in sets of regions with different tools and identify high confidence TF cistromes",
+     long_description=open('README.rst').read(),
+     url="https://github.com/aertslab/pyCistrome",
+     classifiers=[
+         "Programming Language :: Python :: 3",
+         "License :: OSI Approved :: MIT License",
+         "Operating System :: OS Independent",
+     ],
+ )
+
