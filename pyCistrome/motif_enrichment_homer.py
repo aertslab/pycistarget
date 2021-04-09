@@ -5,15 +5,14 @@ import pyranges as pr # with pyfaidx
 import ray
 import os
 import subprocess
-
 from .utils import *
 from IPython.display import HTML
 
 def homer_results(homer_dict, name, results='known'):
     if results == 'known':
-        file = homer_dict[name].outdir + '/knownResults.html'
+        file = os.path.join(homer_dict[name].outdir, 'knownResults.html')
     if results == 'denovo':
-        file = homer_dict[name].outdir + '/homerResults.html'
+        file = os.path.join(homer_dict[name].outdir, '/homerResults.html')
     inplace_change(file, 'width="505" height="50"', 'width="1010" height="200"')
     return HTML(file)
 
@@ -36,7 +35,7 @@ def homer_find_motifs_genome(homer_path, input_data, outdir, genome, size='given
         os.mkdir(bed_dir)
     # Create bed files for Homer
     for key in pr_regions_dict.keys():
-        bed_path = bed_dir+key+'.bed'
+        bed_path = os.path.join(bed_dir, key+'.bed')
         pr_regions_dict[key].to_bed(path=bed_path, keep=False, compression='infer', chain=False)
         bed_paths[key] = bed_path
     # Run Homer

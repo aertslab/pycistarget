@@ -10,6 +10,7 @@ import re
 from scipy import sparse
 from pyscenic.genesig import Regulon
 from typing import Dict, Sequence
+from urllib.parse import urljoin
 
 def coord_to_region_names(coord):
     if isinstance(coord, pr.PyRanges):
@@ -266,3 +267,24 @@ def load_motif_annotations(motif_annotations_fname: str,
     motif_annotations.index = motif_annotations[index_col]
     motif_annotations.drop(index_col, inplace = True, axis = 1)
     return motif_annotations
+
+def add_motif_url(df: pd.DataFrame, motif_column_name: str = None, motif_names: list = None, base_url: str = "http://motifcollections.aertslab.org/v9/logos/", key_to_add: str = 'Motif_url', verbose: bool = True) :
+    """
+    Add motif urls to dataframe with motif names.
+    :param df: Dataframe containing motif names.
+    :param base_url: url to motif collections containing images for each motif in the dataframe
+    :param motif_column_name: column name containing the motif names.
+    :param motif_names: list of motif names, must be in the same order as the dataframe rows.
+    :param key_to_add: column name where the urls should be stored.
+    :param verbose: if set to True prints warning messages.
+    :return: DataFrame with motif urls.
+    """
+    if motif_column_name != None and motif_names == None:
+        df[key_to_add] = [urljoin(base = base_url, url = motif) for motif in df[motif_column_name]]
+    elif isinstance(motif_names, Sequence):
+        if verbose:
+            Warning('Using a list of motif names, this function assumes that this list has the same order as rows in the dataframe!')
+        df[key_to_add] = [urljoin(base = base_url, url = motif) for motif in motif_names]
+    else:
+        raise Exception('Either provide a column name or a list of motif names.')
+    return df
