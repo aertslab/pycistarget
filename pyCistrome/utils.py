@@ -10,11 +10,7 @@ import re
 from scipy import sparse
 from pyscenic.genesig import Regulon
 from typing import Dict, Sequence
-<<<<<<< HEAD
 import ssl
-=======
-from urllib.parse import urljoin
->>>>>>> remotes/origin/master
 
 def coord_to_region_names(coord):
     if isinstance(coord, pr.PyRanges):
@@ -97,7 +93,6 @@ def load_motif_annotations(specie: str,
         for enriched motifs.
     :return: A dataframe.
     """
-<<<<<<< HEAD
     # Create a MultiIndex for the index combining unique gene name and motif ID. This should facilitate
     # later merging.
     if fname is None:
@@ -144,13 +139,7 @@ def load_motif_annotations(specie: str,
     # Combine
     df = pd.concat([df_direct_annot, motif_similarity_annot, orthology_annot, motif_similarity_and_orthology_annot], axis=1, sort=False)
     return df
-=======
-    motif_annotations = pd.read_csv(motif_annotations_fname, sep=sep, usecols =column_names )
-    motif_annotations.rename(columns=rename_dict, inplace = True)
-    motif_annotations.index = motif_annotations[index_col]
-    motif_annotations.drop(index_col, inplace = True, axis = 1)
-    return motif_annotations
-
+    
 def add_motif_url(df: pd.DataFrame, motif_column_name: str = None, motif_names: list = None, base_url: str = "http://motifcollections.aertslab.org/v9/logos/", key_to_add: str = 'Motif_url', verbose: bool = True) :
     """
     Add motif urls to dataframe with motif names.
@@ -171,4 +160,3 @@ def add_motif_url(df: pd.DataFrame, motif_column_name: str = None, motif_names: 
     else:
         raise Exception('Either provide a column name or a list of motif names.')
     return df
->>>>>>> remotes/origin/master
