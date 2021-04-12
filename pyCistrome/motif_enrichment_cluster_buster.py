@@ -188,68 +188,6 @@ def find_enriched_motifs(crm_df, group_dict, var_features=None, contrasts=None, 
     markers_dict={contrasts_names[i]: markers_list[i] for i in range(len(markers_list))} 
     return markers_dict
 
-def load_motif_annotations(specie: str,
-                           version: str = 'v9',
-                           fname: str = None,
-                           column_names=('#motif_id', 'gene_name',
-                                         'motif_similarity_qvalue', 'orthologous_identity', 'description'),
-                           motif_similarity_fdr: float = 0.001,
-                           orthologous_identity_threshold: float = 0.0) -> pd.DataFrame:
-    """
-    Load motif annotations from a motif2TF snapshot.
-    :param fname: the snapshot taken from motif2TF.
-    :param column_names: the names of the columns in the snapshot to load.
-    :param motif_similarity_fdr: The maximum False Discovery Rate to find factor annotations for enriched motifs.
-    :param orthologuous_identity_threshold: The minimum orthologuous identity to find factor annotations
-        for enriched motifs.
-    :return: A dataframe.
-    """
-    # Create a MultiIndex for the index combining unique gene name and motif ID. This should facilitate
-    # later merging.
-    if fname is None:
-        if specie == 'mus_musculus':
-            name='mgi'
-        elif specie == 'homo_sapiens':
-            name='hgnc'
-        elif specie == 'drosophila_melanogaster':
-            name='flybase'
-        fname = 'https://resources.aertslab.org/cistarget/motif2tf/motifs-'+version+'-nr.'+name+'-m0.001-o0.0.tbl'
-    df = pd.read_csv(fname, sep='\t', usecols=column_names)
-    df.rename(columns={'#motif_id':"MotifID",
-                       'gene_name':"TF",
-                       'motif_similarity_qvalue': "MotifSimilarityQvalue",
-                       'orthologous_identity': "OrthologousIdentity",
-                       'description': "Annotation" }, inplace=True)
-    df = df[(df["MotifSimilarityQvalue"] <= motif_similarity_fdr) &
-            (df["OrthologousIdentity"] >= orthologous_identity_threshold)]
-    
-    # Direct annotation
-    df_direct_annot = df[(df["MotifSimilarityQvalue"]<= 0) & (df["OrthologousIdentity"] >= 1)]
-    df_direct_annot = df_direct_annot.groupby(['MotifID'])['TF'].apply(lambda x: ', '.join(x)).reset_index()
-    df_direct_annot.index = df_direct_annot['MotifID']
-    df_direct_annot = pd.DataFrame(df_direct_annot['TF'])
-    df_direct_annot.columns = ['Direct_annot']
-    # Indirect annotation - by motif similarity
-    motif_similarity_annot = df[(df["MotifSimilarityQvalue"]> 0) & (df["OrthologousIdentity"] >= 1)]
-    motif_similarity_annot = motif_similarity_annot.groupby(['MotifID'])['TF'].apply(lambda x: ', '.join(x)).reset_index()
-    motif_similarity_annot.index =  motif_similarity_annot['MotifID']
-    motif_similarity_annot = pd.DataFrame(motif_similarity_annot['TF'])
-    motif_similarity_annot.columns = ['Motif_similarity_annot']
-    # Indirect annotation - by orthology
-    orthology_annot = df[(df["MotifSimilarityQvalue"]<= 0) & (df["OrthologousIdentity"] < 1)]
-    orthology_annot = orthology_annot.groupby(['MotifID'])['TF'].apply(lambda x: ', '.join(x)).reset_index()
-    orthology_annot.index = orthology_annot['MotifID']
-    orthology_annot = pd.DataFrame(orthology_annot['TF'])
-    orthology_annot.columns = ['Orthology_annot']
-    # Indirect annotation - by orthology
-    motif_similarity_and_orthology_annot = df[(df["MotifSimilarityQvalue"]> 0) & (df["OrthologousIdentity"] < 1)]
-    motif_similarity_and_orthology_annot = motif_similarity_and_orthology_annot.groupby(['MotifID'])['TF'].apply(lambda x: ', '.join(x)).reset_index()
-    motif_similarity_and_orthology_annot.index = motif_similarity_and_orthology_annot['MotifID']
-    motif_similarity_and_orthology_annot = pd.DataFrame(motif_similarity_and_orthology_annot['TF'])
-    motif_similarity_and_orthology_annot.columns = ['Motif_similarity_and_Orthology_annot']
-    # Combine
-    df = pd.concat([df_direct_annot, motif_similarity_annot, orthology_annot, motif_similarity_and_orthology_annot], axis=1, sort=False)
-    return df
 
 def add_motif_annotation(motif_enrichment_dict,
                        specie,

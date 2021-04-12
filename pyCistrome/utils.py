@@ -10,6 +10,7 @@ import re
 from scipy import sparse
 from pyscenic.genesig import Regulon
 from typing import Dict, Sequence
+import ssl
 
 def coord_to_region_names(coord):
     if isinstance(coord, pr.PyRanges):
@@ -25,76 +26,6 @@ def region_names_to_coordinates(region_names):
     regiondf.index=region_names
     regiondf.columns=['Chromosome', 'Start', 'End']
     return(regiondf)
-
-def get_position_index(query_list, target_list):
-    d = {k:v for v,k in enumerate(target_list)}
-    index=(d[k] for k in query_list)
-    return list(index)
-    
-def non_zero_rows(X):
-    if isinstance(X, sparse.csr_matrix):       
-         # Remove all explicit zeros in sparse matrix.                                                                                                                                                              
-         X.eliminate_zeros()
-         # Get number of non zeros per row and get indices for each row which is not completely zero.                                                                                                                                                                                           
-         return np.nonzero(X.getnnz(axis=1))[0]
-    else:
-         # For non sparse matrices.
-         return np.nonzero(np.count_nonzero(X, axis=1))[0]
-
-def subset_list(target_list, index_list):
-    X = list(map(target_list.__getitem__, index_list))
-    return X
-
-def loglikelihood(nzw, ndz, alpha, eta):
-    D = ndz.shape[0]
-    n_topics = ndz.shape[1]
-    vocab_size = nzw.shape[1]
-    
-    const_prior = (n_topics * math.lgamma(alpha) - math.lgamma(alpha*n_topics)) * D
-    const_ll = (vocab_size* math.lgamma(eta) - math.lgamma(eta*vocab_size)) * n_topics
-    
-    # calculate log p(w|z)
-    topic_ll = 0
-    for k in range(n_topics):
-        sum = eta*vocab_size
-        for w in range(vocab_size):
-            if nzw[k, w] > 0:
-                topic_ll=math.lgamma(nzw[k, w]+eta)
-                sum += nzw[k, w]
-        topic_ll -= math.lgamma(sum)
-    
-    # calculate log p(z)
-    doc_ll = 0
-    for d in range(D):
-        sum = alpha*n_topics
-        for k in range(n_topics):
-            if ndz[d, k] > 0:
-                doc_ll=math.lgamma(ndz[d, k] + alpha)
-                sum += ndz[d, k]
-        doc_ll -= math.lgamma(sum)
-
-    ll=doc_ll-const_prior+topic_ll-const_ll
-    return ll
-
-def sparse2bow(X):
-    for indprev, indnow in zip(X.indptr, X.indptr[1:]):
-        yield np.array(X.indices[indprev:indnow])
-
-def chunks(l, n):
-    return [l[x: x+n] for x in xrange(0, len(l), n)]
-
-def gini(array):
-    """Calculate the Gini coefficient of a numpy array."""
-    # based on bottom eq: http://www.statsdirect.com/help/content/image/stat0206_wmf.gif
-    # from: http://www.statsdirect.com/help/default.htm#nonparametric_methods/gini.htm
-    array = array.flatten() #all values are treated equally, arrays must be 1d
-    if np.amin(array) < 0:
-        array -= np.amin(array) #values cannot be negative
-    array += 0.000000000001 #values cannot be 0
-    array = np.sort(array) #values must be sorted
-    index = np.arange(1,array.shape[0]+1) #index per array element
-    n = array.shape[0]#number of array elements
-    return ((np.sum((2 * index - n  - 1) * array)) / (n * np.sum(array))) #Gini coefficient
 
 def regions_overlap(target, query):
     # Read input
@@ -116,100 +47,6 @@ def regions_overlap(target, query):
     selected_regions = [str(chrom) + ":" + str(start) + '-' + str(end) for chrom, start, end in zip(list(target_pr.Chromosome), list(target_pr.Start), list(target_pr.End))]
     return selected_regions
 
-def format_input_regions(input_data):
-    new_data = {}
-    for key in input_data.keys():
-        data = input_data[key]
-        if isinstance(data, pd.DataFrame):
-            regions = data.index.tolist()
-            if len(regions) > 0:
-                new_data[key] = pr.PyRanges(region_names_to_coordinates(regions))
-        else:
-            new_data[key] = data
-    return new_data
-    
-def inplace_change(filename, old_string, new_string):
-    # Safely read the input filename using 'with'
-    with open(filename) as f:
-        s = f.read()
-        if old_string not in s:
-            return
-    # Safely write the changed content, if found in the file
-    with open(filename, 'w') as f:
-        s = s.replace(old_string, new_string)
-        f.write(s)     
-
-def load_cisTopic_model(path_to_cisTopic_model_matrices):
-    metrics = None
-    coherence = None
-    marg_topic = None
-    topic_ass = None
-    cell_topic = pd.read_feather(path_to_cisTopic_model_matrices + 'cell_topic.feather')
-    cell_topic.index = ['Topic'+str(x) for x in range(1,cell_topic.shape[0]+1)]
-    topic_region = pd.read_feather(path_to_cisTopic_model_matrices + 'topic_region.feather')
-    topic_region.index = ['Topic'+str(x) for x in range(1,topic_region.shape[0]+1)]
-    topic_region = topic_region.T
-    parameters = None
-    model = cisTopicLDAModel(metrics, coherence, marg_topic, topic_ass, cell_topic, topic_region, parameters)
-    return model
-
-def prepare_tag_cells(cell_names):
-	new_cell_names = [re.findall(r"^[ACGT]*-[0-9]+-", x)[0].rstrip('-') if len(re.findall(r"^[ACGT]*-[0-9]+-", x)) != 0 else x for x in cell_names]
-	new_cell_names = [re.findall(r"^\w*-[0-9]*", new_cell_names[i])[0].rstrip('-') if (len(re.findall(r"^\w*-[0-9]*", new_cell_names[i])) != 0) & (new_cell_names[i] == cell_names[i]) else new_cell_names[i] for i in range(len(new_cell_names))]
-	return new_cell_names
-	
-def multiplot_from_generator(g, num_columns, n_plots, figsize=None, plot=True, save=None):
-    if save is not None:
-        pdf = matplotlib.backends.backend_pdf.PdfPages(save)
-    # call 'next(g)' to get past the first 'yield'
-    next(g)
-    # default to 15-inch rows, with square subplots
-    if figsize is None:
-        if num_columns == 1:
-            figsize = (5, 5)
-        else:
-            num_rows = int(np.ceil(n_plots/num_columns))
-            figsize = (6.4*num_columns, 4.8*num_rows)
-              
-    if num_columns > 1:
-        fig=plt.figure(figsize=figsize) 
-        num_rows = int(np.ceil(n_plots/num_columns))
-    plot = 0    
-    try:
-        while True:
-            # call plt.figure once per row
-            if num_columns == 1:
-                fig=plt.figure(figsize=figsize)
-                ax = plt.subplot(1, 1, 1)
-                if save is not None:
-                        pdf.savefig(fig, bbox_inches='tight')
-            if num_columns > 1:
-                ax = plt.subplot(num_rows, num_columns, plot+1)
-                ax.autoscale(enable=True)
-                plot = plot + 1
-            next(g)
-    except StopIteration:
-        if num_columns == 1:
-            if save is not None:
-                pdf.savefig(fig, bbox_inches='tight')
-        pass
-    if num_columns > 1:
-        plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
-        if save is not None:
-            pdf.savefig(fig, bbox_inches='tight')
-    if save != None:
-        pdf.close()
-    if plot == False:
-    	plt.close()
-
-def fig2img(fig):
-    """Convert a Matplotlib figure to a PIL Image and return it"""
-    import io
-    buf = io.BytesIO()
-    fig.savefig(buf, bbox_inches='tight', format='png', dpi=500, transparent=True)
-    buf.seek(0)
-    img = Image.open(buf)
-    return img
 
 def region_sets_to_signature(pr_region_dict: Dict[str, pr.PyRanges], weights_col: str = None) -> Regulon:
     """
@@ -237,32 +74,68 @@ def region_sets_to_signature(pr_region_dict: Dict[str, pr.PyRanges], weights_col
             )
         )
     return signatures
+    
+ssl._create_default_https_context = ssl._create_unverified_context
 
-def load_motif_annotations(motif_annotations_fname: str, 
-                           column_names: Sequence[str] = ('#motif_id', 'gene_name', 'motif_similarity_qvalue', 'orthologous_identity', 'description'),
-                           index_col: str = 'MotifID',
-                           rename_dict: Dict[str, str]= {
-                                                            '#motif_id': 'MotifID',
-                                                            'motif_similarity_qvalue': 'MotifSimilarityQvalue',
-                                                            'orthologous_identity': 'OrthologousIdentity',
-                                                            'description': 'Annotation'
-                                                        },
-                            sep: str = '\t',
-                            motif_similarity_fdr: float = 0.001,
-                            orthologous_identity_threshold: float = 0.0) -> pd.DataFrame:
+def load_motif_annotations(specie: str,
+                           version: str = 'v9',
+                           fname: str = None,
+                           column_names=('#motif_id', 'gene_name',
+                                         'motif_similarity_qvalue', 'orthologous_identity', 'description'),
+                           motif_similarity_fdr: float = 0.001,
+                           orthologous_identity_threshold: float = 0.0) -> pd.DataFrame:
     """
-    load a motif2tf annotation dataframe.
-    :param motif_annotations_fname: path to motif2tf dataframe.
-    :param colomn_names: columnnames to load from motif2tf dataframe.
-    :param index_col: which column to use as index.
-    :param renam_dict: dictionary with old column names as keys and new column names as values.
-    :param sep: the character seperating columns in the dataframe.
-    :param motif_similarity_fdr: the treshold for motif similarity false discovery rate, valyes above this treshold are filtered out.
-    :param orthologous_identity_threshold: the treshold for orthologous identity, values below this treshold are filtered out.
-    return a dataframe with motif annotations
+    Load motif annotations from a motif2TF snapshot.
+    :param fname: the snapshot taken from motif2TF.
+    :param column_names: the names of the columns in the snapshot to load.
+    :param motif_similarity_fdr: The maximum False Discovery Rate to find factor annotations for enriched motifs.
+    :param orthologuous_identity_threshold: The minimum orthologuous identity to find factor annotations
+        for enriched motifs.
+    :return: A dataframe.
     """
-    motif_annotations = pd.read_csv(motif_annotations_fname, sep=sep, usecols =column_names )
-    motif_annotations.rename(columns=rename_dict, inplace = True)
-    motif_annotations.index = motif_annotations[index_col]
-    motif_annotations.drop(index_col, inplace = True, axis = 1)
-    return motif_annotations
+    # Create a MultiIndex for the index combining unique gene name and motif ID. This should facilitate
+    # later merging.
+    if fname is None:
+        if specie == 'mus_musculus':
+            name='mgi'
+        elif specie == 'homo_sapiens':
+            name='hgnc'
+        elif specie == 'drosophila_melanogaster':
+            name='flybase'
+        fname = 'https://resources.aertslab.org/cistarget/motif2tf/motifs-'+version+'-nr.'+name+'-m0.001-o0.0.tbl'
+    df = pd.read_csv(fname, sep='\t', usecols=column_names)
+    df.rename(columns={'#motif_id':"MotifID",
+                       'gene_name':"TF",
+                       'motif_similarity_qvalue': "MotifSimilarityQvalue",
+                       'orthologous_identity': "OrthologousIdentity",
+                       'description': "Annotation" }, inplace=True)
+    df = df[(df["MotifSimilarityQvalue"] <= motif_similarity_fdr) &
+            (df["OrthologousIdentity"] >= orthologous_identity_threshold)]
+    
+    # Direct annotation
+    df_direct_annot = df[(df["MotifSimilarityQvalue"]<= 0) & (df["OrthologousIdentity"] >= 1)]
+    df_direct_annot = df_direct_annot.groupby(['MotifID'])['TF'].apply(lambda x: ', '.join(x)).reset_index()
+    df_direct_annot.index = df_direct_annot['MotifID']
+    df_direct_annot = pd.DataFrame(df_direct_annot['TF'])
+    df_direct_annot.columns = ['Direct_annot']
+    # Indirect annotation - by motif similarity
+    motif_similarity_annot = df[(df["MotifSimilarityQvalue"]> 0) & (df["OrthologousIdentity"] >= 1)]
+    motif_similarity_annot = motif_similarity_annot.groupby(['MotifID'])['TF'].apply(lambda x: ', '.join(x)).reset_index()
+    motif_similarity_annot.index =  motif_similarity_annot['MotifID']
+    motif_similarity_annot = pd.DataFrame(motif_similarity_annot['TF'])
+    motif_similarity_annot.columns = ['Motif_similarity_annot']
+    # Indirect annotation - by orthology
+    orthology_annot = df[(df["MotifSimilarityQvalue"]<= 0) & (df["OrthologousIdentity"] < 1)]
+    orthology_annot = orthology_annot.groupby(['MotifID'])['TF'].apply(lambda x: ', '.join(x)).reset_index()
+    orthology_annot.index = orthology_annot['MotifID']
+    orthology_annot = pd.DataFrame(orthology_annot['TF'])
+    orthology_annot.columns = ['Orthology_annot']
+    # Indirect annotation - by orthology
+    motif_similarity_and_orthology_annot = df[(df["MotifSimilarityQvalue"]> 0) & (df["OrthologousIdentity"] < 1)]
+    motif_similarity_and_orthology_annot = motif_similarity_and_orthology_annot.groupby(['MotifID'])['TF'].apply(lambda x: ', '.join(x)).reset_index()
+    motif_similarity_and_orthology_annot.index = motif_similarity_and_orthology_annot['MotifID']
+    motif_similarity_and_orthology_annot = pd.DataFrame(motif_similarity_and_orthology_annot['TF'])
+    motif_similarity_and_orthology_annot.columns = ['Motif_similarity_and_Orthology_annot']
+    # Combine
+    df = pd.concat([df_direct_annot, motif_similarity_annot, orthology_annot, motif_similarity_and_orthology_annot], axis=1, sort=False)
+    return df
