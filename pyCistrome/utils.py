@@ -10,7 +10,11 @@ import re
 from scipy import sparse
 from pyscenic.genesig import Regulon
 from typing import Dict, Sequence
+<<<<<<< HEAD
 import ssl
+=======
+from urllib.parse import urljoin
+>>>>>>> remotes/origin/master
 
 def coord_to_region_names(coord):
     if isinstance(coord, pr.PyRanges):
@@ -93,6 +97,7 @@ def load_motif_annotations(specie: str,
         for enriched motifs.
     :return: A dataframe.
     """
+<<<<<<< HEAD
     # Create a MultiIndex for the index combining unique gene name and motif ID. This should facilitate
     # later merging.
     if fname is None:
@@ -139,3 +144,31 @@ def load_motif_annotations(specie: str,
     # Combine
     df = pd.concat([df_direct_annot, motif_similarity_annot, orthology_annot, motif_similarity_and_orthology_annot], axis=1, sort=False)
     return df
+=======
+    motif_annotations = pd.read_csv(motif_annotations_fname, sep=sep, usecols =column_names )
+    motif_annotations.rename(columns=rename_dict, inplace = True)
+    motif_annotations.index = motif_annotations[index_col]
+    motif_annotations.drop(index_col, inplace = True, axis = 1)
+    return motif_annotations
+
+def add_motif_url(df: pd.DataFrame, motif_column_name: str = None, motif_names: list = None, base_url: str = "http://motifcollections.aertslab.org/v9/logos/", key_to_add: str = 'Motif_url', verbose: bool = True) :
+    """
+    Add motif urls to dataframe with motif names.
+    :param df: Dataframe containing motif names.
+    :param base_url: url to motif collections containing images for each motif in the dataframe
+    :param motif_column_name: column name containing the motif names.
+    :param motif_names: list of motif names, must be in the same order as the dataframe rows.
+    :param key_to_add: column name where the urls should be stored.
+    :param verbose: if set to True prints warning messages.
+    :return: DataFrame with motif urls.
+    """
+    if motif_column_name != None and motif_names == None:
+        df[key_to_add] = [urljoin(base = base_url, url = motif) for motif in df[motif_column_name]]
+    elif isinstance(motif_names, Sequence):
+        if verbose:
+            Warning('Using a list of motif names, this function assumes that this list has the same order as rows in the dataframe!')
+        df[key_to_add] = [urljoin(base = base_url, url = motif) for motif in motif_names]
+    else:
+        raise Exception('Either provide a column name or a list of motif names.')
+    return df
+>>>>>>> remotes/origin/master

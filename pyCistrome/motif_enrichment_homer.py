@@ -13,7 +13,11 @@ def homer_results(homer_dict, name, results='known'):
     if results == 'known':
         file = os.path.join(homer_dict[name].outdir, 'knownResults.html')
     if results == 'denovo':
+<<<<<<< HEAD
         file = os.path.join(homer_dict[name].outdir, 'homerResults.html')
+=======
+        file = os.path.join(homer_dict[name].outdir, '/homerResults.html')
+>>>>>>> remotes/origin/master
     inplace_change(file, 'width="505" height="50"', 'width="1010" height="200"')
     return HTML(file)
 
@@ -33,10 +37,16 @@ def homer_find_motifs_genome(homer_path, region_sets, outdir, genome, size='give
     if not os.path.exists(bed_dir):
         os.mkdir(bed_dir)
     # Create bed files for Homer
+<<<<<<< HEAD
     for key in region_sets.keys():
         bed_path = os.path.join(bed_dir, key+'.bed')
         region_sets[key].Name =  coord_to_region_names(region_sets[key])
         region_sets[key].to_bed(path=bed_path, keep=False, compression='infer', chain=False)
+=======
+    for key in pr_regions_dict.keys():
+        bed_path = os.path.join(bed_dir, key+'.bed')
+        pr_regions_dict[key].to_bed(path=bed_path, keep=False, compression='infer', chain=False)
+>>>>>>> remotes/origin/master
         bed_paths[key] = bed_path
     # Run Homer
     ray.init(num_cpus=n_cpu)
