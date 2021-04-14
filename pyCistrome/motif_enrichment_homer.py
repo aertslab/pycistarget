@@ -5,6 +5,8 @@ import pyranges as pr # with pyfaidx
 import ray
 import os
 import subprocess
+from pybiomart import Dataset
+
 #from .utils import *
 
 from IPython.display import HTML
@@ -82,7 +84,7 @@ def homer_ray(homer_path: str,
     format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
     handlers = [logging.StreamHandler(stream=sys.stdout)]
     logging.basicConfig(level = level, format = format, handlers = handlers)
-    log = logging.getLogger('cisTopic')
+    log = logging.getLogger('pyCistrome')
     
     if not os.path.exists(outdir):
         os.mkdir(outdir)
@@ -176,9 +178,9 @@ class Homer():
         logging.basicConfig(level = level, format = format, handlers = handlers)
         log = logging.getLogger('pyCistrome')
         
-        
         if self.known_motifs is not None:
-            if self.known_motifs[0] != 0:
+            if self.known_motifs.shape[0] != 0:
+                log.info('Annotating known motifs')
                 # Prepare cistarget annotation
                 if 'mm' in self.genome:
                     species = 'mus_musculus'
@@ -187,7 +189,8 @@ class Homer():
                 if 'hg' in self.genome:
                     species = 'homo_sapiens'
                 ctx_motif_annotation = load_motif_annotations(species)
-                homer_motifs = 'homer__' + self.known_motifs['Consensus'] + '_' + [x.split('(')[0] for x in self.known_motifs['Motif Name']]
+                motifs = self.known_motifs
+                homer_motifs = 'homer__' + motifs['Consensus'] + '_' + [x.split('(')[0] for x in motifs['Motif Name']]
 
                 motifs['MotifID'] = homer_motifs
                 homer_motifs = [x for x in homer_motifs if x in ctx_motif_annotation.index.tolist()]
@@ -224,7 +227,7 @@ class Homer():
                 # Concatenate
                 motifs.Direct_annot = [str(motifs.Direct_annot.tolist()[x]) + ', ' + str(motifs.Homer_annot.tolist()[x]) 
                                    if (str(motifs.Homer_annot.tolist()[x]) not in str(motifs.Direct_annot.tolist()[x]))
-                                   else motifs.Direct_annot.tolist()[x] for x in range(df.shape[0])]
+                                   else motifs.Direct_annot.tolist()[x] for x in range(motifs.shape[0])]
                 motifs.Direct_annot = motifs.Direct_annot.replace('nan, ', '', regex=True)
                 motifs.Direct_annot = motifs.Direct_annot.replace(', nan', '', regex=True)
                 motifs.drop(['MotifID', 'Homer_annot'], axis=1)
@@ -234,7 +237,7 @@ class Homer():
             if self.denovo_motifs.shape[0] != 0:
                 if self.meme_path is None:
                     log.info('Parameter meme_path is not provided. Skipping annotation of de novo motifs')
-                else if self.path_to_meme_collection is None:
+                elif self.meme_collection_path is None:
                     log.info('Parameter meme_collection_path is not provided. Skipping annotation of de novo motifs')
                 else:
                     # Find closest match for denovo motifs in cistarget database (as meme)
@@ -281,40 +284,3 @@ class Homer():
             denovo_motif_hits = pd.read_csv(os.path.join(self.outdir, 'homerResults_motif_hits.bed'), sep='\t', header=None)
             denovo_motif_hits  = denovo_motif_hits.groupby(3)[0].apply(lambda g: g.values.tolist()).to_dict()
             self.denovo_motif_hits = {k:denovo_motif_hits[k] for k in denovo_motif_hits.keys() if not k[0].isdigit()}
-            
-            
-def tomtom(homer_motif_path: str,
-          meme_path: str,
-          meme_collection_path: str):
-    homer2meme(homer_motif_path)
-    meme_motif_path = homer_motif_path.replace('.motif', '.meme')
-    motif_name = os.path.splitext(os.path.basename(meme_motif_path))[0]
-    cmd = os.path.join(meme_path, 'tomtom') + ' -thresh 0.3 -oc %s %s %s'
-    cmd = cmd % (os.path.join(os.path.dirname(homer_motif_path), 'tomtom', motif_name), meme_motif_path, meme_collection_path)
-    try:
-        subprocess.check_output(args=cmd, shell=True, stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
-        raise RuntimeError("command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output))
-    tomtom_results = pd.read_csv(os.path.join(os.path.dirname(homer_motif_path), 'tomtom', motif_name, 'tomtom.tsv'), sep='\t')
-    if not tomtom_results.dropna().shape[0] == 0:
-        tomtom_results = tomtom_results.sort_values(by=['E-value'])
-        homer_motif_name = tomtom_results.iloc[0,0]
-        homer_motif_name = homer_motif_name.split('BestGuess:')[1]
-        best_match_motif_name = tomtom_results.iloc[0,1]
-        evalue = tomtom_results.iloc[0,4]
-        return pd.DataFrame([homer_motif_name, best_match_motif_name, evalue], index=['Best Match/Details', 'Best Match/Tomtom', 'E-value/Tomtom']).transpose()
-    
-def homer2meme(homer_motif_path: str):
-    out_file = open(homer_motif_path.replace('.motif', '.meme'), 'w')
-    with open(homer_motif_path) as f:
-        data = f.readlines()
-    motif_name = data[0].split()[1]
-    motif_id = data[0].split()[0][1:]
-    out_file.write('MEME version 4.4\n\nALPHABET= ACGT\n\nstrands: + -\n\n' +
-                   'Background letter frequencies (from uniform background):\nA 0.25000 C 0.25000 G 0.25000 T 0.25000\n' +
-                   'MOTIF '+ motif_name + ' ' + motif_id  + '\n')
-    out_file.write('letter-probability matrix: nsites= 20 alength= 4 w= '+str(len(data)-1)+' E= 0 \n')
-    for line in data[1:]:
-        out_file.write('  ' + line)
-    out_file.write('\n')
-    out_file.close()
