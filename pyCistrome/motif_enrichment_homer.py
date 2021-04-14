@@ -6,9 +6,10 @@ import ray
 import os
 import subprocess
 from pybiomart import Dataset
-from IPython.display import HTML
 
-from .utils import *
+#from .utils import *
+
+from IPython.display import HTML
 
 def homer_results(homer_dict, name, results='known'):
     if results == 'known':
@@ -230,7 +231,7 @@ class Homer():
                                    else motifs.Direct_annot.tolist()[x] for x in range(motifs.shape[0])]
                 motifs.Direct_annot = motifs.Direct_annot.replace('nan, ', '', regex=True)
                 motifs.Direct_annot = motifs.Direct_annot.replace(', nan', '', regex=True)
-                motifs.drop(['MotifID', 'Homer_annot'], axis=1)
+                motifs = motifs.drop(['MotifID', 'Homer_annot'], axis=1)
                 self.known_motifs = motifs
         
         if self.denovo_motifs is not None:
