@@ -47,33 +47,27 @@ def regions_overlap(target, query):
     selected_regions = [str(chrom) + ":" + str(start) + '-' + str(end) for chrom, start, end in zip(list(target_pr.Chromosome), list(target_pr.Start), list(target_pr.End))]
     return selected_regions
 
-
-def region_sets_to_signature(pr_region_dict: Dict[str, pr.PyRanges], weights_col: str = None) -> Regulon:
+def region_sets_to_signature(pr_region_set: pr.PyRanges,region_set_name:str, weights_col: str = None) -> Regulon:
     """
     generates a gene signature object from a dict of PyRanges objects
-    :param region_dict: dictionary of PxyRanges objects to be converted in genesignature object
+    :param pr_region_set: PyRanges object to be converted in genesignature object
+    :param region_set_name: name of the regions set
     :param weights_col: if set uses this column of the pyranges object as gene2weight
     :return gene signature object of input region dict
     """
-    if not isinstance(pr_region_dict, dict) or not all([isinstance(v, pr.PyRanges) for v in pr_region_dict.values()]):
-        raise ValueError('region_set should be a dictionary of PyRanges objects')
-    signatures = []
-    for region_set_name in pr_region_dict.keys():
-        pr_region_set = pr_region_dict[region_set_name]
-        if weights_col in pr_region_set.columns and weights_col != None:
-            weights = pr_region_set.as_df()[weights_col]
-        else:
-            weights = np.ones(len(pr_region_set))
-        regions_name = coord_to_region_names(pr_region_set)
-        signatures.append(
-            Regulon(
-                name                 = region_set_name,
-                gene2weight          = dict(zip(regions_name, weights)),
-                transcription_factor = region_set_name,
-                gene2occurrence      = [] 
-            )
-        )
-    return signatures
+    
+    if weights_col in pr_region_set.columns and weights_col != None:
+        weights = pr_region_set.as_df()[weights_col]
+    else:
+        weights = np.ones(len(pr_region_set))
+    regions_name = coord_to_region_names(pr_region_set)
+    signature = Regulon(
+                    name                 = region_set_name,
+                    gene2weight          = dict(zip(regions_name, weights)),
+                    transcription_factor = region_set_name,
+                    gene2occurrence      = [])
+    
+    return signature
     
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -160,3 +154,11 @@ def add_motif_url(df: pd.DataFrame, motif_column_name: str = None, motif_names: 
     else:
         raise Exception('Either provide a column name or a list of motif names.')
     return df
+
+def flatten_list(l):
+    return [item for sublist in l for item in sublist]
+
+def invert_dict_one_to_many(d):
+    keys = list(d.keys())
+    values = list(d.values())
+    return {v: [keys[idx] for idx, l in enumerate(values) if v in l ] for v in set(flatten_list(values))}
