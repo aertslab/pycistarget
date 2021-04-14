@@ -6,10 +6,9 @@ import ray
 import os
 import subprocess
 from pybiomart import Dataset
-
-#from .utils import *
-
 from IPython.display import HTML
+
+from .utils import *
 
 def homer_results(homer_dict, name, results='known'):
     if results == 'known':
@@ -159,6 +158,7 @@ class Homer():
                 log.info('No de novo results found')
                 
         self.add_motif_annotation_homer()
+        self.find_motif_hits(n_cpu=1)
         
     def load_known(self):
         known = pd.read_csv(os.path.join(self.outdir, 'knownResults.txt'), sep='\t')
@@ -255,32 +255,42 @@ class Homer():
                     self.denovo_motifs = motifs
 
     def find_motif_hits(self, n_cpu=1):
+        # Create logger
+        level    = logging.INFO
+        format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+        handlers = [logging.StreamHandler(stream=sys.stdout)]
+        logging.basicConfig(level = level, format = format, handlers = handlers)
+        log = logging.getLogger('pyCistrome')
+        
         if self.known_motifs is not None:
-            # Merge all motifs to file
-            for f in glob.glob(os.path.join(self.outdir, 'knownResults', '*.motif')):
-                os.system("cat "+f+" >> "+os.path.join(self.outdir, 'knownResults', 'all_motifs.motif'))
-            cmd = os.path.join(self.homer_path, 'homer2 find') + ' -s %s -m %s -o %s -p %s'
-            cmd = cmd % (os.path.join(self.outdir, 'targetgiven.seq'), os.path.join(self.outdir, 'knownResults', 'all_motifs.motif'), os.path.join(self.outdir, 'knownResults_motif_hits.bed'), n_cpu)
-            try:
-                subprocess.check_output(args=cmd, shell=True, stderr=subprocess.STDOUT)
-            except subprocess.CalledProcessError as e:
-                raise RuntimeError("command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output))
+            if self.known_motifs.shape[0] != 0:
+                # Merge all motifs to file
+                log.info('Retrieving enriched regions per known motif')
+                for f in glob.glob(os.path.join(self.outdir, 'knownResults', '*.motif')):
+                    os.system("cat "+f+" >> "+os.path.join(self.outdir, 'knownResults', 'all_motifs.motif'))
+                cmd = os.path.join(self.homer_path, 'homer2 find') + ' -s %s -m %s -o %s -p %s'
+                cmd = cmd % (os.path.join(self.outdir, 'targetgiven.seq'), os.path.join(self.outdir, 'knownResults', 'all_motifs.motif'), os.path.join(self.outdir, 'knownResults_motif_hits.bed'), n_cpu)
+                try:
+                    subprocess.check_output(args=cmd, shell=True, stderr=subprocess.STDOUT)
+                except subprocess.CalledProcessError as e:
+                    raise RuntimeError("command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output))
 
-            known_motif_hits = pd.read_csv(os.path.join(self.outdir, 'knownResults_motif_hits.bed'), sep='\t', header=None)
-            self.known_motif_hits = known_motif_hits.groupby(3)[0].apply(lambda g: g.values.tolist()).to_dict()
-
+                known_motif_hits = pd.read_csv(os.path.join(self.outdir, 'knownResults_motif_hits.bed'), sep='\t', header=None)
+                self.known_motif_hits = known_motif_hits.groupby(3)[0].apply(lambda g: g.values.tolist()).to_dict()
         if self.denovo_motifs is not None:
-            # Merge all motifs to file
-            for f in glob.glob(os.path.join(self.outdir, 'homerResults', '*.motif')):
-                os.system("cat "+f+" >> "+os.path.join(self.outdir, 'homerResults', 'all_motifs.motif'))
-            os.system("sed -i 's/\t.*BestGuess:/\t/g' "+os.path.join(self.outdir, 'homerResults', 'all_motifs.motif'))
-            cmd = os.path.join(self.homer_path, 'homer2 find') + ' -s %s -m %s -o %s -p %s'
-            cmd = cmd % (os.path.join(self.outdir, 'targetgiven.seq'), os.path.join(self.outdir, 'homerResults', 'all_motifs.motif'), os.path.join(self.outdir, 'homerResults_motif_hits.bed'), n_cpu)
-            try:
-                subprocess.check_output(args=cmd, shell=True, stderr=subprocess.STDOUT)
-            except subprocess.CalledProcessError as e:
-                raise RuntimeError("command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output))
+            if self.denovo_motifs.shape[0] != 0:
+                # Merge all motifs to file
+                log.info('Retrieving enriched regions per de novo motif')
+                for f in glob.glob(os.path.join(self.outdir, 'homerResults', '*.motif')):
+                    os.system("cat "+f+" >> "+os.path.join(self.outdir, 'homerResults', 'all_motifs.motif'))
+                os.system("sed -i 's/\t.*BestGuess:/\t/g' "+os.path.join(self.outdir, 'homerResults', 'all_motifs.motif'))
+                cmd = os.path.join(self.homer_path, 'homer2 find') + ' -s %s -m %s -o %s -p %s'
+                cmd = cmd % (os.path.join(self.outdir, 'targetgiven.seq'), os.path.join(self.outdir, 'homerResults', 'all_motifs.motif'), os.path.join(self.outdir, 'homerResults_motif_hits.bed'), n_cpu)
+                try:
+                    subprocess.check_output(args=cmd, shell=True, stderr=subprocess.STDOUT)
+                except subprocess.CalledProcessError as e:
+                    raise RuntimeError("command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output))
 
-            denovo_motif_hits = pd.read_csv(os.path.join(self.outdir, 'homerResults_motif_hits.bed'), sep='\t', header=None)
-            denovo_motif_hits  = denovo_motif_hits.groupby(3)[0].apply(lambda g: g.values.tolist()).to_dict()
-            self.denovo_motif_hits = {k:denovo_motif_hits[k] for k in denovo_motif_hits.keys() if not k[0].isdigit()}
+                denovo_motif_hits = pd.read_csv(os.path.join(self.outdir, 'homerResults_motif_hits.bed'), sep='\t', header=None)
+                denovo_motif_hits  = denovo_motif_hits.groupby(3)[0].apply(lambda g: g.values.tolist()).to_dict()
+                self.denovo_motif_hits = {k:denovo_motif_hits[k] for k in denovo_motif_hits.keys() if not k[0].isdigit()}
