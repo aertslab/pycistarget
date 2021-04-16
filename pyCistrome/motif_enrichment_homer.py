@@ -27,7 +27,7 @@ def homer_find_motifs_genome(homer_path: str,
                              mask: bool = True,
                              denovo: bool = False,
                              length: str = '8,10,12',
-                             n_cpu: int = 5,
+                             n_cpu: int = 1,
                              meme_path: str = None,
                              meme_collection_path: str = None,
                              cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
@@ -165,11 +165,11 @@ class Homer():
             except:
                 log.info('No de novo results found')
            
-        log.info("Annotating motifs for " + self.name + " with %s", cmd)     
+        log.info("Annotating motifs for " + self.name)     
         self.add_motif_annotation_homer()
-        log.info("Finding motif hits for " + self.name + " with %s", cmd)   
+        log.info("Finding motif hits for " + self.name)   
         self.find_motif_hits(n_cpu=1)
-        log.info("Getting cistromes for " + self.name + " with %s", cmd) 
+        log.info("Getting cistromes for " + self.name) 
         self.get_cistromes(self.cistrome_annotation)
         
     def load_known(self):
