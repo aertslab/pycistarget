@@ -1,13 +1,13 @@
 import logging
 import pandas as pd
 import sys
-import pyranges as pr # with pyfaidx
+import pyranges as pr 
 import ray
 import os
 import subprocess
 from pybiomart import Dataset
 
-#from .utils import *
+from .utils import *
 
 from IPython.display import HTML
 
@@ -106,7 +106,8 @@ class Homer():
                  denovo: bool = False,
                  length: str = '8,10,12',
                  meme_path: str = None,
-                 meme_collection_path: str = None):
+                 meme_collection_path: str = None,
+                 cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
         self.homer_path = homer_path
         self.bed_path = bed_path
         self.genome = genome
@@ -118,8 +119,11 @@ class Homer():
         self.name = name
         self.meme_path = meme_path
         self.meme_collection_path = meme_collection_path
+        self.cistrome_annotation = cistrome_annotation
         self.known_motifs = None
         self.denovo_motifs = None
+        self.known_motif_hits = None
+        self.denovo_motif_hits = None
         self.known_cistromes = None
         self.denovo_cistromes = None
         self.run()
@@ -157,9 +161,13 @@ class Homer():
                 self.denovo_motifs = self.load_denovo()
             except:
                 log.info('No de novo results found')
-                
+           
+        log.info("Annotating motifs for " + self.name + " with %s", cmd)     
         self.add_motif_annotation_homer()
+        log.info("Finding motif hits for " + self.name + " with %s", cmd)   
         self.find_motif_hits(n_cpu=1)
+        log.info("Getting cistromes for " + self.name + " with %s", cmd) 
+        self.get_cistromes(self.cistrome_annotation)
         
     def load_known(self):
         known = pd.read_csv(os.path.join(self.outdir, 'knownResults.txt'), sep='\t')
@@ -295,3 +303,15 @@ class Homer():
                 denovo_motif_hits = pd.read_csv(os.path.join(self.outdir, 'homerResults_motif_hits.bed'), sep='\t', header=None)
                 denovo_motif_hits  = denovo_motif_hits.groupby(3)[0].apply(lambda g: g.values.tolist()).to_dict()
                 self.denovo_motif_hits = {k:denovo_motif_hits[k] for k in denovo_motif_hits.keys() if not k[0].isdigit()}
+                
+    def get_cistromes(self, annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
+        if self.known_motif_hits is not None:
+            tfs = get_TF_list(self.known_motifs)
+            cistrome_dict = {tf: get_cistrome_per_TF(self.known_motif_hits,  get_motifs_per_TF(self.known_motifs, tf, motif_column = 'Motif Name', annotation=annotation)) for tf in tfs}
+            self.known_cistromes = cistrome_dict 
+        if self.denovo_motif_hits is not None:
+            tfs = get_TF_list(self.denovo_motifs)
+            cistrome_dict = {tf: get_cistrome_per_TF(self.denovo_motif_hits,  get_motifs_per_TF(self.denovo_motifs, tf, motif_column = 'Best Match/Details', annotation=annotation)) for tf in tfs}
+            self.denovo_cistromes = cistrome_dict 
+            self.denovo_cistromes.keys()
+                
