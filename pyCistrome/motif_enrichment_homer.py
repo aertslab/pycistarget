@@ -29,7 +29,8 @@ def homer_find_motifs_genome(homer_path: str,
                              length: str = '8,10,12',
                              n_cpu: int = 5,
                              meme_path: str = None,
-                             meme_collection_path: str = None):
+                             meme_collection_path: str = None,
+                             cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
     # Create logger
     level    = logging.INFO
     format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -62,7 +63,8 @@ def homer_find_motifs_genome(homer_path: str,
                                 denovo,
                                 length, 
                                 meme_path,
-                                meme_collection_path) for name in list(bed_paths.keys())])
+                                meme_collection_path,
+                                cistrome_annotation) for name in list(bed_paths.keys())])
     ray.shutdown()
     homer_dict={list(bed_paths.keys())[i]: homer_dict[i] for i in range(len(homer_dict))}
     return homer_dict
@@ -78,7 +80,8 @@ def homer_ray(homer_path: str,
               denovo: bool = False,
               length: str = '8,10,12',
               meme_path: str = None,
-              meme_collection_path: str = None):
+              meme_collection_path: str = None,
+              cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
     # Create logger
     level    = logging.INFO
     format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -90,7 +93,7 @@ def homer_ray(homer_path: str,
         os.mkdir(outdir)
     
     log.info('Running '+ name)
-    Homer_res = Homer(homer_path, bed_path, name, outdir, genome, size, mask, denovo, length, meme_path, meme_collection_path)
+    Homer_res = Homer(homer_path, bed_path, name, outdir, genome, size, mask, denovo, length, meme_path, meme_collection_path, cistrome_annotation)
     log.info(name + ' done!')
     return Homer_res
 
