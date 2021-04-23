@@ -1,11 +1,13 @@
 import logging
 import pandas as pd
 import sys
+import glob
 import pyranges as pr 
 import ray
 import os
 import subprocess
 from pybiomart import Dataset
+import shutil
 
 from .utils import *
 
@@ -36,7 +38,7 @@ def homer_find_motifs_genome(homer_path: str,
     format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
     handlers = [logging.StreamHandler(stream=sys.stdout)]
     logging.basicConfig(level = level, format = format, handlers = handlers)
-    log = logging.getLogger('cisTopic')
+    log = logging.getLogger('pyCistrome')
     # Save regions in dict to the output dir
     bed_paths={}
     bed_dir = os.path.join(outdir, 'regions_bed')
@@ -89,8 +91,9 @@ def homer_ray(homer_path: str,
     logging.basicConfig(level = level, format = format, handlers = handlers)
     log = logging.getLogger('pyCistrome')
     
-    if not os.path.exists(outdir):
-        os.mkdir(outdir)
+    if os.path.exists(outdir):
+        shutil.rmtree(outdir)
+    os.mkdir(outdir)
     
     log.info('Running '+ name)
     Homer_res = Homer(homer_path, bed_path, name, outdir, genome, size, mask, denovo, length, meme_path, meme_collection_path, cistrome_annotation)
@@ -278,6 +281,8 @@ class Homer():
             if self.known_motifs.shape[0] != 0:
                 # Merge all motifs to file
                 log.info('Retrieving enriched regions per known motif')
+                if os.path.exists(os.path.join(self.outdir, 'knownResults', 'all_motifs.motif')):
+                	os.remove(os.path.join(self.outdir, 'knownResults', 'all_motifs.motif'))
                 for f in glob.glob(os.path.join(self.outdir, 'knownResults', '*.motif')):
                     os.system("cat "+f+" >> "+os.path.join(self.outdir, 'knownResults', 'all_motifs.motif'))
                 cmd = os.path.join(self.homer_path, 'homer2 find') + ' -s %s -m %s -o %s -p %s'
@@ -293,6 +298,8 @@ class Homer():
             if self.denovo_motifs.shape[0] != 0:
                 # Merge all motifs to file
                 log.info('Retrieving enriched regions per de novo motif')
+                if os.path.exists(os.path.join(self.outdir, 'homerResults', 'all_motifs.motif')):
+                	os.remove(os.path.join(self.outdir, 'homerResults', 'all_motifs.motif'))
                 for f in glob.glob(os.path.join(self.outdir, 'homerResults', '*.motif')):
                     os.system("cat "+f+" >> "+os.path.join(self.outdir, 'homerResults', 'all_motifs.motif'))
                 os.system("sed -i 's/\t.*BestGuess:/\t/g' "+os.path.join(self.outdir, 'homerResults', 'all_motifs.motif'))

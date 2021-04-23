@@ -2,6 +2,8 @@ import pyranges as pr
 import pandas as pd
 import numpy as np
 import re
+import os
+import subprocess
 from pyscenic.genesig import Regulon
 from typing import Dict, List, Sequence
 import ssl
@@ -166,6 +168,7 @@ def tomtom(homer_motif_path: str,
     homer2meme(homer_motif_path)
     meme_motif_path = homer_motif_path.replace('.motif', '.meme')
     motif_name = os.path.splitext(os.path.basename(meme_motif_path))[0]
+    os.makedirs(os.path.join(os.path.dirname(homer_motif_path), 'tomtom', motif_name), exist_ok=True)
     cmd = os.path.join(meme_path, 'tomtom') + ' -thresh 0.3 -oc %s %s %s'
     cmd = cmd % (os.path.join(os.path.dirname(homer_motif_path), 'tomtom', motif_name), meme_motif_path, meme_collection_path)
     try:
