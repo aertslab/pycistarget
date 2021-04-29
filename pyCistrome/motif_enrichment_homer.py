@@ -140,7 +140,7 @@ class Homer():
         format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
         handlers = [logging.StreamHandler(stream=sys.stdout)]
         logging.basicConfig(level = level, format = format, handlers = handlers)
-        log = logging.getLogger('cisTopic')
+        log = logging.getLogger('pyCistrome')
         
         if self.mask == True and self.denovo == False:
             cmd = os.path.join(self.homer_path, 'findMotifsGenome.pl') + ' %s %s %s -preparsedDir %s -size %s -len %s -mask -nomotif -keepFiles'
@@ -212,8 +212,13 @@ class Homer():
                 ctx_motif_annotation = ctx_motif_annotation.loc[list(set(homer_motifs))].reset_index()
 
                 # Prepare homer annotation
-                homer_motif_annotation = pd.read_csv(os.path.abspath(os.path.join(os.path.dirname(self.homer_path), '..', 'motifs/extras/table.txt')),
+                try:
+                    homer_motif_annotation = pd.read_csv(os.path.abspath(os.path.join(os.path.dirname(self.homer_path), '..', 'motifs/extras/table.txt')),
                                                     sep='\t', error_bad_lines=False).iloc[:,[1,11]].dropna()
+                except:
+                    homer_motif_annotation = pd.read_csv(os.path.abspath(os.path.join(os.path.dirname(self.homer_path), '..', 'motifs/extras/motifTable.txt')),
+                                                    sep='\t', error_bad_lines=False).iloc[:,[1,11]].dropna()
+                    homer_motif_annotation.columns = ['Name', 'Symbol'] 
                 # If not human, convert by homology
                 if species is not 'homo_sapiens':
                     dataset = Dataset(name='hsapiens_gene_ensembl',
