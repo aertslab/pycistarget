@@ -14,7 +14,13 @@ from .utils import *
 
 
 @ray.remote
-def run_cluster_buster_for_motif(cluster_buster_path, fasta_filename, motif_filename, motif_name, i, nr_motifs, verbose = False):
+def run_cluster_buster_for_motif(cluster_buster_path: str,
+                                fasta_filename: str,
+                                motif_filename: str,
+                                motif_name: str,
+                                i: int,
+                                nr_motifs: int,
+                                verbose: Optional[bool] = False):
     # Create logger
     level    = logging.INFO
     format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -75,7 +81,7 @@ def run_cluster_buster_for_motif(cluster_buster_path, fasta_filename, motif_file
     crm_scores_df.columns=[motif_name]
     return crm_scores_df
 
-def get_sequence_names_from_fasta(fasta_filename):
+def get_sequence_names_from_fasta(fasta_filename: str):
     sequence_names_list = list()
     sequence_names_set = set()
     duplicated_sequences = False
@@ -106,28 +112,34 @@ def get_sequence_names_from_fasta(fasta_filename):
     return sequence_names_list
 
 
-def pyranges2names(regions):
+def pyranges2names(regions: pr.PyRanges):
     return ['>'+str(chrom) + ":" + str(start) + '-' + str(end) for chrom, start, end in zip(list(regions.Chromosome), list(regions.Start), list(regions.End))]
 
-def grep(l, s):
+def grep(l: List,
+         s: str):
     return [i for i in l if s in i]
 
-def cluster_buster(cbust_path, input_data, outdir, path_to_fasta, path_to_motifs, n_cpu=1, motifs=None, verbose=False):
+def cluster_buster(cbust_path: str,
+                 region_sets: Dict[str: pr.PyRanges],
+                 outdir: str,
+                 path_to_fasta: str,
+                 path_to_motifs: str,
+                 n_cpu: Optional[int] = 1,
+                 motifs: Optional[List[str]] = None,
+                 verbose: Optional[bool] = False):
     # Create logger
     level    = logging.INFO
     format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
     handlers = [logging.StreamHandler(stream=sys.stdout)]
     logging.basicConfig(level = level, format = format, handlers = handlers)
     log = logging.getLogger('cisTopic')
-    # Format input data
-    pr_regions_dict = format_input_regions(input_data)
     # Generate fasta file
     if not os.path.exists(outdir):
         os.mkdir(outdir)  
     if not os.path.exists(outdir+'regions.fa'):
         log.info('Getting sequences')
-        pr_regions_names_dict = {key: pyranges2names(pr_regions_dict[key]) for key in pr_regions_dict.keys()}
-        pr_sequence_list = [pd.DataFrame([pr_regions_names_dict[key], pr.get_fasta(pr_regions_dict[key], path_to_fasta).tolist()], index=['Name', 'Sequence'], columns=pr_regions_names_dict[key]) for key in pr_regions_dict.keys()]
+        pr_regions_names_dict = {key: pyranges2names(region_sets[key]) for key in region_sets.keys()}
+        pr_sequence_list = [pd.DataFrame([region_sets[key], pr.get_fasta(region_sets[key], path_to_fasta).tolist()], index=['Name', 'Sequence'], columns=region_sets[key]) for key in region_sets.keys()]
         seq_df = pd.concat(pr_sequence_list, axis=1)
         seq_df = seq_df.loc[:,~seq_df.columns.duplicated()]
         seq_df.T.to_csv(outdir+'regions.fa', header=False, index=False, sep='\n')
@@ -151,51 +163,59 @@ def cluster_buster(cbust_path, input_data, outdir, path_to_fasta, path_to_motifs
     return crm_df
 
 
-def find_enriched_motifs(crm_df, group_dict, var_features=None, contrasts=None, contrast_name='contrast', adjpval_thr=0.05, log2fc_thr=1, n_cpu=1, tmp_dir=None, memory=None, object_store_memory=None):
+def find_enriched_motifs(crm_df: Union[pd.DataFrame, 'cisTargetDatabase'],
+                        region_sets: Dict[pr.PyRanges],
+                        var_features: Optional[List[str]] = None,
+                        contrasts: Optional[List] = None,
+                        contrast_name: Optional[str] = 'contrast',
+                        adjpval_thr: Optional[float] = 0.05,
+                        log2fc_thr: Optional[float] = 1,
+                        n_cpu: Optional[int] = 1,
+                        **kwargs):
     # Create cisTopic logger
     level    = logging.INFO
     format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
     handlers = [logging.StreamHandler(stream=sys.stdout)]
     logging.basicConfig(level = level, format = format, handlers = handlers)
-    log = logging.getLogger('cisTopic')
+    log = logging.getLogger('pyCistrome')
     
-    contrast_keys=[x for x in group_dict.keys()]
-    if isinstance(group_dict[contrast_keys[0]], pr.PyRanges):
-        group_dict = {key: group_dict[key].df for key in group_dict.keys()}
+    contrast_keys=[x for x in region_sets.keys()]
+    if isinstance(region_sets[contrast_keys[0]], pr.PyRanges):
+        region_sets = {key: region_sets[key].df for key in region_sets.keys()}
     
-    if isinstance(group_dict[contrast_keys[0]], pd.DataFrame):
-        if group_dict[contrast_keys[0]].shape[1] >= 3:
-            group_dict = {key: [group_dict[key].iloc[i,0] + ':' + str(group_dict[key].iloc[i,1]) + '-' + str(group_dict[key].iloc[i,2]) for i in range(len(group_dict[key]))] for key in group_dict.keys()}
+    if isinstance(region_sets[contrast_keys[0]], pd.DataFrame):
+        if region_sets[contrast_keys[0]].shape[1] >= 3:
+            region_sets = {key: [region_sets[key].iloc[i,0] + ':' + str(region_sets[key].iloc[i,1]) + '-' + str(region_sets[key].iloc[i,2]) for i in range(len(region_sets[key]))] for key in region_sets.keys()}
         else:
-            group_dict={key: group_dict[key].index.tolist() for key in group_dict.keys()}
+            region_sets = {key: region_sets[key].index.tolist() for key in region_sets.keys()}
 
     if contrasts == None:
-        levels=list(group_dict.keys())
+        levels=list(region_sets.keys())
         contrasts=[[[x], levels[:levels.index(x)] + levels[levels.index(x)+1:]] for x in levels]
         contrasts_names=levels
     else:
         contrasts_names=['_'.join(contrasts[i][0]) + '_VS_' +'_'.join(contrasts[i][1]) for i in range(len(contrasts))]
     # Get region groups
-    barcode_groups = [[list(set(sum([group_dict[key] for key in contrasts[x][0]],[]))), list(set(sum([group_dict[key] for key in contrasts[x][1]],[])))] for x in range(len(contrasts))]
+    region_groups = [[list(set(sum([region_sets[key] for key in contrasts[x][0]],[]))), list(set(sum([region_sets[key] for key in contrasts[x][1]],[])))] for x in range(len(contrasts))]
 
     # Subset imputed accessibility matrix
     if var_features is not None:
         crm_df = crm_df.loc[var_features,:]
     # Compute p-val and log2FC
-    ray.init(num_cpus=n_cpu, temp_dir = tmp_dir, memory=memory, object_store_memory=object_store_memory)
-    markers_list=ray.get([markers_ray.remote(crm_df, barcode_groups[i], contrasts_names[i], adjpval_thr=adjpval_thr, log2fc_thr=log2fc_thr) for i in range(len(contrasts))])
+    ray.init(num_cpus=n_cpu, **kwargs)
+    markers_list=ray.get([markers_ray.remote(crm_df, region_groups[i], contrasts_names[i], adjpval_thr=adjpval_thr, log2fc_thr=log2fc_thr) for i in range(len(contrasts))])
     ray.shutdown()
     markers_dict={contrasts_names[i]: markers_list[i] for i in range(len(markers_list))} 
     return markers_dict
 
 
-def add_motif_annotation(motif_enrichment_dict,
-                       specie,
-                       version,
-                       path_to_motif_annotations=None,
-                       motif_similarity_fdr= 0.001,
-                       orthologous_identity_threshold= 0.0,
-                       add_logo=True):
+def add_motif_annotation(motif_enrichment_dict: Dict[str, pd.DataFrame],
+                       specie: str,
+                       version: str,
+                       path_to_motif_annotations: Optional[str] = None,
+                       motif_similarity_fdr: Optional[float] = 0.001,
+                       orthologous_identity_threshold: Optional[float] = 0.0,
+                       add_logo: Optional[bool] = True):
     # Read motif annotation. 
     annot_df = load_motif_annotations(specie,
                                       version,
@@ -214,7 +234,8 @@ def add_motif_annotation(motif_enrichment_dict,
         
     return motif_enrichment_dict_wAnnot 
 
-def cbust_results(motif_enrichment_dict_wAnnot, name=None):
+def cbust_results(motif_enrichment_dict_wAnnot: Dict[str, pd.DataFrame],
+                 name: Optional[str] = None):
     if name is None:
         motif_enrichment_table=pd.concat([motif_enrichment_dict[key] for key in motif_enrichment_dict.keys()], axis=0, sort=False)
     else:
