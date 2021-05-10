@@ -9,7 +9,7 @@ from IPython.display import HTML
 ssl._create_default_https_context = ssl._create_unverified_context
 pd.set_option('display.max_colwidth', None)
 
-from .diff_features import *
+from pycisTopic.diff_features import *
 from .utils import *
 
 
