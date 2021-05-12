@@ -120,7 +120,7 @@ def grep(l: List,
     return [i for i in l if s in i]
 
 def cluster_buster(cbust_path: str,
-                 region_sets: Dict[str: pr.PyRanges],
+                 region_sets: Dict[str, pr.PyRanges],
                  outdir: str,
                  path_to_fasta: str,
                  path_to_motifs: str,
@@ -164,7 +164,7 @@ def cluster_buster(cbust_path: str,
 
 
 def find_enriched_motifs(crm_df: Union[pd.DataFrame, 'cisTargetDatabase'],
-                        region_sets: Dict[pr.PyRanges],
+                        region_sets: Dict[str, pr.PyRanges],
                         var_features: Optional[List[str]] = None,
                         contrasts: Optional[List] = None,
                         contrast_name: Optional[str] = 'contrast',

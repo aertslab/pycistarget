@@ -225,3 +225,14 @@ def get_motifs_per_TF(motif_enrichment_table: pd.DataFrame,
 def get_cistrome_per_TF(motif_hits_dict,
                        motifs):
     return list(set(sum([motif_hits_dict[x] for x in motifs if x in motif_hits_dict.keys()],[])))
+    
+def inplace_change(filename, old_string, new_string):
+    # Safely read the input filename using 'with'
+    with open(filename) as f:
+        s = f.read()
+        if old_string not in s:
+            return
+    # Safely write the changed content, if found in the file
+    with open(filename, 'w') as f:
+        s = s.replace(old_string, new_string)
+        f.write(s)
