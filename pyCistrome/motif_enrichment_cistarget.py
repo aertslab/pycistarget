@@ -130,7 +130,7 @@ def overlap_regions_w_cistarget_db(pr_regions: pr.PyRanges,
                 str(min_fraction_overlap)))
     return joined_regions, pr_ctx_input_overlap 
 
-class cisTargetResult:
+class cisTarget:
     def __init__(self, pr_regions: pr.PyRanges, name: str, species: str, log):
         self.input_regions = pr_regions
         self.name = name
@@ -256,7 +256,7 @@ class cisTargetResult:
                                 for chrom, start, end 
                                 in zip(df_joined_regions['Chromosome'].values.to_list(), df_joined_regions['Start_ctx'].values, df_joined_regions['End_ctx'].values)]
         ctx_to_input = {ctx_region: input_region for ctx_region, input_region in zip(ctx_region_names, input_region_names)}
-        self.tf_to_regions = {TF: [ctx_to_input[region] for region in tf_to_target_regions_dict[TF]] for TF in tf_to_target_regions_dict.keys()}
+        self.cistromes = {TF: [ctx_to_input[region] for region in tf_to_target_regions_dict[TF]] for TF in tf_to_target_regions_dict.keys()}
 
 @ray.remote
 def ctx_ray(ctx_db: cisTargetDatabase,
@@ -295,7 +295,7 @@ def ctx_ray(ctx_db: cisTargetDatabase,
     logging.basicConfig(level = level, format = format, handlers = handlers)
     log = logging.getLogger('pyCistrome')
     log.info('Running '+ name)
-    ctx_result = cisTargetResult(pr_regions, name, species, log)
+    ctx_result = cisTarget(pr_regions, name, species, log)
     log.info('Overlapping regions from {} with cistarget database: {}'.format(name, ctx_db.name))
     ctx_result.prepare_regions(ctx_db)
     ctx_result.run(ctx_db)
@@ -310,7 +310,8 @@ def cistarget_motif_enrichment(ctx_db: cisTargetDatabase,
                                auc_threshold: float = 0.005,
                                nes_threshold: float = 3.0,
                                rank_threshold: int = 20000,
-                               n_cpu : int = 5):
+                               n_cpu : int = 5,
+                               **kwargs):
     """
     Finds features of which the rankings are enriched in the input region set
     :param ctx_db: cistarget database
@@ -321,6 +322,7 @@ def cistarget_motif_enrichment(ctx_db: cisTargetDatabase,
     :param nes_threshold: only the enriched regions with normalized enrichment score (NES) higher than the threshold will be returned
     :param rank_threshold: The total number of ranked regions to take into account when creating a recovery curve
     :param n_cpu: number of cores to use
+    :param **kwargs: additional parameters to pass to ray.init.
     :return: a dictionary of pandas data frames with enriched features
     """
     # Create logger
@@ -340,7 +342,7 @@ def cistarget_motif_enrichment(ctx_db: cisTargetDatabase,
     ctx_db.load_rankings_for_input_regions(all_regions_ctx_overlap)
     log.info('Done loading rankings for {} regions'.format(len(all_regions_ctx_overlap)))
     #run cistarget analysis in parallel
-    ray.init(num_cpus=n_cpu); ctx_dict = ray.get([ctx_ray.remote(ctx_db = ctx_db, 
+    ray.init(num_cpus=n_cpu, **kwargs); ctx_dict = ray.get([ctx_ray.remote(ctx_db = ctx_db, 
                                                                  pr_regions = pr_regions_dict[key], 
                                                                  name = key,  
                                                                  species = species,
