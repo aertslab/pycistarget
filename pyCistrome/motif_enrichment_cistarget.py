@@ -179,7 +179,7 @@ class cisTarget:
                        motif_similarity_fdr: Optional[float] = 0.001,
                        orthologous_identity_threshold: Optional[float] = 0.0,
                        add_logo: Optional[bool] = True):
-        # Create DEM logger
+        # Create cisTarget logger
         level = logging.INFO
         format = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
         handlers = [logging.StreamHandler(stream=sys.stdout)]
@@ -235,6 +235,13 @@ def run_cistarget(ctx_db: cisTargetDatabase,
     :param **kwargs: additional parameters to pass to ray.init.
     :return: a dictionary of pandas data frames with enriched features
     """
+    # Create cisTarget logger
+    level = logging.INFO
+    format = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+    handlers = [logging.StreamHandler(stream=sys.stdout)]
+    logging.basicConfig(level=level, format=format, handlers=handlers)
+    log = logging.getLogger('cisTarget')
+    
     # Load database
     if isinstance(ctx_db, str):
         ctx_db = cisTargetDatabase(ctx_db,
@@ -253,6 +260,7 @@ def run_cistarget(ctx_db: cisTargetDatabase,
                                             rank_threshold = rank_threshold) for key in list(region_sets.keys())])
     ray.shutdown()
     ctx_dict = {key: ctx_result for key, ctx_result in zip(list(region_sets.keys()), ctx_dict)}
+    log.info('Done!')
     return ctx_dict
         
 @ray.remote
