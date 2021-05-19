@@ -13,93 +13,6 @@ from .utils import *
 
 from IPython.display import HTML
 
-def homer_results(homer_dict, name, results='known'):
-    if results == 'known':
-        file = os.path.join(homer_dict[name].outdir, 'knownResults.html')
-    if results == 'denovo':
-        file = os.path.join(homer_dict[name].outdir, 'homerResults.html')
-    inplace_change(file, 'width="505" height="50"', 'width="1010" height="200"')
-    return HTML(file)
-
-def run_homer(homer_path: str,
-                             region_sets: Dict[str, pr.PyRanges],
-                             outdir: str,
-                             genome: str,
-                             size: str = 'given',
-                             mask: bool = True,
-                             denovo: bool = False,
-                             length: str = '8,10,12',
-                             n_cpu: int = 1,
-                             meme_path: str = None,
-                             meme_collection_path: str = None,
-                             cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
-    # Create logger
-    level    = logging.INFO
-    format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
-    handlers = [logging.StreamHandler(stream=sys.stdout)]
-    logging.basicConfig(level = level, format = format, handlers = handlers)
-    log = logging.getLogger('Homer')
-    # Save regions in dict to the output dir
-    bed_paths={}
-    bed_dir = os.path.join(outdir, 'regions_bed')
-    # Create bed directory
-    if not os.path.exists(outdir):
-        os.mkdir(outdir)
-    if not os.path.exists(bed_dir):
-        os.mkdir(bed_dir)
-    # Create bed files for Homer
-    for key in region_sets.keys():
-        bed_path = os.path.join(bed_dir, key+'.bed')
-        region_sets[key].Name =  coord_to_region_names(region_sets[key])
-        region_sets[key].to_bed(path=bed_path, keep=False, compression='infer', chain=False)
-        bed_paths[key] = bed_path
-    # Run Homer
-    ray.init(num_cpus=n_cpu)
-    homer_dict = ray.get([homer_ray.remote(homer_path,
-                                bed_paths[name],
-                                name,
-                                outdir + name, 
-                                genome,
-                                size,
-                                mask,
-                                denovo,
-                                length, 
-                                meme_path,
-                                meme_collection_path,
-                                cistrome_annotation) for name in list(bed_paths.keys())])
-    ray.shutdown()
-    homer_dict={list(bed_paths.keys())[i]: homer_dict[i] for i in range(len(homer_dict))}
-    return homer_dict
-
-@ray.remote
-def homer_ray(homer_path: str,
-              bed_path: str,
-              name: str,
-              outdir: str,
-              genome: str,
-              size: str = 'given',
-              mask: bool = True,
-              denovo: bool = False,
-              length: str = '8,10,12',
-              meme_path: str = None,
-              meme_collection_path: str = None,
-              cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
-    # Create logger
-    level    = logging.INFO
-    format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
-    handlers = [logging.StreamHandler(stream=sys.stdout)]
-    logging.basicConfig(level = level, format = format, handlers = handlers)
-    log = logging.getLogger('Homer')
-    
-    if os.path.exists(outdir):
-        shutil.rmtree(outdir)
-    os.mkdir(outdir)
-    
-    log.info('Running '+ name)
-    Homer_res = Homer(homer_path, bed_path, name, outdir, genome, size, mask, denovo, length, meme_path, meme_collection_path, cistrome_annotation)
-    log.info(name + ' done!')
-    return Homer_res
-
 class Homer(): 
     def __init__(self,
                  homer_path: str,
@@ -329,4 +242,94 @@ class Homer():
             cistrome_dict = {tf: get_cistrome_per_TF(self.denovo_motif_hits,  get_motifs_per_TF(self.denovo_motifs, tf, motif_column = 'Best Match/Details', annotation=annotation)) for tf in tfs}
             self.denovo_cistromes = cistrome_dict 
             self.denovo_cistromes.keys()
+ 
+# Run Homer           
+def run_homer(homer_path: str,
+                             region_sets: Dict[str, pr.PyRanges],
+                             outdir: str,
+                             genome: str,
+                             size: str = 'given',
+                             mask: bool = True,
+                             denovo: bool = False,
+                             length: str = '8,10,12',
+                             n_cpu: int = 1,
+                             meme_path: str = None,
+                             meme_collection_path: str = None,
+                             cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
+    # Create logger
+    level    = logging.INFO
+    format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+    handlers = [logging.StreamHandler(stream=sys.stdout)]
+    logging.basicConfig(level = level, format = format, handlers = handlers)
+    log = logging.getLogger('Homer')
+    # Save regions in dict to the output dir
+    bed_paths={}
+    bed_dir = os.path.join(outdir, 'regions_bed')
+    # Create bed directory
+    if not os.path.exists(outdir):
+        os.mkdir(outdir)
+    if not os.path.exists(bed_dir):
+        os.mkdir(bed_dir)
+    # Create bed files for Homer
+    for key in region_sets.keys():
+        bed_path = os.path.join(bed_dir, key+'.bed')
+        region_sets[key].Name =  coord_to_region_names(region_sets[key])
+        region_sets[key].to_bed(path=bed_path, keep=False, compression='infer', chain=False)
+        bed_paths[key] = bed_path
+    # Run Homer
+    ray.init(num_cpus=n_cpu)
+    homer_dict = ray.get([homer_ray.remote(homer_path,
+                                bed_paths[name],
+                                name,
+                                outdir + name, 
+                                genome,
+                                size,
+                                mask,
+                                denovo,
+                                length, 
+                                meme_path,
+                                meme_collection_path,
+                                cistrome_annotation) for name in list(bed_paths.keys())])
+    ray.shutdown()
+    homer_dict={list(bed_paths.keys())[i]: homer_dict[i] for i in range(len(homer_dict))}
+    return homer_dict
+
+@ray.remote
+def homer_ray(homer_path: str,
+              bed_path: str,
+              name: str,
+              outdir: str,
+              genome: str,
+              size: str = 'given',
+              mask: bool = True,
+              denovo: bool = False,
+              length: str = '8,10,12',
+              meme_path: str = None,
+              meme_collection_path: str = None,
+              cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
+    # Create logger
+    level    = logging.INFO
+    format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+    handlers = [logging.StreamHandler(stream=sys.stdout)]
+    logging.basicConfig(level = level, format = format, handlers = handlers)
+    log = logging.getLogger('Homer')
+    
+    if os.path.exists(outdir):
+        shutil.rmtree(outdir)
+    os.mkdir(outdir)
+    
+    log.info('Running '+ name)
+    Homer_res = Homer(homer_path, bed_path, name, outdir, genome, size, mask, denovo, length, meme_path, meme_collection_path, cistrome_annotation)
+    log.info(name + ' done!')
+    return Homer_res
+            
+# Utils
+## Show results
+def homer_results(homer_dict, name, results='known'):
+    if results == 'known':
+        file = os.path.join(homer_dict[name].outdir, 'knownResults.html')
+    if results == 'denovo':
+        file = os.path.join(homer_dict[name].outdir, 'homerResults.html')
+    inplace_change(file, 'width="505" height="50"', 'width="1010" height="200"')
+    return HTML(file)
                 

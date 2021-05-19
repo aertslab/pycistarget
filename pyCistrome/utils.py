@@ -5,7 +5,7 @@ import re
 import os
 import subprocess
 from pyscenic.genesig import Regulon
-from typing import Dict, List, Sequence
+from typing import Dict, List, Sequence, Union
 import ssl
 
 def coord_to_region_names(coord):
@@ -43,7 +43,8 @@ def regions_overlap(target, query):
     selected_regions = [str(chrom) + ":" + str(start) + '-' + str(end) for chrom, start, end in zip(list(target_pr.Chromosome), list(target_pr.Start), list(target_pr.End))]
     return selected_regions
 
-def region_sets_to_signature(pr_region_set: pr.PyRanges,region_set_name:str, weights_col: str = None) -> Regulon:
+def region_sets_to_signature(region_set: list,
+                             region_set_name:str) -> Regulon:
     """
     generates a gene signature object from a dict of PyRanges objects
     :param pr_region_set: PyRanges object to be converted in genesignature object
@@ -52,11 +53,8 @@ def region_sets_to_signature(pr_region_set: pr.PyRanges,region_set_name:str, wei
     :return gene signature object of input region dict
     """
     
-    if weights_col in pr_region_set.columns and weights_col != None:
-        weights = pr_region_set.as_df()[weights_col]
-    else:
-        weights = np.ones(len(pr_region_set))
-    regions_name = coord_to_region_names(pr_region_set)
+    weights = np.ones(len(region_set))
+    regions_name = region_set
     signature = Regulon(
                     name                 = region_set_name,
                     gene2weight          = dict(zip(regions_name, weights)),
@@ -218,10 +216,10 @@ def get_motifs_per_TF(motif_enrichment_table: pd.DataFrame,
         motifs= []
         for name in annotation:
             if name in motif_enrichment_table:
-                    if name is not 'Index':
+                    if motif_column != 'Index':
                         motifs = motifs + motif_enrichment_table[motif_enrichment_table[name].str.contains(tf, na=False)][motif_column].tolist()
                     else:
-                        motifs = motifs + motif_enrichment_table[motif_enrichment_table.index.tolist().str.contains(tf, na=False)].index.tolist()
+                        motifs = motifs + motif_enrichment_table[motif_enrichment_table[name].str.contains(tf, na=False)].index.tolist()
         return list(set(motifs))
         
 def get_cistrome_per_TF(motif_hits_dict,
@@ -244,3 +242,36 @@ def get_position_index(query_list, target_list):
     index = (d[k] for k in query_list)
     return list(index)
 
+def target_to_query(target: Union[pr.PyRanges, List[str]],
+         query: Union[pr.PyRanges, List[str]],
+         fraction_overlap: float = 0.4):
+    #Read input
+    if isinstance(target, str):
+        target_pr=pr.read_bed(target)
+    if isinstance(target, list):
+        target_pr=pr.PyRanges(region_names_to_coordinates(target))
+    if isinstance(target, pr.PyRanges):
+        target_pr=target
+    # Read input
+    if isinstance(query, str):
+        query_pr=pr.read_bed(query)
+    if isinstance(query, list):
+        query_pr=pr.PyRanges(region_names_to_coordinates(query))
+    if isinstance(query, pr.PyRanges):
+        query_pr=query
+    
+    join_pr = target_pr.join(query_pr, report_overlap = True)
+    join_pr.Overlap_query =  join_pr.Overlap/(join_pr.End_b - join_pr.Start_b)
+    join_pr.Overlap_target =  join_pr.Overlap/(join_pr.End - join_pr.Start)
+    join_pr = join_pr[(join_pr.Overlap_query > fraction_overlap) | (join_pr.Overlap_target > fraction_overlap)]
+    target_regions = [str(chrom) + ":" + str(start) + '-' + str(end) for chrom, start, end in zip(list(join_pr.Chromosome), list(join_pr.Start), list(join_pr.End))]
+    query_regions = [str(chrom) + ":" + str(start) + '-' + str(end) for chrom, start, end in zip(list(join_pr.Chromosome), list(join_pr.Start_b), list(join_pr.End_b))]
+    target_to_query = pd.DataFrame([target_regions, query_regions], index=['Target', 'Query']).T
+    return target_to_query
+    
+def get_cistromes_per_region_set(motif_enrichment_region_set,
+                  motif_hits_regions_set,
+                  annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
+    tfs = get_TF_list(motif_enrichment_region_set)
+    cistromes_per_region_set = {tf: get_cistrome_per_TF(motif_hits_regions_set,  get_motifs_per_TF(motif_enrichment_region_set, tf, motif_column = 'Index', annotation=annotation)) for tf in tfs}
+    return cistromes_per_region_set
