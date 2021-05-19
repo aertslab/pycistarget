@@ -168,7 +168,7 @@ class cisTarget:
         # Cistromes
         log.info("Getting cistromes for " + self.name)
         cistromes_db = get_cistromes_per_region_set(self.motif_enrichment, self.motif_hits['Database'], self.annotation)
-        cistromes_db = get_cistromes_per_region_set(self.motif_enrichment, self.motif_hits['Region_set'], self.annotation)
+        cistromes_rs = get_cistromes_per_region_set(self.motif_enrichment, self.motif_hits['Region_set'], self.annotation)
         self.cistromes = {'Database': cistromes_db, 'Region_set': cistromes_rs}
         
     def add_motif_annotation_cistarget(self,
