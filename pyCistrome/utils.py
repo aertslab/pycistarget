@@ -218,8 +218,10 @@ def get_motifs_per_TF(motif_enrichment_table: pd.DataFrame,
         motifs= []
         for name in annotation:
             if name in motif_enrichment_table:
-                    motifs = motifs + motif_enrichment_table[motif_enrichment_table[name].str.contains(tf, na=False)][motif_column].tolist()
-    
+                    if name is not 'Index':
+                        motifs = motifs + motif_enrichment_table[motif_enrichment_table[name].str.contains(tf, na=False)][motif_column].tolist()
+                    else:
+                        motifs = motifs + motif_enrichment_table[motif_enrichment_table.index.tolist().str.contains(tf, na=False)].index.tolist()
         return list(set(motifs))
         
 def get_cistrome_per_TF(motif_hits_dict,
@@ -236,3 +238,9 @@ def inplace_change(filename, old_string, new_string):
     with open(filename, 'w') as f:
         s = s.replace(old_string, new_string)
         f.write(s)
+        
+def get_position_index(query_list, target_list):
+    d = {k: v for v, k in enumerate(target_list)}
+    index = (d[k] for k in query_list)
+    return list(index)
+

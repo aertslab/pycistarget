@@ -21,7 +21,7 @@ def homer_results(homer_dict, name, results='known'):
     inplace_change(file, 'width="505" height="50"', 'width="1010" height="200"')
     return HTML(file)
 
-def homer_find_motifs_genome(homer_path: str,
+def run_homer(homer_path: str,
                              region_sets: Dict[str, pr.PyRanges],
                              outdir: str,
                              genome: str,
@@ -38,7 +38,7 @@ def homer_find_motifs_genome(homer_path: str,
     format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
     handlers = [logging.StreamHandler(stream=sys.stdout)]
     logging.basicConfig(level = level, format = format, handlers = handlers)
-    log = logging.getLogger('pyCistrome')
+    log = logging.getLogger('Homer')
     # Save regions in dict to the output dir
     bed_paths={}
     bed_dir = os.path.join(outdir, 'regions_bed')
@@ -89,7 +89,7 @@ def homer_ray(homer_path: str,
     format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
     handlers = [logging.StreamHandler(stream=sys.stdout)]
     logging.basicConfig(level = level, format = format, handlers = handlers)
-    log = logging.getLogger('pyCistrome')
+    log = logging.getLogger('Homer')
     
     if os.path.exists(outdir):
         shutil.rmtree(outdir)
@@ -140,7 +140,7 @@ class Homer():
         format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
         handlers = [logging.StreamHandler(stream=sys.stdout)]
         logging.basicConfig(level = level, format = format, handlers = handlers)
-        log = logging.getLogger('pyCistrome')
+        log = logging.getLogger('Homer')
         
         if self.mask == True and self.denovo == False:
             cmd = os.path.join(self.homer_path, 'findMotifsGenome.pl') + ' %s %s %s -preparsedDir %s -size %s -len %s -mask -nomotif -keepFiles'
@@ -191,7 +191,7 @@ class Homer():
         format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
         handlers = [logging.StreamHandler(stream=sys.stdout)]
         logging.basicConfig(level = level, format = format, handlers = handlers)
-        log = logging.getLogger('pyCistrome')
+        log = logging.getLogger('Homer')
         
         if self.known_motifs is not None:
             if self.known_motifs.shape[0] != 0:
@@ -280,7 +280,7 @@ class Homer():
         format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
         handlers = [logging.StreamHandler(stream=sys.stdout)]
         logging.basicConfig(level = level, format = format, handlers = handlers)
-        log = logging.getLogger('pyCistrome')
+        log = logging.getLogger('Homer')
         
         if self.known_motifs is not None:
             if self.known_motifs.shape[0] != 0:
