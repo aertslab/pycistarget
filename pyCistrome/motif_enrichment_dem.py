@@ -200,7 +200,7 @@ class DEM():
         # Read motif annotation. 
         try:
             annot_df = load_motif_annotations(self.specie,
-                                          self.version,
+                                          self.annotation_version,
                                           fname=self.path_to_motif_annotations,
                                           motif_similarity_fdr = motif_similarity_fdr,
                                           orthologous_identity_threshold = orthologous_identity_threshold)
@@ -211,7 +211,7 @@ class DEM():
             motif_enrichment_dict_w_annot = self.motif_enrichment
         # Add info to elements in dict
         if add_logo == True:
-            for key in motif_enrichment_dict.keys():
+            for key in self.motif_enrichment.keys():
                 motif_enrichment_dict_w_annot[key]['Logo']=['<img src="' +'https://motifcollections.aertslab.org/' + self.annotation_version + '/logos/'+ motif_enrichment_dict_w_annot[key].index.tolist()[i] + '.png' + '" width="200" >' for i in range(motif_enrichment_dict_w_annot[key].shape[0])]
             if annot_df is not None:
                 motif_enrichment_dict_w_annot = {key: motif_enrichment_dict_w_annot[key].loc[:,['Logo', 'Contrast', 'Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot', 'Log2FC', 'Adjusted_pval', 'Mean_fg', 'Mean_bg', 'Motif_hit_thr', 'Number_of_regions']] for key in motif_enrichment_dict_w_annot.keys()}
