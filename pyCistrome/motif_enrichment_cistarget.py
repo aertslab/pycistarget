@@ -13,6 +13,10 @@ from tqdm import tqdm
 import logging
 import ray
 import sys
+import ssl
+from IPython.display import HTML
+ssl._create_default_https_context = ssl._create_unverified_context
+pd.set_option('display.max_colwidth', None)
 
 from .utils import *
 
@@ -281,7 +285,7 @@ def ctx_ray(ctx_db: cisTargetDatabase,
 ## Show results 
 def cistarget_results(cistarget_dict,
                     name: Optional[str] = None):
-        motif_enrichment_dict = cistarget_dict
+        motif_enrichment_dict = {key: cistarget_dict[key].motif_enrichment for key in cistarget_dict.keys()}
         if name is None:
             motif_enrichment_table=pd.concat([motif_enrichment_dict[key] for key in motif_enrichment_dict.keys()], axis=0, sort=False)
         else:
