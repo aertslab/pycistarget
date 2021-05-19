@@ -204,11 +204,11 @@ class DEM():
                                           fname=self.path_to_motif_annotations,
                                           motif_similarity_fdr = motif_similarity_fdr,
                                           orthologous_identity_threshold = orthologous_identity_threshold)
-            motif_enrichment_dict_w_annot = {key: pd.concat([self.motif_enrichment_dict[key], annot_df], axis=1, sort=False).loc[self.motif_enrichment_dict[key].index.tolist(),:] for key in self.motif_enrichment_dict.keys()}
+            motif_enrichment_dict_w_annot = {key: pd.concat([self.motif_enrichment[key], annot_df], axis=1, sort=False).loc[self.motif_enrichment[key].index.tolist(),:] for key in self.motif_enrichment.keys()}
         except:
             log.info('Unable to load annotation for ' + self.specie)
             annot_df = None
-            motif_enrichment_dict_w_annot = self.motif_enrichment_dict
+            motif_enrichment_dict_w_annot = self.motif_enrichment
         # Add info to elements in dict
         if add_logo == True:
             for key in motif_enrichment_dict.keys():
