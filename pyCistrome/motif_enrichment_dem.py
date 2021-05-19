@@ -172,7 +172,7 @@ class DEM():
                                              mean_fg_thr = self.mean_fg_thr,
                                              motif_hit_thr = self.motif_hit_thr) for i in range(len(contrasts))])
         ray.shutdown()
-        motif_enrichment = {contrasts_names[i]: DEM_list[i][0] for i in range(len(DEM_list))} 
+        self.motif_enrichment = {contrasts_names[i]: DEM_list[i][0] for i in range(len(DEM_list))} 
         db_motif_hits =  {contrasts_names[i]: DEM_list[i][1] for i in range(len(DEM_list))} 
         # Add annotation and logo
         self.add_motif_annotation_dem()
