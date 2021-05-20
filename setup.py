@@ -6,7 +6,7 @@ def read_requirements(fname):
 
 
 setup(
-     name='pyCistrome',
+     name='pycistarget',
      use_scm_version=True,
      setup_requires=['setuptools_scm'],
      packages=find_packages(),
@@ -14,9 +14,9 @@ setup(
      install_requires=read_requirements('requirements.txt'),
      author="Carmen Bravo, Seppe de Winter",
      author_email="carmen.bravogonzalezblas@kuleuven.be, seppe.dewinter@kuleuven.be",
-     description="pyCistrome is a python module to perform motif enrichment analysis in sets of regions with different tools and identify high confidence TF cistromes",
+     description="pycistarget is a python module to perform motif enrichment analysis in sets of regions with different tools and identify high confidence TF cistromes",
      long_description=open('README.rst').read(),
-     url="https://github.com/aertslab/pyCistrome",
+     url="https://github.com/aertslab/pycistarget",
      classifiers=[
          "Programming Language :: Python :: 3",
          "License :: OSI Approved :: MIT License",
