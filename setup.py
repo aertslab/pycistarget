@@ -15,7 +15,7 @@ setup(
      author="Carmen Bravo, Seppe de Winter",
      author_email="carmen.bravogonzalezblas@kuleuven.be, seppe.dewinter@kuleuven.be",
      description="pycistarget is a python module to perform motif enrichment analysis in sets of regions with different tools and identify high confidence TF cistromes",
-     long_description=open('README.md').read(),
+     long_description=open('README.rst').read(),
      url="https://github.com/aertslab/pycistarget",
      classifiers=[
          "Programming Language :: Python :: 3",
