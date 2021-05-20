@@ -255,7 +255,8 @@ def run_homer(homer_path: str,
                              n_cpu: int = 1,
                              meme_path: str = None,
                              meme_collection_path: str = None,
-                             cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
+                             cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
+                             **kwargs):
     # Create logger
     level    = logging.INFO
     format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -277,7 +278,7 @@ def run_homer(homer_path: str,
         region_sets[key].to_bed(path=bed_path, keep=False, compression='infer', chain=False)
         bed_paths[key] = bed_path
     # Run Homer
-    ray.init(num_cpus=n_cpu)
+    ray.init(num_cpus=n_cpu, **kwargs)
     homer_dict = ray.get([homer_ray.remote(homer_path,
                                 bed_paths[name],
                                 name,
