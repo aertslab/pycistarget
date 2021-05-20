@@ -146,8 +146,16 @@ class DEM():
             else:
                 contrasts = [[self.region_sets.keys()[0]],['Shuffle']]
                 contrasts_names = [self.region_sets.keys()[0] + '_VS_Shuffle']  
+                
         elif isinstance(self.contrasts, list):
-            contrasts_names=['_'.join(self.contrasts[i][0]) + '_VS_' +'_'.join(self.contrasts[i][1]) for i in range(len(self.contrasts))]
+            contrasts = self.contrasts
+            contrasts_names=['_'.join(contrasts[i][0]) + '_VS_' +'_'.join(contrasts[i][1]) for i in range(len(contrasts))]
+            for i in range(len(contrasts)):
+                if len(contrasts[i][0]) > 1:
+                    self.regions_to_db[contrasts_names[i]] = pd.concat([self.regions_to_db[x] for x in contrasts[i][0]])
+                else:
+                    self.regions_to_db[contrasts_names[i]] = self.regions_to_db[self.contrasts[i][0][0]]
+                    
         elif self.contrasts == 'Shuffle':
             levels=list(self.region_sets.keys())
             contrasts=[[[x], 'Shuffle'] for x in levels]

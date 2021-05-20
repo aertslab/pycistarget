@@ -169,6 +169,7 @@ class cisTarget:
         db_motif_hits = {key: [enriched_features.loc[key, 'Motif_hits'][i][0] for i in range(len(enriched_features.loc[key, 'Motif_hits']))] for key in enriched_features.index}
         rs_motif_hits = {key: list(set(self.regions_to_db.loc[self.regions_to_db['Query'].isin(db_motif_hits[key]), 'Target'].tolist())) for key in db_motif_hits.keys()}
         self.motif_hits = {'Database': db_motif_hits, 'Region_set': rs_motif_hits}
+        self.motif_enrichment['Motif_hits'] = [len(db_motif_hits[i]) for i in db_motif_hits.keys()]
         # Cistromes
         log.info("Getting cistromes for " + self.name)
         cistromes_db = get_cistromes_per_region_set(self.motif_enrichment, self.motif_hits['Database'], self.annotation)
@@ -215,13 +216,16 @@ class cisTarget:
 # Run cisTarget            
 def run_cistarget(ctx_db: cisTargetDatabase,
                                region_sets: dict,
-                               specie:str,
+                               specie: str,
                                name: str = 'cisTarget',
                                fraction_overlap: float = 0.4,
                                auc_threshold: float = 0.005,
                                nes_threshold: float = 3.0,
                                rank_threshold: int = 20000,
-                               n_cpu : int = 5,
+                               path_to_motif_annotations: str = None,
+                                annotation_version: str = 'v9',
+                                annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']
+                               n_cpu : int = 1,
                                **kwargs):
     """
     Finds features of which the rankings are enriched in the input region set
@@ -257,7 +261,10 @@ def run_cistarget(ctx_db: cisTargetDatabase,
                                             specie = specie,
                                             auc_threshold = auc_threshold, 
                                             nes_threshold = nes_threshold, 
-                                            rank_threshold = rank_threshold) for key in list(region_sets.keys())])
+                                            rank_threshold = rank_threshold,
+                                            path_to_motif_annotations = path_to_motif_annotations,
+                                            annotation_version = annotation_version,
+                                            annotation = annotation) for key in list(region_sets.keys())])
     ray.shutdown()
     ctx_dict = {key: ctx_result for key, ctx_result in zip(list(region_sets.keys()), ctx_dict)}
     log.info('Done!')
@@ -270,7 +277,10 @@ def ctx_ray(ctx_db: cisTargetDatabase,
             specie: str,
             auc_threshold: float = 0.005,
             nes_threshold: float = 3.0,
-            rank_threshold: int = 20000) -> pd.DataFrame:
+            rank_threshold: int = 20000,
+            path_to_motif_annotations: str = None,
+            annotation_version: str = 'v9',
+            annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']) -> pd.DataFrame:
     """
     Finds features of which the rankings are enriched in the input region set
     :param ctx_db: cistarget database object with loaded regions
@@ -287,7 +297,16 @@ def ctx_ray(ctx_db: cisTargetDatabase,
     Van de Sande B., Flerin C., et al. A scalable SCENIC workflow for single-cell gene regulatory network analysis.
     Nat Protoc. June 2020:1-30. doi:10.1038/s41596-020-0336-2
     """
-    ctx_result = cisTarget(ctx_db, region_set, name, specie, auc_threshold, nes_threshold, rank_threshold)
+    ctx_result = cisTarget(ctx_db,
+                           region_set, 
+                           name, 
+                           specie,
+                           auc_threshold,
+                           nes_threshold,
+                           rank_threshold,
+                           path_to_motif_annotations.
+                           annotation_version,
+                           annotation)
     return ctx_result
     
 ## Show results 
