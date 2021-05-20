@@ -223,8 +223,8 @@ def run_cistarget(ctx_db: cisTargetDatabase,
                                nes_threshold: float = 3.0,
                                rank_threshold: int = 20000,
                                path_to_motif_annotations: str = None,
-                                annotation_version: str = 'v9',
-                                annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']
+                               annotation_version: str = 'v9',
+                               annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
                                n_cpu : int = 1,
                                **kwargs):
     """
