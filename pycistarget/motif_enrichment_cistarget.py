@@ -1,19 +1,19 @@
-import os
-import pyranges as pr
-import numpy as np
-from ctxcore.recovery import recovery, aucs as calc_aucs
 from ctxcore.genesig import Regulon, GeneSignature
-from ctxcore.rnkdb import FeatherRankingDatabase
-import pandas as pd
-from itertools import repeat
+from ctxcore.recovery import recovery, aucs as calc_aucs
 from ctxcore.recovery import leading_edge4row
+from ctxcore.rnkdb import FeatherRankingDatabase
+from itertools import repeat
 from functools import partial
-from typing import Union, Dict, Sequence, Optional
-from tqdm import tqdm
 import logging
+import os
+import numpy as np
+import pandas as pd
+import pyranges as pr
 import ray
-import sys
 import ssl
+import sys
+from typing import Union, Dict, Sequence, Optional
+
 from IPython.display import HTML
 ssl._create_default_https_context = ssl._create_unverified_context
 pd.set_option('display.max_colwidth', None)

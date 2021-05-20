@@ -1,0 +1,10 @@
+ctxcore
+IPython
+numpy
+pandas
+pyranges
+pybiomart
+ray
+scipy
+scikit-learn
+typing

@@ -1,17 +1,17 @@
-import logging
-import pandas as pd
-import sys
 import glob
+from IPython.display import HTML
+import logging
+import os
+import pandas as pd
+from pybiomart import Dataset
 import pyranges as pr 
 import ray
-import os
 import subprocess
-from pybiomart import Dataset
 import shutil
+import sys
+from typing import Union, Dict, Sequence, Optional
 
 from .utils import *
-
-from IPython.display import HTML
 
 class Homer(): 
     def __init__(self,

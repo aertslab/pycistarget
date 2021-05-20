@@ -1,12 +1,13 @@
-import pyranges as pr
-import pandas as pd
+from ctxcore.genesig import Regulon
 import numpy as np
-import re
 import os
+import pandas as pd
+import pyranges as pr
+import re
 import subprocess
-from pyscenic.genesig import Regulon
-from typing import Dict, List, Sequence, Union
 import ssl
+from typing import Dict, List, Sequence, Union
+
 
 def coord_to_region_names(coord):
     if isinstance(coord, pr.PyRanges):
@@ -22,26 +23,6 @@ def region_names_to_coordinates(region_names):
     regiondf.index=region_names
     regiondf.columns=['Chromosome', 'Start', 'End']
     return(regiondf)
-
-def regions_overlap(target, query):
-    # Read input
-    if isinstance(target, str):
-        target_pr=pr.read_bed(target)
-    if isinstance(target, list):
-        target_pr=pr.PyRanges(region_names_to_coordinates(target))
-    if isinstance(target, pr.PyRanges):
-        target_pr=target
-    # Read input
-    if isinstance(query, str):
-        query_pr=pr.read_bed(query)
-    if isinstance(query, list):
-        query_pr=pr.PyRanges(region_names_to_coordinates(query))
-    if isinstance(query, pr.PyRanges):
-        query_pr=query
-    
-    target_pr = target_pr.overlap(query_pr)
-    selected_regions = [str(chrom) + ":" + str(start) + '-' + str(end) for chrom, start, end in zip(list(target_pr.Chromosome), list(target_pr.Start), list(target_pr.End))]
-    return selected_regions
 
 def region_sets_to_signature(region_set: list,
                              region_set_name:str) -> Regulon:
@@ -128,36 +109,7 @@ def load_motif_annotations(specie: str,
     df = pd.concat([df_direct_annot, motif_similarity_annot, orthology_annot, motif_similarity_and_orthology_annot], axis=1, sort=False)
     return df
     
-def add_motif_url(df: pd.DataFrame, motif_column_name: str = None, motif_names: list = None, base_url: str = "http://motifcollections.aertslab.org/v9/logos/", key_to_add: str = 'Motif_url', verbose: bool = True) :
-    """
-    Add motif urls to dataframe with motif names.
-    :param df: Dataframe containing motif names.
-    :param base_url: url to motif collections containing images for each motif in the dataframe
-    :param motif_column_name: column name containing the motif names.
-    :param motif_names: list of motif names, must be in the same order as the dataframe rows.
-    :param key_to_add: column name where the urls should be stored.
-    :param verbose: if set to True prints warning messages.
-    :return: DataFrame with motif urls.
-    """
-    if motif_column_name != None and motif_names == None:
-        df[key_to_add] = [urljoin(base = base_url, url = motif) for motif in df[motif_column_name]]
-    elif isinstance(motif_names, Sequence):
-        if verbose:
-            Warning('Using a list of motif names, this function assumes that this list has the same order as rows in the dataframe!')
-        df[key_to_add] = [urljoin(base = base_url, url = motif) for motif in motif_names]
-    else:
-        raise Exception('Either provide a column name or a list of motif names.')
-    return df
-
-def flatten_list(l):
-    return [item for sublist in l for item in sublist]
-
-def invert_dict_one_to_many(d):
-    keys = list(d.keys())
-    values = list(d.values())
-    return {v: [keys[idx] for idx, l in enumerate(values) if v in l ] for v in set(flatten_list(values))}
-   
-   
+       
 # Only implemented for Homer motif at the moment, but we can easily adapt it for other type of motifs as long as we
 # write the corresponding conversion to meme 
 def tomtom(homer_motif_path: str,

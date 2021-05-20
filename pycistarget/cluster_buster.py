@@ -1,12 +1,12 @@
 # TO BE UPDATED WITH CTXCORE
 import io
 import logging
+import numpy as np
 import os
-import sys
-import subprocess
 import pandas as pd
 import pyranges as pr
-import numpy as np
+import subprocess
+import sys
 import ray
 
 from typing import Optional, Union
