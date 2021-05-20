@@ -138,7 +138,7 @@ class DEM():
         
         region_sets_names = {key: self.regions_to_db[key]['Query'].tolist() for key in self.regions_to_db.keys()}
 
-        if self.contrasts is 'Other':
+        if self.contrasts == 'Other':
             if len(self.region_sets) > 1:
                 levels=list(self.region_sets.keys())
                 contrasts=[[[x], levels[:levels.index(x)] + levels[levels.index(x)+1:]] for x in levels]
@@ -148,7 +148,7 @@ class DEM():
                 contrasts_names = [self.region_sets.keys()[0] + '_VS_Shuffle']  
         elif isinstance(self.contrasts, list):
             contrasts_names=['_'.join(self.contrasts[i][0]) + '_VS_' +'_'.join(self.contrasts[i][1]) for i in range(len(self.contrasts))]
-        elif self.contrasts is 'Shuffle':
+        elif self.contrasts == 'Shuffle':
             levels=list(self.region_sets.keys())
             contrasts=[[[x], 'Shuffle'] for x in levels]
             contrasts_names=levels
@@ -264,7 +264,7 @@ def create_groups(contrast: list,
     logging.basicConfig(level=level, format=format, handlers=handlers)
     log = logging.getLogger('DEM')
     foreground = list(set(sum([region_sets_names[key] for key in contrast[0]],[])))
-    if contrast[1] is not 'Shuffle':
+    if contrast[1] != 'Shuffle':
         background = list(set(sum([region_sets_names[key] for key in contrast[1]],[])))
         if max_bg_regions is not None:
             random.Random(555).shuffle(background)

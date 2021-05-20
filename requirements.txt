@@ -4,7 +4,7 @@ numpy
 pandas
 pyranges
 pybiomart
-ray
+ray[default]
 scipy
 scikit-learn
 typing

@@ -133,12 +133,12 @@ class Homer():
                                                     sep='\t', error_bad_lines=False).iloc[:,[1,11]].dropna()
                     homer_motif_annotation.columns = ['Name', 'Symbol'] 
                 # If not human, convert by homology
-                if species is not 'homo_sapiens':
+                if species != 'homo_sapiens':
                     dataset = Dataset(name='hsapiens_gene_ensembl',
                                   host='http://www.ensembl.org')
-                    if species is 'mus_musculus':
+                    if species == 'mus_musculus':
                         biomart_query = 'mmusculus_homolog_associated_gene_name'
-                    if species is 'drosophila_melanogaster':
+                    if species == 'drosophila_melanogaster':
                         biomart_query = 'dmelanogaster_homolog_associated_gene_name'
 
                     human2specie = dataset.query(attributes=['external_gene_name', biomart_query])
