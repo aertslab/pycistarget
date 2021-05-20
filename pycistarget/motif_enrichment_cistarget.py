@@ -304,7 +304,7 @@ def ctx_ray(ctx_db: cisTargetDatabase,
                            auc_threshold,
                            nes_threshold,
                            rank_threshold,
-                           path_to_motif_annotations.
+                           path_to_motif_annotations,
                            annotation_version,
                            annotation)
     return ctx_result
