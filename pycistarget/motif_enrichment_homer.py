@@ -62,7 +62,7 @@ class Homer():
         if self.mask == False and self.denovo == False:
             cmd = os.path.join(self.homer_path, 'findMotifsGenome.pl') + ' %s %s %s -preparsedDir %s -size %s -len %s -nomotif -keepFiles'
         if self.mask == False and self.denovo == True:
-            cmd = os.path.join(self.homer_path, 'findMotifsGenome.pl') + ' %s %s %s -preparsedDir %s -size %s -len %s -nomotif -keepFiles'
+            cmd = os.path.join(self.homer_path, 'findMotifsGenome.pl') + ' %s %s %s -preparsedDir %s -size %s -len %s -keepFiles'
             
         cmd = cmd % (self.bed_path, self.genome, self.outdir, self.outdir, self.size, self.len)
         log.info("Running Homer for " + self.name + " with %s", cmd)
