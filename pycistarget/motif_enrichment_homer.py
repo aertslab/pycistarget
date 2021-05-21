@@ -211,7 +211,7 @@ class Homer():
                     raise RuntimeError("command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output))
 
                 known_motif_hits = pd.read_csv(os.path.join(self.outdir, 'knownResults_motif_hits.bed'), sep='\t', header=None)
-                self.known_motif_hits = known_motif_hits.groupby(3)[0].apply(lambda g: g.values.tolist()).to_dict()
+                self.known_motif_hits = known_motif_hits.groupby(3)[0].apply(lambda g: list(set(g.values.tolist()))).to_dict()
         if self.denovo_motifs is not None:
             if self.denovo_motifs.shape[0] != 0:
                 # Merge all motifs to file
@@ -229,7 +229,7 @@ class Homer():
                     raise RuntimeError("command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output))
 
                 denovo_motif_hits = pd.read_csv(os.path.join(self.outdir, 'homerResults_motif_hits.bed'), sep='\t', header=None)
-                denovo_motif_hits  = denovo_motif_hits.groupby(3)[0].apply(lambda g: g.values.tolist()).to_dict()
+                denovo_motif_hits  = denovo_motif_hits.groupby(3)[0].apply(lambda g: list(set(g.values.tolist()))).to_dict()
                 self.denovo_motif_hits = {k:denovo_motif_hits[k] for k in denovo_motif_hits.keys() if not k[0].isdigit()}
                 
     def get_cistromes(self, annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
