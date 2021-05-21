@@ -69,7 +69,7 @@ class cisTarget:
                  specie: str,
                  auc_threshold: float = 0.005,
                  nes_threshold: float = 3.0,
-                 rank_threshold: int = 20000,
+                 rank_threshold: float = 0.05,
                  path_to_motif_annotations: str = None,
                  annotation_version: str = 'v9',
                  annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
@@ -137,7 +137,7 @@ class cisTarget:
                                         COLUMN_NAME_AUC: aucs[enriched_features_idx],
                                         COLUMN_NAME_GRP: repeat(region_set_signature.transcription_factor, sum(enriched_features_idx))})
         # Recovery analysis
-        rccs, _ = recovery(ctx_db.db_rankings[regions], ctx_db.total_regions, weights, self.rank_threshold, self.auc_threshold, no_auc=True)  
+        rccs, _ = recovery(ctx_db.db_rankings[regions], ctx_db.total_regions, weights, int(self.rank_threshold*ctx_db.total_regions), self.auc_threshold, no_auc=True)  
         avgrcc = rccs.mean(axis=0)        
         avg2stdrcc = avgrcc + 2.0 * rccs.std(axis=0)
         # Select features
@@ -150,7 +150,7 @@ class cisTarget:
                             columns=pd.MultiIndex.from_tuples(list(zip(repeat("Ranking"), regions))),
                             data=rankings)
         df_rccs = pd.DataFrame(index=enriched_features.index,
-                            columns=pd.MultiIndex.from_tuples(list(zip(repeat("Recovery"), np.arange(self.rank_threshold)))),
+                            columns=pd.MultiIndex.from_tuples(list(zip(repeat("Recovery"), np.arange(int(self.rank_threshold*ctx_db.total_regions))))),
                             data=rccs)
         enriched_features = pd.concat([enriched_features, df_rccs, df_rnks], axis=1)
         # Calculate the leading edges for each row. Always return importance from gene inference phase.
@@ -221,7 +221,7 @@ def run_cistarget(ctx_db: cisTargetDatabase,
                                fraction_overlap: float = 0.4,
                                auc_threshold: float = 0.005,
                                nes_threshold: float = 3.0,
-                               rank_threshold: int = 20000,
+                               rank_threshold: float = 0.05,
                                path_to_motif_annotations: str = None,
                                annotation_version: str = 'v9',
                                annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
@@ -277,7 +277,7 @@ def ctx_ray(ctx_db: cisTargetDatabase,
             specie: str,
             auc_threshold: float = 0.005,
             nes_threshold: float = 3.0,
-            rank_threshold: int = 20000,
+            rank_threshold: float = 0.05,
             path_to_motif_annotations: str = None,
             annotation_version: str = 'v9',
             annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']) -> pd.DataFrame:
