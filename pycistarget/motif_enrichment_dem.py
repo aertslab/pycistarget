@@ -173,15 +173,25 @@ class DEM():
         # Compute p-val and log2FC
         if self.n_cpu > len(region_groups):
             self.n_cpu = len(region_groups)
-        ray.init(num_cpus=self.n_cpu, **kwargs)
-        DEM_list = ray.get([DEM_ray.remote(dem_db_scores,
+        
+        if self.n_cpu > 1:
+            ray.init(num_cpus=self.n_cpu, **kwargs)
+            DEM_list = ray.get([DEM_internal_ray.remote(dem_db_scores,
                                              region_groups[i],
                                              contrasts_names[i],
                                              adjpval_thr = self.adjpval_thr,
                                              log2fc_thr = self.log2fc_thr,
                                              mean_fg_thr = self.mean_fg_thr,
                                              motif_hit_thr = self.motif_hit_thr) for i in range(len(contrasts))])
-        ray.shutdown()
+            ray.shutdown()
+        else:
+            DEM_list = [DEM_internal(dem_db_scores,
+                                region_groups[i],
+                                contrasts_names[i],
+                                adjpval_thr = self.adjpval_thr,
+                                log2fc_thr = self.log2fc_thr,
+                                mean_fg_thr = self.mean_fg_thr,
+                                motif_hit_thr = self.motif_hit_thr) for i in range(len(contrasts))]
         self.motif_enrichment = {contrasts_names[i]: DEM_list[i][0] for i in range(len(DEM_list))} 
         db_motif_hits =  {contrasts_names[i]: DEM_list[i][1] for i in range(len(DEM_list))} 
         # Add annotation and logo
@@ -295,7 +305,19 @@ def create_groups(contrast: list,
  
 ## Ray function for getting LogFC, pAdj and motif hits between groups   
 @ray.remote
-def DEM_ray(dem_db_scores: pd.DataFrame,
+def DEM_internal_ray(dem_db_scores: pd.DataFrame,
+            region_group: List[List[str]],
+            contrast_name: str,
+            adjpval_thr: Optional[float] = 0.05,
+            log2fc_thr: Optional[float] = 1,
+            mean_fg_thr: Optional[float] = 0,
+            motif_hit_thr: Optional[float] = None):
+            
+    return DEM_internal(dem_db_scores, region_group, contrast_name, adjpval_thr, log2fc_thr, mean_fg_thr, motif_hit_thr)
+
+
+
+def DEM_internal(dem_db_scores: pd.DataFrame,
             region_group: List[List[str]],
             contrast_name: str,
             adjpval_thr: Optional[float] = 0.05,
