@@ -254,8 +254,9 @@ def run_cistarget(ctx_db: cisTargetDatabase,
                              fraction_overlap = fraction_overlap)
     
     # Run cistarget analysis in parallel
-    ray.init(num_cpus=n_cpu, **kwargs)
-    ctx_dict = ray.get([ctx_ray.remote(ctx_db = ctx_db, 
+    if n_cpu > 1:
+        ray.init(num_cpus=n_cpu, **kwargs)
+        ctx_dict = ray.get([ctx_internal_ray.remote(ctx_db = ctx_db, 
                                             region_set = region_sets[key], 
                                             name = key,  
                                             specie = specie,
@@ -265,13 +266,47 @@ def run_cistarget(ctx_db: cisTargetDatabase,
                                             path_to_motif_annotations = path_to_motif_annotations,
                                             annotation_version = annotation_version,
                                             annotation = annotation) for key in list(region_sets.keys())])
-    ray.shutdown()
+        ray.shutdown()
+    else:
+        ctx_dict = [ctx_internal(ctx_db = ctx_db, 
+                                            region_set = region_sets[key], 
+                                            name = key,  
+                                            specie = specie,
+                                            auc_threshold = auc_threshold, 
+                                            nes_threshold = nes_threshold, 
+                                            rank_threshold = rank_threshold,
+                                            path_to_motif_annotations = path_to_motif_annotations,
+                                            annotation_version = annotation_version,
+                                            annotation = annotation) for key in list(region_sets.keys())]
     ctx_dict = {key: ctx_result for key, ctx_result in zip(list(region_sets.keys()), ctx_dict)}
     log.info('Done!')
     return ctx_dict
         
 @ray.remote
-def ctx_ray(ctx_db: cisTargetDatabase,
+def ctx_internal_ray(ctx_db: cisTargetDatabase,
+            region_set: pr.PyRanges,
+            name: str,
+            specie: str,
+            auc_threshold: float = 0.005,
+            nes_threshold: float = 3.0,
+            rank_threshold: float = 0.05,
+            path_to_motif_annotations: str = None,
+            annotation_version: str = 'v9',
+            annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']) -> pd.DataFrame:
+    
+    return ctx_internal(ctx_db = ctx_db,
+                        region_set = region_set,
+                        name = name,
+                        specie = specie,
+                        auc_threshold = auc_threshold,
+                        nes_threshold = nes_threshold,
+                        rank_threshold = rank_threshold,
+                        path_to_motif_annotations = path_to_motif_annotations,
+                        annotation_version = annotation_version,
+                        annotation = annotation)
+
+
+def ctx_internal(ctx_db: cisTargetDatabase,
             region_set: pr.PyRanges,
             name: str,
             specie: str,
