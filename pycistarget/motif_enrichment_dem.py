@@ -61,7 +61,7 @@ class DEMDatabase:
             db_scores = db.load(target_regions_in_db)
         else:
             target_to_db_dict = None
-            db_scores = db.load(db_regions)
+            db_scores = db.load_full()
         return target_to_db_dict, db_scores
 
 class DEM():
