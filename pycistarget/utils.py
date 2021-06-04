@@ -15,7 +15,7 @@ def coord_to_region_names(coord):
         return list(coord['Chromosome'].astype(str) + ':' + coord['Start'].astype(str) + '-' + coord['End'].astype(str))
 
 def region_names_to_coordinates(region_names):
-    chrom=pd.DataFrame([i.split(':', 1)[0] for i in region_names])
+    chrom=pd.DataFrame([i.split(':', 1)[0] for i in region_names if ':' in i])
     coor = [i.split(':', 1)[1] for i in region_names if ':' in i]
     start=pd.DataFrame([int(i.split('-', 1)[0]) for i in coor])
     end=pd.DataFrame([int(i.split('-', 1)[1]) for i in coor])
