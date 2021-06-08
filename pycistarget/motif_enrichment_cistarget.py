@@ -24,7 +24,7 @@ from .utils import *
 class cisTargetDatabase: 
     def __init__(self, 
                 fname: str,
-                region_sets: Dict[str, pr.PyRanges] = None,
+                region_sets: Union[Dict[str, pr.PyRanges], pr.PyRanges] = None,
                 name: str = None,
                 fraction_overlap: float = 0.4):
         self.regions_to_db, self.db_rankings, self.total_regions = self.load_db(fname,
@@ -33,7 +33,7 @@ class cisTargetDatabase:
                                                           fraction_overlap)
     def load_db(self,
                 fname: str,
-                region_sets: Dict[str, pr.PyRanges] = None,
+                region_sets: Union[Dict[str, pr.PyRanges], pr.PyRanges] = None,
                 name: str = None,
                 fraction_overlap: float = 0.4):
         #Create logger
@@ -51,13 +51,21 @@ class cisTargetDatabase:
         total_regions = db.total_genes
         db_regions = db.genes
         if region_sets is not None:
-            target_to_db_dict = {x: target_to_query(region_sets[x], list(db_regions)) for x in region_sets.keys()}
-            target_regions_in_db = list(set(sum([target_to_db_dict[x]['Query'].tolist() for x in target_to_db_dict.keys()],[])))
+            if type(region_sets) == dict:
+                target_to_db_dict = {x: target_to_query(region_sets[x], list(db_regions), fraction_overlap = fraction_overlap) for x in region_sets.keys()}
+                target_regions_in_db = list(set(sum([target_to_db_dict[x]['Query'].tolist() for x in target_to_db_dict.keys()],[])))
+            elif type(region_sets) == pr.PyRanges:
+                target_to_db = target_to_query(region_sets, list(db_regions), fraction_overlap = fraction_overlap)
+                target_to_db_dict = target_to_db #for return purposes
+                target_regions_in_db = list(set(target_to_db['Query'].tolist()))
+            else:
+                raise ValueError('region_sets should be either a dict of PyRanges objects or a single PyRanges object, not {}'.format(type(region_sets)))
             target_regions_in_db = GeneSignature(name=name, gene2weight=target_regions_in_db)
             db_rankings = db.load(target_regions_in_db)
         else:
+            log.warn('Loading complete cistarget database, this can take a long time and consumes a lot of memory!')
             target_to_db_dict = None
-            db_rankings = db.load(db_regions)
+            db_rankings = db.load_full()
         return target_to_db_dict, db_rankings, total_regions
 
 # cisTarget class
@@ -73,7 +81,7 @@ class cisTarget:
                  path_to_motif_annotations: str = None,
                  annotation_version: str = 'v9',
                  annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
-        self.regions_to_db = ctx_db.regions_to_db[name]
+        self.regions_to_db = ctx_db.regions_to_db[name] if type(ctx_db.regions_to_db) == dict else ctx_db.regions_to_db
         self.region_set = region_set
         self.name = name
         self.specie = specie
