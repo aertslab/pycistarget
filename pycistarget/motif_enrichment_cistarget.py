@@ -24,7 +24,7 @@ from .utils import *
 class cisTargetDatabase: 
     def __init__(self, 
                 fname: str,
-                region_sets: Dict[str, pr.PyRanges] = None,
+                region_sets: Union[Dict[str, pr.PyRanges], pr.PyRanges] = None,
                 name: str = None,
                 fraction_overlap: float = 0.4):
         self.regions_to_db, self.db_rankings, self.total_regions = self.load_db(fname,
@@ -33,7 +33,7 @@ class cisTargetDatabase:
                                                           fraction_overlap)
     def load_db(self,
                 fname: str,
-                region_sets: Dict[str, pr.PyRanges] = None,
+                region_sets: Union[Dict[str, pr.PyRanges], pr.PyRanges] = None,
                 name: str = None,
                 fraction_overlap: float = 0.4):
         #Create logger
@@ -51,13 +51,22 @@ class cisTargetDatabase:
         total_regions = db.total_genes
         db_regions = db.genes
         if region_sets is not None:
-            target_to_db_dict = {x: target_to_query(region_sets[x], list(db_regions)) for x in region_sets.keys()}
-            target_regions_in_db = list(set(sum([target_to_db_dict[x]['Query'].tolist() for x in target_to_db_dict.keys()],[])))
+            if type(region_sets) == dict:
+                target_to_db_dict = {x: target_to_query(region_sets[x], list(db_regions), fraction_overlap = fraction_overlap) for x in region_sets.keys()}
+                target_regions_in_db = list(set(sum([target_to_db_dict[x]['Query'].tolist() for x in target_to_db_dict.keys()],[])))
+            elif type(region_sets) == pr.PyRanges:
+                target_to_db = target_to_query(region_sets, list(db_regions), fraction_overlap = fraction_overlap)
+                target_to_db.index = target_to_db['Target']
+                target_to_db_dict = target_to_db #for return purposes
+                target_regions_in_db = list(set(target_to_db['Query'].tolist()))
+            else:
+                raise ValueError('region_sets should be either a dict of PyRanges objects or a single PyRanges object, not {}'.format(type(region_sets)))
             target_regions_in_db = GeneSignature(name=name, gene2weight=target_regions_in_db)
             db_rankings = db.load(target_regions_in_db)
         else:
+            log.warn('Loading complete cistarget database, this can take a long time and consumes a lot of memory!')
             target_to_db_dict = None
-            db_rankings = db.load(db_regions)
+            db_rankings = db.load_full()
         return target_to_db_dict, db_rankings, total_regions
 
 # cisTarget class
@@ -73,7 +82,7 @@ class cisTarget:
                  path_to_motif_annotations: str = None,
                  annotation_version: str = 'v9',
                  annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
-        self.regions_to_db = ctx_db.regions_to_db[name]
+        self.regions_to_db = ctx_db.regions_to_db[name] if type(ctx_db.regions_to_db) == dict else ctx_db.regions_to_db.loc[coord_to_region_names(region_set)]
         self.region_set = region_set
         self.name = name
         self.specie = specie
@@ -119,15 +128,17 @@ class cisTarget:
         COLUMN_NAME_TYPE = "Type"
 
         # Log
-        log.info("Running cisTarget for " + self.name)
+        log.info("Running cisTarget for {} which has {} regions".format(self.name, len(self.regions_to_db['Query'].tolist())))
         # Load signature as Regulon
         region_set_signature = region_sets_to_signature(self.regions_to_db['Query'].tolist(), region_set_name = self.name)
-        # Get regions, features, rankings and weights
+        # Get regions
         regions = np.array(list(region_set_signature.genes))
-        features, rankings = ctx_db.db_rankings.index.values, ctx_db.db_rankings[regions].values
+        db_rankings_regions = ctx_db.db_rankings[regions]
+        #Get features, rankings and weights
+        features, rankings = ctx_db.db_rankings.index.values, db_rankings_regions.values
         weights = np.asarray(np.ones(len(regions)))
         # Calculate recovery curves, AUC and NES values.
-        aucs = calc_aucs(ctx_db.db_rankings[regions], ctx_db.total_regions, weights, self.auc_threshold)
+        aucs = calc_aucs(db_rankings_regions, ctx_db.total_regions, weights, self.auc_threshold)
         ness = (aucs - aucs.mean()) / aucs.std()
         # Keep only features that are enriched, i.e. NES sufficiently high.
         enriched_features_idx = ness >= self.nes_threshold
@@ -137,7 +148,7 @@ class cisTarget:
                                         COLUMN_NAME_AUC: aucs[enriched_features_idx],
                                         COLUMN_NAME_GRP: repeat(region_set_signature.transcription_factor, sum(enriched_features_idx))})
         # Recovery analysis
-        rccs, _ = recovery(ctx_db.db_rankings[regions], ctx_db.total_regions, weights, int(self.rank_threshold*ctx_db.total_regions), self.auc_threshold, no_auc=True)  
+        rccs, _ = recovery(db_rankings_regions, ctx_db.total_regions, weights, int(self.rank_threshold*ctx_db.total_regions), self.auc_threshold, no_auc=True)  
         avgrcc = rccs.mean(axis=0)        
         avg2stdrcc = avgrcc + 2.0 * rccs.std(axis=0)
         # Select features
