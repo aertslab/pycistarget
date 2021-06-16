@@ -124,7 +124,7 @@ class DEM():
         self.motif_enrichment = None
         self.motif_hits = None
         self.cistromes = None
-        self.run(dem_db.db_scores)
+        self.run(dem_db.db_scores, **kwargs)
         
     def run(self, dem_db_scores, **kwargs):
         # Create logger

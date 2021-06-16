@@ -19,7 +19,8 @@ def cluster_buster(cbust_path: str,
                  path_to_regions_fasta: str = None,
                  n_cpu: Optional[int] = 1,
                  motifs: Optional[List[str]] = None,
-                 verbose: Optional[bool] = False):
+                 verbose: Optional[bool] = False,
+                 **kwargs):
     # Create logger
     level    = logging.INFO
     format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -46,7 +47,7 @@ def cluster_buster(cbust_path: str,
         motifs = grep(motifs, '.cb')
     
     log.info('Scoring sequences')
-    ray.init(num_cpus=n_cpu)
+    ray.init(num_cpus=n_cpu, **kwargs)
     crm_scores = ray.get([run_cluster_buster_for_motif.remote(cbust_path, path_to_regions_fasta, path_to_motifs+motifs[i], motifs[i], i, len(motifs), verbose) for i in range(len(motifs))])
     ray.shutdown()
     crm_df = pd.concat(crm_scores, axis=1, sort=False).fillna(0).T
