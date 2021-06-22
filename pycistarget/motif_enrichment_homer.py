@@ -26,7 +26,9 @@ class Homer():
                  length: str = '8,10,12',
                  meme_path: str = None,
                  meme_collection_path: str = None,
-                 cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
+                 cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
+                 motif_similarity_fdr: float = 0.00002,
+                 orthologous_identity_threshold: float = 0.6):
         self.homer_path = homer_path
         self.bed_path = bed_path
         self.genome = genome
@@ -39,6 +41,8 @@ class Homer():
         self.meme_path = meme_path
         self.meme_collection_path = meme_collection_path
         self.cistrome_annotation = cistrome_annotation
+        self.motif_similarity_fdr = motif_similarity_fdr
+        self.orthologous_identity_threshold = orthologous_identity_threshold
         self.known_motifs = None
         self.denovo_motifs = None
         self.known_motif_hits = None
@@ -116,7 +120,9 @@ class Homer():
                     species = 'drosophila_melanogaster'
                 if 'hg' in self.genome:
                     species = 'homo_sapiens'
-                ctx_motif_annotation = load_motif_annotations(species)
+                ctx_motif_annotation = load_motif_annotations(species,
+                 						motif_similarity_fdr= self.motif_similarity_fdr,
+                  						orthologous_identity_threshold=self.orthologous_identity_threshold)
                 motifs = self.known_motifs
                 homer_motifs = 'homer__' + motifs['Consensus'] + '_' + [x.split('(')[0] for x in motifs['Motif Name']]
 
@@ -178,7 +184,9 @@ class Homer():
                     homer_motif_paths = glob.glob(os.path.join(self.outdir, 'homerResults', 'motif*[0-9$].motif'))
                     homer_motif_paths = [x for x in homer_motif_paths if 'similar' not in x] 
                     tomtom_pd = pd.concat([tomtom(x, self.meme_path, self.meme_collection_path) for x in homer_motif_paths])
-                    ctx_motif_annotation = load_motif_annotations(species)
+                    ctx_motif_annotation = load_motif_annotations(species,
+                 						motif_similarity_fdr= self.motif_similarity_fdr,
+                  						orthologous_identity_threshold=self.orthologous_identity_threshold)
                     homer_motifs = [x for x in tomtom_pd.iloc[:,1].tolist() if x in ctx_motif_annotation.index.tolist()]
                     ctx_motif_annotation = ctx_motif_annotation.loc[list(set(homer_motifs))].reset_index()
                     ctx_motif_annotation = ctx_motif_annotation.rename(columns={'MotifID': 'Best Match/Tomtom'})
@@ -256,6 +264,8 @@ def run_homer(homer_path: str,
                              meme_path: str = None,
                              meme_collection_path: str = None,
                              cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
+                             motif_similarity_fdr: float = 0.00002,
+                             orthologous_identity_threshold: float = 0.6,
                              **kwargs):
     # Create logger
     level    = logging.INFO
@@ -290,7 +300,9 @@ def run_homer(homer_path: str,
                                 length, 
                                 meme_path,
                                 meme_collection_path,
-                                cistrome_annotation) for name in list(bed_paths.keys())])
+                                cistrome_annotation,
+                                motif_similarity_fdr,
+                                orthologous_identity_threshold) for name in list(bed_paths.keys())])
     ray.shutdown()
     homer_dict={list(bed_paths.keys())[i]: homer_dict[i] for i in range(len(homer_dict))}
     return homer_dict
@@ -307,7 +319,9 @@ def homer_ray(homer_path: str,
               length: str = '8,10,12',
               meme_path: str = None,
               meme_collection_path: str = None,
-              cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
+              cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
+              motif_similarity_fdr: float = 0.00002,
+              orthologous_identity_threshold: float = 0.6):
     # Create logger
     level    = logging.INFO
     format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -320,7 +334,19 @@ def homer_ray(homer_path: str,
     os.mkdir(outdir)
     
     log.info('Running '+ name)
-    Homer_res = Homer(homer_path, bed_path, name, outdir, genome, size, mask, denovo, length, meme_path, meme_collection_path, cistrome_annotation)
+    Homer_res = Homer(homer_path,
+                bed_path,
+                name,
+                outdir, 
+                genome, 
+                size, 
+                mask, 
+                denovo, 
+                length, 
+                meme_path, 
+                meme_collection_path, 
+                cistrome_annotation, 
+                motif_similarity_fdr)
     log.info(name + ' done!')
     return Homer_res
             

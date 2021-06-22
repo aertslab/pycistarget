@@ -85,6 +85,8 @@ class DEM():
                  path_to_motif_annotations: str = None,
                  annotation_version: str = 'v9',
                  annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
+                 motif_similarity_fdr: float = 0.00002,
+                 orthologous_identity_threshold: float = 0.6,
                  tmp_dir: int = None,
                  **kwargs):
         
@@ -118,6 +120,8 @@ class DEM():
         self.annotation_version = annotation_version
         self.annotation = annotation
         self.path_to_motif_annotations = path_to_motif_annotations
+        self.motif_similarity_fdr = motif_similarity_fdr
+        self.orthologous_identity_threshold = orthologous_identity_threshold
         # Tmp
         self.tmp_dir = tmp_dir
         # Info
@@ -207,8 +211,6 @@ class DEM():
         log.info('Done!')
         
     def add_motif_annotation_dem(self,
-                       motif_similarity_fdr: Optional[float] = 0.001,
-                       orthologous_identity_threshold: Optional[float] = 0.0,
                        add_logo: Optional[bool] = True):
         # Create DEM logger
         level = logging.INFO
@@ -222,8 +224,8 @@ class DEM():
             annot_df = load_motif_annotations(self.specie,
                                           self.annotation_version,
                                           fname=self.path_to_motif_annotations,
-                                          motif_similarity_fdr = motif_similarity_fdr,
-                                          orthologous_identity_threshold = orthologous_identity_threshold)
+                                          motif_similarity_fdr = self.motif_similarity_fdr,
+                                          orthologous_identity_threshold = self.orthologous_identity_threshold)
             motif_enrichment_dict_w_annot = {key: pd.concat([self.motif_enrichment[key], annot_df], axis=1, sort=False).loc[self.motif_enrichment[key].index.tolist(),:] for key in self.motif_enrichment.keys()}
         except:
             log.info('Unable to load annotation for ' + self.specie)
