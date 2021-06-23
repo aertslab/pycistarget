@@ -121,8 +121,8 @@ class Homer():
                 if 'hg' in self.genome:
                     species = 'homo_sapiens'
                 ctx_motif_annotation = load_motif_annotations(species,
-                 						motif_similarity_fdr= self.motif_similarity_fdr,
-                  						orthologous_identity_threshold=self.orthologous_identity_threshold)
+                                         motif_similarity_fdr= self.motif_similarity_fdr,
+                                          orthologous_identity_threshold=self.orthologous_identity_threshold)
                 motifs = self.known_motifs
                 homer_motifs = 'homer__' + motifs['Consensus'] + '_' + [x.split('(')[0] for x in motifs['Motif Name']]
 
@@ -185,8 +185,8 @@ class Homer():
                     homer_motif_paths = [x for x in homer_motif_paths if 'similar' not in x] 
                     tomtom_pd = pd.concat([tomtom(x, self.meme_path, self.meme_collection_path) for x in homer_motif_paths])
                     ctx_motif_annotation = load_motif_annotations(species,
-                 						motif_similarity_fdr= self.motif_similarity_fdr,
-                  						orthologous_identity_threshold=self.orthologous_identity_threshold)
+                                         motif_similarity_fdr= self.motif_similarity_fdr,
+                                          orthologous_identity_threshold=self.orthologous_identity_threshold)
                     homer_motifs = [x for x in tomtom_pd.iloc[:,1].tolist() if x in ctx_motif_annotation.index.tolist()]
                     ctx_motif_annotation = ctx_motif_annotation.loc[list(set(homer_motifs))].reset_index()
                     ctx_motif_annotation = ctx_motif_annotation.rename(columns={'MotifID': 'Best Match/Tomtom'})
@@ -208,7 +208,7 @@ class Homer():
                 # Merge all motifs to file
                 log.info('Retrieving enriched regions per known motif')
                 if os.path.exists(os.path.join(self.outdir, 'knownResults', 'all_motifs.motif')):
-                	os.remove(os.path.join(self.outdir, 'knownResults', 'all_motifs.motif'))
+                    os.remove(os.path.join(self.outdir, 'knownResults', 'all_motifs.motif'))
                 for f in glob.glob(os.path.join(self.outdir, 'knownResults', '*.motif')):
                     os.system("cat "+f+" >> "+os.path.join(self.outdir, 'knownResults', 'all_motifs.motif'))
                 cmd = os.path.join(self.homer_path, 'homer2 find') + ' -s %s -m %s -o %s -p %s'
@@ -225,7 +225,7 @@ class Homer():
                 # Merge all motifs to file
                 log.info('Retrieving enriched regions per de novo motif')
                 if os.path.exists(os.path.join(self.outdir, 'homerResults', 'all_motifs.motif')):
-                	os.remove(os.path.join(self.outdir, 'homerResults', 'all_motifs.motif'))
+                    os.remove(os.path.join(self.outdir, 'homerResults', 'all_motifs.motif'))
                 for f in glob.glob(os.path.join(self.outdir, 'homerResults', '*.motif')):
                     os.system("cat "+f+" >> "+os.path.join(self.outdir, 'homerResults', 'all_motifs.motif'))
                 os.system("sed -i 's/\t.*BestGuess:/\t/g' "+os.path.join(self.outdir, 'homerResults', 'all_motifs.motif'))
@@ -242,14 +242,37 @@ class Homer():
                 
     def get_cistromes(self, annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
         if self.known_motif_hits is not None:
-            tfs = get_TF_list(self.known_motifs)
-            cistrome_dict = {tf: get_cistrome_per_TF(self.known_motif_hits,  get_motifs_per_TF(self.known_motifs, tf, motif_column = 'Motif Name', annotation=annotation)) for tf in tfs}
+            if 'Direct_annot' in annotation:
+                tfs = get_TF_list(self.known_motifs, annotation=['Direct_annot'])
+                cistrome_dict_direct = {tf: get_cistrome_per_TF(self.known_motif_hits,  get_motifs_per_TF(self.known_motifs, tf, motif_column = 'Motif Name', annotation=['Direct_annot'])) for tf in tfs}
+            else:
+                cistrome_dict_direct = {}
+                
+               if not 'Direct_annot' in annotation or len(annotation) > 1:
+                tfs = get_TF_list(self.known_motifs, annotation=annotation)
+                cistrome_dict_extended = {tf+'_extended': get_cistrome_per_TF(self.known_motif_hits,  get_motifs_per_TF(self.known_motifs, tf, motif_column = 'Motif Name', annotation=annotation)) for tf in tfs}
+            else:
+                cistrome_dict_extended = {}
+                
+            cistrome_dict = {**cistrome_dict_direct, **cistrome_dict_extended}
+            cistrome_dict = {x + ' (' + str(len(cistrome_dict[x])) + 'r)': cistrome_dict[x] for x in cistrome_dict.keys()}
             self.known_cistromes = cistrome_dict 
         if self.denovo_motif_hits is not None:
-            tfs = get_TF_list(self.denovo_motifs)
-            cistrome_dict = {tf: get_cistrome_per_TF(self.denovo_motif_hits,  get_motifs_per_TF(self.denovo_motifs, tf, motif_column = 'Best Match/Details', annotation=annotation)) for tf in tfs}
-            self.denovo_cistromes = cistrome_dict 
-            self.denovo_cistromes.keys()
+            if 'Direct_annot' in annotation:
+                tfs = get_TF_list(self.denovo_motifs, annotation=['Direct_annot'])
+                cistrome_dict_direct = {tf: get_cistrome_per_TF(self.denovo_motif_hits,  get_motifs_per_TF(self.denovo_motifs, tf, motif_column = 'Motif Name', annotation=['Direct_annot'])) for tf in tfs}
+            else:
+                cistrome_dict_direct = {}
+                
+               if not 'Direct_annot' in annotation or len(annotation) > 1:
+                tfs = get_TF_list(self.denovo_motifs, annotation=annotation)
+                cistrome_dict_extended = {tf+'_extended': get_cistrome_per_TF(self.denovo_motif_hits,  get_motifs_per_TF(self.denovo_motifs, tf, motif_column = 'Motif Name', annotation=annotation)) for tf in tfs}
+            else:
+                cistrome_dict_extended = {}
+                
+            cistrome_dict = {**cistrome_dict_direct, **cistrome_dict_extended}
+            cistrome_dict = {x + '_(' + str(len(cistrome_dict[x])) + 'r)': cistrome_dict[x] for x in cistrome_dict.keys()}
+            self.denovo_cistromes = cistrome_dict
  
 # Run Homer           
 def run_homer(homer_path: str,
