@@ -20,7 +20,6 @@ pd.set_option('display.max_colwidth', None)
 
 from .utils import *
 
-# cisTarget database  
 class cisTargetDatabase: 
     def __init__(self, 
                 fname: str,
@@ -50,6 +49,10 @@ class cisTargetDatabase:
         db = FeatherRankingDatabase(fname, name=name)
         total_regions = db.total_genes
         db_regions = db.genes
+        prefix = None
+        if '__' in db_regions[0]:
+            prefix = db_regions[0].split('__')[0]
+            db_regions = [x.split('__')[1] for x in db_regions]
         if region_sets is not None:
             if type(region_sets) == dict:
                 target_to_db_dict = {x: target_to_query(region_sets[x], list(db_regions), fraction_overlap = fraction_overlap) for x in region_sets.keys()}
@@ -61,8 +64,13 @@ class cisTargetDatabase:
                 target_regions_in_db = list(set(target_to_db['Query'].tolist()))
             else:
                 raise ValueError('region_sets should be either a dict of PyRanges objects or a single PyRanges object, not {}'.format(type(region_sets)))
+            name='test'
+            if prefix is not None:
+                target_regions_in_db = [prefix + '__' + x for x in target_regions_in_db]
             target_regions_in_db = GeneSignature(name=name, gene2weight=target_regions_in_db)
             db_rankings = db.load(target_regions_in_db)
+            if prefix is not None:
+                db_rankings.columns = [x.split('__')[1] for x in db_rankings.columns]
         else:
             log.warn('Loading complete cistarget database, this can take a long time and consumes a lot of memory!')
             target_to_db_dict = None
