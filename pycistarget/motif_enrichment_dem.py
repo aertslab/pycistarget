@@ -85,8 +85,8 @@ class DEM():
                  path_to_motif_annotations: str = None,
                  annotation_version: str = 'v9',
                  annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
-                 motif_similarity_fdr: float = 0.00002,
-                 orthologous_identity_threshold: float = 0.6,
+                 motif_similarity_fdr: float = 0.001,
+                 orthologous_identity_threshold: float = 0.0,
                  tmp_dir: int = None,
                  **kwargs):
         

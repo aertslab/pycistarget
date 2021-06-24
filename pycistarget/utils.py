@@ -51,8 +51,8 @@ def load_motif_annotations(specie: str,
                            fname: str = None,
                            column_names=('#motif_id', 'gene_name',
                                          'motif_similarity_qvalue', 'orthologous_identity', 'description'),
-                           motif_similarity_fdr: float = 0.00002,
-                           orthologous_identity_threshold: float = 0.6) -> pd.DataFrame:
+                           motif_similarity_fdr: float = 0.001,
+                           orthologous_identity_threshold: float = 0.0) -> pd.DataFrame:
     """
     Load motif annotations from a motif2TF snapshot.
     :param fname: the snapshot taken from motif2TF.

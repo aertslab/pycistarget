@@ -27,8 +27,8 @@ class Homer():
                  meme_path: str = None,
                  meme_collection_path: str = None,
                  cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
-                 motif_similarity_fdr: float = 0.00002,
-                 orthologous_identity_threshold: float = 0.6):
+                 motif_similarity_fdr: float = 0.001,
+                 orthologous_identity_threshold: float = 0.0):
         self.homer_path = homer_path
         self.bed_path = bed_path
         self.genome = genome
@@ -287,8 +287,8 @@ def run_homer(homer_path: str,
                              meme_path: str = None,
                              meme_collection_path: str = None,
                              cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
-                             motif_similarity_fdr: float = 0.00002,
-                             orthologous_identity_threshold: float = 0.6,
+                             motif_similarity_fdr: float = 0.001,
+                             orthologous_identity_threshold: float = 0.0,
                              **kwargs):
     # Create logger
     level    = logging.INFO
@@ -343,8 +343,8 @@ def homer_ray(homer_path: str,
               meme_path: str = None,
               meme_collection_path: str = None,
               cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
-              motif_similarity_fdr: float = 0.00002,
-              orthologous_identity_threshold: float = 0.6):
+              motif_similarity_fdr: float = 0.001,
+              orthologous_identity_threshold: float = 0.0):
     # Create logger
     level    = logging.INFO
     format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'

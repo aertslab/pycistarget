@@ -90,8 +90,8 @@ class cisTarget:
                  path_to_motif_annotations: str = None,
                  annotation_version: str = 'v9',
                  annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
-                 motif_similarity_fdr: float = 0.00002,
-                 orthologous_identity_threshold: float = 0.6):
+                 motif_similarity_fdr: float = 0.001,
+                 orthologous_identity_threshold: float = 0.0):
         self.regions_to_db = ctx_db.regions_to_db[name] if type(ctx_db.regions_to_db) == dict else ctx_db.regions_to_db.loc[coord_to_region_names(region_set)]
         self.region_set = region_set
         self.name = name
@@ -246,8 +246,8 @@ def run_cistarget(ctx_db: cisTargetDatabase,
                                path_to_motif_annotations: str = None,
                                annotation_version: str = 'v9',
                                annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
-                               motif_similarity_fdr: float = 0.00002,
-                               orthologous_identity_threshold: float = 0.6,
+                               motif_similarity_fdr: float = 0.001,
+                               orthologous_identity_threshold: float = 0.0,
                                n_cpu : int = 1,
                                **kwargs):
     """
@@ -320,8 +320,8 @@ def ctx_internal_ray(ctx_db: cisTargetDatabase,
             path_to_motif_annotations: str = None,
             annotation_version: str = 'v9',
             annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
-            motif_similarity_fdr: float = 0.00002,
-            orthologous_identity_threshold: float = 0.6) -> pd.DataFrame:
+            motif_similarity_fdr: float = 0.001,
+            orthologous_identity_threshold: float = 0.0) -> pd.DataFrame:
     
     return ctx_internal(ctx_db = ctx_db,
                         region_set = region_set,
@@ -347,8 +347,8 @@ def ctx_internal(ctx_db: cisTargetDatabase,
             path_to_motif_annotations: str = None,
             annotation_version: str = 'v9',
             annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
-            motif_similarity_fdr: float = 0.00002,
-            orthologous_identity_threshold: float = 0.6) -> pd.DataFrame:
+            motif_similarity_fdr: float = 0.001,
+            orthologous_identity_threshold: float = 0.0) -> pd.DataFrame:
     """
     Finds features of which the rankings are enriched in the input region set
     :param ctx_db: cistarget database object with loaded regions
