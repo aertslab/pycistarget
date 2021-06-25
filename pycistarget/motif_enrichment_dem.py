@@ -304,23 +304,28 @@ def create_groups(contrast: list,
                 annotation = pr.PyRanges(annotation[['Chromosome', 'Start', 'End']])
                 # Nr of promoters in the foreground
                 fg_pr_overlap = pr.PyRanges(region_names_to_coordinates(foreground)).count_overlaps(annotation)
-                if len(fg_pr_overlap) == len(foreground):
-                    nr_pr = len(foreground)
-                elif len(fg_pr_overlap) == 0:
+                fg_pr = coord_to_region_names(fg_pr_overlap[fg_pr_overlap.NumberOverlaps == 0])
+                if len(fg_pr) == len(foreground):
+                    nr_pr = max_bg_regions
+                elif len(fg_pr) == 0:
                     nr_pr = 0
                 else:
                     fg_pr = coord_to_region_names(fg_pr_overlap[fg_pr_overlap.NumberOverlaps == 0][['Chromosome', 'Start', 'End']])
                     fg_no_pr =  coord_to_region_names(fg_pr_overlap[fg_pr_overlap.NumberOverlaps != 0][['Chromosome', 'Start', 'End']])
                     nr_pr = int(max_bg_regions*(len(fg_pr)/(len(fg_pr) + len(fg_no_pr))))
+                
                 nr_no_pr = max_bg_regions-nr_pr
                 # Nr of promoters in the background
                 bg_pr_overlap = pr.PyRanges(region_names_to_coordinates(background)).count_overlaps(annotation)
                 bg_pr = coord_to_region_names(bg_pr_overlap[bg_pr_overlap.NumberOverlaps == 0][['Chromosome', 'Start', 'End']])
+                bg_no_pr = coord_to_region_names(bg_pr_overlap[bg_pr_overlap.NumberOverlaps != 0][['Chromosome', 'Start', 'End']])
                 if len(bg_pr) < nr_pr:
-                    nr_pr = bg_pr
-                    nr_no_pr = max_bg_regions-nr_pr
-                # For promoters           
-                bg_pr_subset = fg_pr.copy()
+                    nr_pr = len(bg_pr)
+                nr_no_pr = max_bg_regions-nr_pr
+                if len(bg_no_pr) < nr_no_pr:
+                    nr_no_pr = len(bg_no_pr)
+                # For promoters   
+                bg_pr_subset = bg_pr.copy()
                 random.Random(555).shuffle(bg_pr_subset)
                 bg_pr = bg_pr_subset[0:nr_pr]
                 # For others        
@@ -491,5 +496,8 @@ def get_motif_hits(scores, regions, labels, optimal_threshold=None):
         optimal_threshold = thresholds[optimal_idx]
     motif_hits = df[(df['Score'] > optimal_threshold) & (df['Label'] == 1)].index.to_list()
     return motif_hits, optimal_threshold
+    
+
+
     
 
