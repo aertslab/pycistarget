@@ -293,6 +293,7 @@ def create_groups(contrast: list,
     foreground = list(set(sum([region_sets_names[key] for key in contrast[0]],[])))
     if contrast[1] != 'Shuffle':
         background = list(set(sum([region_sets_names[key] for key in contrast[1]],[])))
+        background = np.setdiff1d(background,foreground)
         if max_bg_regions is not None:
             if annotation is None:
                 random.Random(555).shuffle(background)
