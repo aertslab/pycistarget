@@ -82,9 +82,11 @@ class DEM():
                  cluster_buster_path: str = None,
                  path_to_genome_fasta: str = None,
                  path_to_motifs: str = None,
+                 genome_annotation: pr.PyRanges = None,
+                 promoter_space: int = 1000,
                  path_to_motif_annotations: str = None,
                  annotation_version: str = 'v9',
-                 annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
+                 motif_annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
                  motif_similarity_fdr: float = 0.001,
                  orthologous_identity_threshold: float = 0.0,
                  tmp_dir: int = None,
@@ -116,9 +118,12 @@ class DEM():
         self.cluster_buster_path = cluster_buster_path
         self.path_to_genome_fasta =  path_to_genome_fasta
         self.path_to_motifs = path_to_motifs
+        # For promoter awareness
+        self.genome_annotation = genome_annotation
+        self.promoter_space = promoter_space
         # For annotation
         self.annotation_version = annotation_version
-        self.annotation = annotation
+        self.motif_annotation = motif_annotation
         self.path_to_motif_annotations = path_to_motif_annotations
         self.motif_similarity_fdr = motif_similarity_fdr
         self.orthologous_identity_threshold = orthologous_identity_threshold
@@ -171,6 +176,8 @@ class DEM():
                                    path_to_regions_fasta = os.path.join(self.tmp_dir, contrasts_names[x] +'.fa'),  
                                    cbust_path = self.cluster_buster_path,
                                    path_to_motifs = self.path_to_motifs,
+                                   annotation = self.genome_annotation,
+                                   promoter_space = self.promoter_space,
                                    motifs = dem_db_scores.index.tolist(),
                                    n_cpu = self.n_cpu) for x in range(len(contrasts))]
 
@@ -205,8 +212,8 @@ class DEM():
         self.motif_hits = {'Database': db_motif_hits, 'Region_set': rs_motif_hits}
         # TF cistromes
         log.info('Forming cistromes')
-        cistromes_db = {key: get_cistromes_per_region_set(self.motif_enrichment[key], self.motif_hits['Database'][key], self.annotation) for key in self.motif_enrichment.keys()}
-        cistromed_rs = {key: get_cistromes_per_region_set(self.motif_enrichment[key], self.motif_hits['Region_set'][key], self.annotation) for key in self.motif_enrichment.keys()}
+        cistromes_db = {key: get_cistromes_per_region_set(self.motif_enrichment[key], self.motif_hits['Database'][key], self.motif_annotation) for key in self.motif_enrichment.keys()}
+        cistromed_rs = {key: get_cistromes_per_region_set(self.motif_enrichment[key], self.motif_hits['Region_set'][key], self.motif_annotation) for key in self.motif_enrichment.keys()}
         self.cistromes = {'Database': cistromes_db, 'Region_set': cistromed_rs}
         log.info('Done!')
         
@@ -264,6 +271,7 @@ def shuffle_sequence(sequence: str):
     shuffled_sequence = np.frombuffer(sequence.encode('utf-8'), dtype='uint8')
     np.random.shuffle(shuffled_sequence)
     return shuffled_sequence.tobytes().decode('utf-8')
+    
 ## Create groups to compare
 def create_groups(contrast: list,
                   region_sets_names: list,
@@ -272,6 +280,8 @@ def create_groups(contrast: list,
                   path_to_regions_fasta: str,
                   cbust_path: str,
                   path_to_motifs: str,
+                  annotation: pr.PyRanges = None,
+                  promoter_space: int = 1000,
                   motifs: list = None,
                   n_cpu: int = 1):
     # Create DEM logger
@@ -284,22 +294,81 @@ def create_groups(contrast: list,
     if contrast[1] != 'Shuffle':
         background = list(set(sum([region_sets_names[key] for key in contrast[1]],[])))
         if max_bg_regions is not None:
-            random.Random(555).shuffle(background)
-            background = background[0:max_bg_regions]
+            if annotation is None:
+                random.Random(555).shuffle(background)
+                background = background[0:max_bg_regions]
+            else:
+                # Annotation of promoters
+                annotation['End'] = annotation['Start']+promoter_space
+                annotation['Start'] = annotation['Start']-promoter_space
+                annotation = pr.PyRanges(annotation[['Chromosome', 'Start', 'End']])
+                # Nr of promoters in the foreground
+                fg_pr_overlap = pr.PyRanges(region_names_to_coordinates(foreground)).count_overlaps(annotation)
+                if len(fg_pr_overlap) == len(foreground):
+                    nr_pr = len(foreground)
+                elif len(fg_pr_overlap) == 0:
+                    nr_pr = 0
+                else:
+                    fg_pr = coord_to_region_names(fg_pr_overlap[fg_pr_overlap.NumberOverlaps == 0][['Chromosome', 'Start', 'End']])
+                    fg_no_pr =  coord_to_region_names(fg_pr_overlap[fg_pr_overlap.NumberOverlaps != 0][['Chromosome', 'Start', 'End']])
+                    nr_pr = int(max_bg_regions*(len(fg_pr)/(len(fg_pr) + len(fg_no_pr))))
+                nr_no_pr = max_bg_regions-nr_pr
+                # Nr of promoters in the background
+                bg_pr_overlap = pr.PyRanges(region_names_to_coordinates(background)).count_overlaps(annotation)
+                bg_pr = coord_to_region_names(bg_pr_overlap[bg_pr_overlap.NumberOverlaps == 0][['Chromosome', 'Start', 'End']])
+                if len(bg_pr) < nr_pr:
+                    nr_pr = bg_pr
+                    nr_no_pr = max_bg_regions-nr_pr
+                # For promoters           
+                bg_pr_subset = fg_pr.copy()
+                random.Random(555).shuffle(bg_pr_subset)
+                bg_pr = bg_pr_subset[0:nr_pr]
+                # For others        
+                bg_no_pr_subset = bg_no_pr.copy()
+                random.Random(555).shuffle(bg_no_pr_subset)
+                bg_no_pr = bg_no_pr_subset[0:nr_no_pr]         
+                background = bg_no_pr+bg_pr 
+        
     else:
         log.info('Generating and scoring shuffled background')
         if max_bg_regions is None:
             background_pr = pr.PyRanges(region_names_to_coordinates(foreground))
             background_sequences = pd.DataFrame([foreground, pr.get_fasta(background_pr, path_to_genome_fasta).tolist()], index=['Name', 'Sequence']).T
         else:
-            foreground_subset = foreground.copy()
-            random.Random(555).shuffle(foreground_subset)
-            foreground_subset = foreground_subset[0:max_bg_regions]
-            background_pr = pr.PyRanges(region_names_to_coordinates(foreground_subset))
-            background_sequences = pd.DataFrame([foreground_subset, pr.get_fasta(background_pr, path_to_genome_fasta).tolist()], index=['Name', 'Sequence']).T
-        background_sequences['Sequence'] = [shuffle_sequence(x) for x in background_sequences['Sequence']] 
-        background_sequences['Name'] = '>' + background_sequences['Name'] 
-        background_sequences.to_csv(path_to_regions_fasta, header=False, index=False, sep='\n')
+            if annotation is not None:
+                annotation['End'] = annotation['Start']+promoter_space
+                annotation['Start'] = annotation['Start']-promoter_space
+                annotation = pr.PyRanges(annotation[['Chromosome', 'Start', 'End']])
+                fg_pr_overlap = pr.PyRanges(region_names_to_coordinates(foreground)).count_overlaps(annotation)
+                if len(fg_pr_overlap) == len(foreground):
+                    nr_pr = len(foreground)
+                elif len(fg_pr_overlap) == 0:
+                    nr_pr = 0
+                else:
+                    fg_pr = coord_to_region_names(fg_pr_overlap[fg_pr_overlap.NumberOverlaps == 0][['Chromosome', 'Start', 'End']])
+                    fg_no_pr =  coord_to_region_names(fg_pr_overlap[fg_pr_overlap.NumberOverlaps != 0][['Chromosome', 'Start', 'End']])
+                    nr_pr = int(max_bg_regions*(len(fg_pr)/(len(fg_pr) + len(fg_no_pr))))
+                nr_no_pr = max_bg_regions-nr_pr
+                # For promoters           
+                fg_pr_subset = fg_pr.copy()
+                random.Random(555).shuffle(fg_pr_subset)
+                bg_pr = fg_pr_subset[0:nr_pr]
+                # For others        
+                fg_no_pr_subset = fg_no_pr.copy()
+                random.Random(555).shuffle(fg_no_pr_subset)
+                bg_no_pr = fg_no_pr_subset[0:nr_no_pr] 
+                region_names = bg_no_pr+bg_pr
+                background_pr = pr.PyRanges(region_names_to_coordinates(region_names))  
+            else:
+                foreground_subset = foreground.copy()
+                random.Random(555).shuffle(foreground_subset)
+                region_names = foreground_subset[0:max_bg_regions]
+                background_pr = pr.PyRanges(region_names_to_coordinates(region_names))   
+                                          
+            background_sequences = pd.DataFrame([reegion_names, pr.get_fasta(background_pr, path_to_genome_fasta).tolist()], index=['Name', 'Sequence']).T
+            background_sequences['Sequence'] = [shuffle_sequence(x) for x in background_sequences['Sequence']] 
+            background_sequences['Name'] = '>' + background_sequences['Name'] 
+            background_sequences.to_csv(path_to_regions_fasta, header=False, index=False, sep='\n')
         # Motifs should include .cb
         motifs = [motif + '.cb' for motif in motifs]
         background  = cluster_buster(cbust_path, path_to_motifs, path_to_regions_fasta=path_to_regions_fasta, n_cpu=n_cpu, motifs=motifs)
