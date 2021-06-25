@@ -293,7 +293,7 @@ def create_groups(contrast: list,
     foreground = list(set(sum([region_sets_names[key] for key in contrast[0]],[])))
     if contrast[1] != 'Shuffle':
         background = list(set(sum([region_sets_names[key] for key in contrast[1]],[])))
-        background = np.setdiff1d(background,foreground)
+        background = list(np.setdiff1d(background,foreground))
         if max_bg_regions is not None:
             if annotation is None:
                 random.Random(555).shuffle(background)
@@ -305,21 +305,21 @@ def create_groups(contrast: list,
                 annotation = pr.PyRanges(annotation[['Chromosome', 'Start', 'End']])
                 # Nr of promoters in the foreground
                 fg_pr_overlap = pr.PyRanges(region_names_to_coordinates(foreground)).count_overlaps(annotation)
-                fg_pr = coord_to_region_names(fg_pr_overlap[fg_pr_overlap.NumberOverlaps == 0])
+                fg_pr = coord_to_region_names(fg_pr_overlap[fg_pr_overlap.NumberOverlaps != 0])
                 if len(fg_pr) == len(foreground):
                     nr_pr = max_bg_regions
                 elif len(fg_pr) == 0:
                     nr_pr = 0
                 else:
-                    fg_pr = coord_to_region_names(fg_pr_overlap[fg_pr_overlap.NumberOverlaps == 0][['Chromosome', 'Start', 'End']])
-                    fg_no_pr =  coord_to_region_names(fg_pr_overlap[fg_pr_overlap.NumberOverlaps != 0][['Chromosome', 'Start', 'End']])
+                    fg_pr = coord_to_region_names(fg_pr_overlap[fg_pr_overlap.NumberOverlaps != 0][['Chromosome', 'Start', 'End']])
+                    fg_no_pr =  coord_to_region_names(fg_pr_overlap[fg_pr_overlap.NumberOverlaps == 0][['Chromosome', 'Start', 'End']])
                     nr_pr = int(max_bg_regions*(len(fg_pr)/(len(fg_pr) + len(fg_no_pr))))
                 
                 nr_no_pr = max_bg_regions-nr_pr
                 # Nr of promoters in the background
                 bg_pr_overlap = pr.PyRanges(region_names_to_coordinates(background)).count_overlaps(annotation)
-                bg_pr = coord_to_region_names(bg_pr_overlap[bg_pr_overlap.NumberOverlaps == 0][['Chromosome', 'Start', 'End']])
-                bg_no_pr = coord_to_region_names(bg_pr_overlap[bg_pr_overlap.NumberOverlaps != 0][['Chromosome', 'Start', 'End']])
+                bg_pr = coord_to_region_names(bg_pr_overlap[bg_pr_overlap.NumberOverlaps != 0][['Chromosome', 'Start', 'End']])
+                bg_no_pr = coord_to_region_names(bg_pr_overlap[bg_pr_overlap.NumberOverlaps == 0][['Chromosome', 'Start', 'End']])
                 if len(bg_pr) < nr_pr:
                     nr_pr = len(bg_pr)
                 nr_no_pr = max_bg_regions-nr_pr
