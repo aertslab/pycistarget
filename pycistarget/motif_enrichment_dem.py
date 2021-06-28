@@ -351,8 +351,8 @@ def create_groups(contrast: list,
                 elif len(fg_pr_overlap) == 0:
                     nr_pr = 0
                 else:
-                    fg_pr = coord_to_region_names(fg_pr_overlap[fg_pr_overlap.NumberOverlaps == 0][['Chromosome', 'Start', 'End']])
-                    fg_no_pr =  coord_to_region_names(fg_pr_overlap[fg_pr_overlap.NumberOverlaps != 0][['Chromosome', 'Start', 'End']])
+                    fg_pr = coord_to_region_names(fg_pr_overlap[fg_pr_overlap.NumberOverlaps != 0][['Chromosome', 'Start', 'End']])
+                    fg_no_pr =  coord_to_region_names(fg_pr_overlap[fg_pr_overlap.NumberOverlaps == 0][['Chromosome', 'Start', 'End']])
                     nr_pr = int(max_bg_regions*(len(fg_pr)/(len(fg_pr) + len(fg_no_pr))))
                 nr_no_pr = max_bg_regions-nr_pr
                 # For promoters           
