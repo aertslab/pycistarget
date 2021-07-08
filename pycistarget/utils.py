@@ -83,25 +83,25 @@ def load_motif_annotations(specie: str,
     
     # Direct annotation
     df_direct_annot = df[df['Annotation'] == 'gene is directly annotated']
-    df_direct_annot = df_direct_annot.groupby(['MotifID'])['TF'].apply(lambda x: ', '.join(x)).reset_index()
+    df_direct_annot = df_direct_annot.groupby(['MotifID'])['TF'].apply(lambda x: ', '..join(list(set(x)))).reset_index()
     df_direct_annot.index = df_direct_annot['MotifID']
     df_direct_annot = pd.DataFrame(df_direct_annot['TF'])
     df_direct_annot.columns = ['Direct_annot']
     # Indirect annotation - by motif similarity
     motif_similarity_annot = df[df['Annotation'].str.contains('similar') & ~df['Annotation'].str.contains('orthologous')]
-    motif_similarity_annot = motif_similarity_annot.groupby(['MotifID'])['TF'].apply(lambda x: ', '.join(x)).reset_index()
+    motif_similarity_annot = motif_similarity_annot.groupby(['MotifID'])['TF'].apply(lambda x: ', '.join(list(set(x)))).reset_index()
     motif_similarity_annot.index =  motif_similarity_annot['MotifID']
     motif_similarity_annot = pd.DataFrame(motif_similarity_annot['TF'])
     motif_similarity_annot.columns = ['Motif_similarity_annot']
     # Indirect annotation - by orthology
     orthology_annot = df[~df['Annotation'].str.contains('similar') & df['Annotation'].str.contains('orthologous')]
-    orthology_annot = orthology_annot.groupby(['MotifID'])['TF'].apply(lambda x: ', '.join(x)).reset_index()
+    orthology_annot = orthology_annot.groupby(['MotifID'])['TF'].apply(lambda x: ', '.join(list(set(x)))).reset_index()
     orthology_annot.index = orthology_annot['MotifID']
     orthology_annot = pd.DataFrame(orthology_annot['TF'])
     orthology_annot.columns = ['Orthology_annot']
     # Indirect annotation - by orthology
     motif_similarity_and_orthology_annot = df[df['Annotation'].str.contains('similar') & df['Annotation'].str.contains('orthologous')]
-    motif_similarity_and_orthology_annot = motif_similarity_and_orthology_annot.groupby(['MotifID'])['TF'].apply(lambda x: ', '.join(x)).reset_index()
+    motif_similarity_and_orthology_annot = motif_similarity_and_orthology_annot.groupby(['MotifID'])['TF'].apply(lambda x: ', '.join(list(set(x)))).reset_index()
     motif_similarity_and_orthology_annot.index = motif_similarity_and_orthology_annot['MotifID']
     motif_similarity_and_orthology_annot = pd.DataFrame(motif_similarity_and_orthology_annot['TF'])
     motif_similarity_and_orthology_annot.columns = ['Motif_similarity_and_Orthology_annot']
