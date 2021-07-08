@@ -224,12 +224,12 @@ class cisTarget:
         if add_logo == True:
             motif_enrichment_w_annot['Logo']=['<img src="' +'https://motifcollections.aertslab.org/' + self.annotation_version + '/logos/'+ motif_enrichment_w_annot.index.tolist()[i] + '.png' + '" width="200" >' for i in range(motif_enrichment_w_annot.shape[0])]
             if annot_df is not None:
-                motif_enrichment_w_annot = motif_enrichment_w_annot[['Logo', 'Region_set', 'Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot', 'NES', 'AUC', 'Rank_at_max']]
+                motif_enrichment_w_annot = motif_enrichment_w_annot[sum([['Logo', 'Region_set'], self.annotation, ['NES', 'AUC', 'Rank_at_max']], [])]
             else:
                 motif_enrichment_w_annot = motif_enrichment_w_annot[['Logo', 'Region_set', 'NES', 'AUC', 'Rank_at_max']]
         else:
             if annot_df is not None:
-                motif_enrichment_w_annot = motif_enrichment_w_annot[['Region_set', 'Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot', 'NES', 'AUC', 'Rank_at_max']]
+                motif_enrichment_w_annot = motif_enrichment_w_annot[sum([['Region_set'], self.annotation, ['NES', 'AUC', 'Rank_at_max']], [])]
             else:
                 motif_enrichment_w_annot = motif_enrichment_w_annot[['Region_set', 'NES', 'AUC', 'Rank_at_max']]
         self.motif_enrichment = motif_enrichment_w_annot 
