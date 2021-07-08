@@ -83,7 +83,7 @@ def load_motif_annotations(specie: str,
     
     # Direct annotation
     df_direct_annot = df[df['Annotation'] == 'gene is directly annotated']
-    df_direct_annot = df_direct_annot.groupby(['MotifID'])['TF'].apply(lambda x: ', '..join(list(set(x)))).reset_index()
+    df_direct_annot = df_direct_annot.groupby(['MotifID'])['TF'].apply(lambda x: ', '.join(list(set(x)))).reset_index()
     df_direct_annot.index = df_direct_annot['MotifID']
     df_direct_annot = pd.DataFrame(df_direct_annot['TF'])
     df_direct_annot.columns = ['Direct_annot']
