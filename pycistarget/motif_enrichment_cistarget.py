@@ -151,7 +151,7 @@ class cisTarget:
         #subset rankings database on motifs and regions
         if self.motifs_to_use is not None:
             log.info('Using only user provided motifs')
-            motifs_not_in_db = np.isin(self.motifs_to_use, ctx_db.db_rankings.index.values)
+            motifs_not_in_db = set.difference(set(self.motifs_to_use), set(ctx_db.db_rankings.index.values))
             if len(motifs_not_in_db) > 0:
                 log.info('Some motifs provided by the parameter <motifs_to_use> are not in the rankings database: {}'.format(motifs_not_in_db))
             motifs_to_use = set(self.motifs_to_use) & set(ctx_db.db_rankings.index.values)
