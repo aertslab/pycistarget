@@ -91,8 +91,9 @@ class cisTarget:
                  annotation_version: str = 'v9',
                  annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
                  motif_similarity_fdr: float = 0.001,
-                 orthologous_identity_threshold: float = 0.0):
-        self.regions_to_db = ctx_db.regions_to_db[name] if type(ctx_db.regions_to_db) == dict else ctx_db.regions_to_db.loc[coord_to_region_names(region_set)]
+                 orthologous_identity_threshold: float = 0.0,
+                 motifs_to_use: list = None):
+        self.regions_to_db = ctx_db.regions_to_db[name] if type(ctx_db.regions_to_db) == dict else ctx_db.regions_to_db.loc[set(coord_to_region_names(region_set)) & set(ctx_db.regions_to_db['Target'])]
         self.region_set = region_set
         self.name = name
         self.specie = specie
@@ -104,6 +105,7 @@ class cisTarget:
         self.path_to_motif_annotations = path_to_motif_annotations
         self.motif_similarity_fdr = motif_similarity_fdr
         self.orthologous_identity_threshold = orthologous_identity_threshold
+        self.motifs_to_use = motifs_to_use
         # Run ctx
         self.run_ctx(ctx_db)
 
@@ -145,9 +147,20 @@ class cisTarget:
         region_set_signature = region_sets_to_signature(self.regions_to_db['Query'].tolist(), region_set_name = self.name)
         # Get regions
         regions = np.array(list(region_set_signature.genes))
-        db_rankings_regions = ctx_db.db_rankings[regions]
+        
+        #subset rankings database on motifs and regions
+        if self.motifs_to_use is not None:
+            log.info('Using only user provided motifs')
+            motifs_not_in_db = set.difference(set(self.motifs_to_use), set(ctx_db.db_rankings.index.values))
+            if len(motifs_not_in_db) > 0:
+                log.info('Some motifs provided by the parameter <motifs_to_use> are not in the rankings database: {}'.format(motifs_not_in_db))
+            motifs_to_use = set(self.motifs_to_use) & set(ctx_db.db_rankings.index.values)
+            db_rankings_regions = ctx_db.db_rankings.loc[motifs_to_use, regions]
+        else:
+            db_rankings_regions = ctx_db.db_rankings[regions]
+
         #Get features, rankings and weights
-        features, rankings = ctx_db.db_rankings.index.values, db_rankings_regions.values
+        features, rankings = db_rankings_regions.index.values, db_rankings_regions.values
         weights = np.asarray(np.ones(len(regions)))
         # Calculate recovery curves, AUC and NES values.
         aucs = calc_aucs(db_rankings_regions, ctx_db.total_regions, weights, self.auc_threshold)
@@ -249,6 +262,7 @@ def run_cistarget(ctx_db: cisTargetDatabase,
                                motif_similarity_fdr: float = 0.001,
                                orthologous_identity_threshold: float = 0.0,
                                n_cpu : int = 1,
+                               motifs_to_use: list = None,
                                **kwargs):
     """
     Finds features of which the rankings are enriched in the input region set
@@ -290,7 +304,8 @@ def run_cistarget(ctx_db: cisTargetDatabase,
                                             annotation_version = annotation_version,
                                             annotation = annotation,
                                             motif_similarity_fdr = motif_similarity_fdr,
-                                            orthologous_identity_threshold = orthologous_identity_threshold) for key in list(region_sets.keys())])
+                                            orthologous_identity_threshold = orthologous_identity_threshold,
+                                            motifs_to_use = motifs_to_use) for key in list(region_sets.keys())])
         ray.shutdown()
     else:
         ctx_dict = [ctx_internal(ctx_db = ctx_db, 
@@ -304,7 +319,8 @@ def run_cistarget(ctx_db: cisTargetDatabase,
                                             annotation_version = annotation_version,
                                             annotation = annotation,
                                             motif_similarity_fdr = motif_similarity_fdr,
-                                            orthologous_identity_threshold = orthologous_identity_threshold) for key in list(region_sets.keys())]
+                                            orthologous_identity_threshold = orthologous_identity_threshold,
+                                            motifs_to_use = motifs_to_use) for key in list(region_sets.keys())]
     ctx_dict = {key: ctx_result for key, ctx_result in zip(list(region_sets.keys()), ctx_dict)}
     log.info('Done!')
     return ctx_dict
@@ -321,7 +337,8 @@ def ctx_internal_ray(ctx_db: cisTargetDatabase,
             annotation_version: str = 'v9',
             annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
             motif_similarity_fdr: float = 0.001,
-            orthologous_identity_threshold: float = 0.0) -> pd.DataFrame:
+            orthologous_identity_threshold: float = 0.0,
+            motifs_to_use: list = None) -> pd.DataFrame:
     
     return ctx_internal(ctx_db = ctx_db,
                         region_set = region_set,
@@ -334,7 +351,8 @@ def ctx_internal_ray(ctx_db: cisTargetDatabase,
                         annotation_version = annotation_version,
                         annotation = annotation,
                         motif_similarity_fdr = motif_similarity_fdr,
-                        orthologous_identity_threshold = orthologous_identity_threshold)
+                        orthologous_identity_threshold = orthologous_identity_threshold,
+                        motifs_to_use = motifs_to_use)
 
 
 def ctx_internal(ctx_db: cisTargetDatabase,
@@ -348,7 +366,8 @@ def ctx_internal(ctx_db: cisTargetDatabase,
             annotation_version: str = 'v9',
             annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
             motif_similarity_fdr: float = 0.001,
-            orthologous_identity_threshold: float = 0.0) -> pd.DataFrame:
+            orthologous_identity_threshold: float = 0.0,
+            motifs_to_use: list = None ) -> pd.DataFrame:
     """
     Finds features of which the rankings are enriched in the input region set
     :param ctx_db: cistarget database object with loaded regions
@@ -376,7 +395,8 @@ def ctx_internal(ctx_db: cisTargetDatabase,
                            annotation_version,
                            annotation,
                            motif_similarity_fdr,
-                           orthologous_identity_threshold)
+                           orthologous_identity_threshold,
+                           motifs_to_use)
     return ctx_result
     
 ## Show results 
