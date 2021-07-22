@@ -13,6 +13,10 @@ from typing import Union, Dict, Sequence, Optional
 
 from .utils import *
 
+# Set stderr to null when using ray.init to avoid ray printing Broken pipe million times
+_stderr = sys.stderr                                                         
+null = open(os.devnull,'wb') 
+
 class Homer(): 
     def __init__(self,
                  homer_path: str,
@@ -311,6 +315,7 @@ def run_homer(homer_path: str,
         region_sets[key].to_bed(path=bed_path, keep=False, compression='infer', chain=False)
         bed_paths[key] = bed_path
     # Run Homer
+    sys.stderr = null
     ray.init(num_cpus=n_cpu, **kwargs)
     homer_dict = ray.get([homer_ray.remote(homer_path,
                                 bed_paths[name],
@@ -327,6 +332,7 @@ def run_homer(homer_path: str,
                                 motif_similarity_fdr,
                                 orthologous_identity_threshold) for name in list(bed_paths.keys())])
     ray.shutdown()
+    sys.stderr = sys.__stderr__
     homer_dict={list(bed_paths.keys())[i]: homer_dict[i] for i in range(len(homer_dict))}
     return homer_dict
 

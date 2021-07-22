@@ -232,7 +232,7 @@ def get_cistromes_per_region_set(motif_enrichment_region_set,
                                                                            motif_column = 'Index',
                                                                            annotation=['Direct_annot'])) for tf in tfs}
     else:
-    	cistromes_per_region_set_direct={}
+        cistromes_per_region_set_direct={}
     
     if not 'Direct_annot' in annotation or len(annotation) > 1:
         tfs = get_TF_list(motif_enrichment_region_set)
@@ -242,7 +242,7 @@ def get_cistromes_per_region_set(motif_enrichment_region_set,
                                                                            motif_column = 'Index',
                                                                            annotation=annotation)) for tf in tfs}
     else:
-    	cistromes_per_region_set_extended={}
+        cistromes_per_region_set_extended={}
     
     cistromes_per_region_set = {**cistromes_per_region_set_direct, **cistromes_per_region_set_extended}
     cistromes_per_region_set = {x + '_(' + str(len(cistromes_per_region_set[x])) + 'r)': cistromes_per_region_set[x] for x in cistromes_per_region_set.keys()}

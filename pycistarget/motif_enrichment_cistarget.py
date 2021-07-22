@@ -18,6 +18,10 @@ from IPython.display import HTML
 ssl._create_default_https_context = ssl._create_unverified_context
 pd.set_option('display.max_colwidth', None)
 
+# Set stderr to null when using ray.init to avoid ray printing Broken pipe million times
+_stderr = sys.stderr                                                         
+null = open(os.devnull,'wb') 
+
 from .utils import *
 
 class cisTargetDatabase: 
@@ -292,6 +296,7 @@ def run_cistarget(ctx_db: cisTargetDatabase,
     
     # Run cistarget analysis in parallel
     if n_cpu > 1:
+        sys.stderr = null
         ray.init(num_cpus=n_cpu, **kwargs)
         ctx_dict = ray.get([ctx_internal_ray.remote(ctx_db = ctx_db, 
                                             region_set = region_sets[key], 
@@ -307,6 +312,7 @@ def run_cistarget(ctx_db: cisTargetDatabase,
                                             orthologous_identity_threshold = orthologous_identity_threshold,
                                             motifs_to_use = motifs_to_use) for key in list(region_sets.keys())])
         ray.shutdown()
+        sys.stderr = sys.__stderr__
     else:
         ctx_dict = [ctx_internal(ctx_db = ctx_db, 
                                             region_set = region_sets[key], 

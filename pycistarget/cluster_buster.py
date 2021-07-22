@@ -12,6 +12,10 @@ import ray
 from typing import Optional, Union
 from typing import List, Iterable, Tuple, Dict
 
+# Set stderr to null when using ray.init to avoid ray printing Broken pipe million times
+_stderr = sys.stderr                                                         
+null = open(os.devnull,'wb') 
+
 def cluster_buster(cbust_path: str,
                  path_to_motifs: str,
                  region_sets: Union[Dict[str, pr.PyRanges], Dict[str, List]] = None,
@@ -47,9 +51,11 @@ def cluster_buster(cbust_path: str,
         motifs = grep(motifs, '.cb')
     
     log.info('Scoring sequences')
+    sys.stderr = null
     ray.init(num_cpus=n_cpu, **kwargs)
     crm_scores = ray.get([run_cluster_buster_for_motif.remote(cbust_path, path_to_regions_fasta, path_to_motifs+motifs[i], motifs[i], i, len(motifs), verbose) for i in range(len(motifs))])
     ray.shutdown()
+    sys.stderr = sys.__stderr__
     crm_df = pd.concat(crm_scores, axis=1, sort=False).fillna(0).T
     # Remove .cb from motifs names
     crm_df.index = [x.replace('.cb','') for x in crm_df.index.tolist()]

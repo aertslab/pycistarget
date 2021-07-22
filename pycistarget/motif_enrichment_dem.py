@@ -21,6 +21,10 @@ from IPython.display import HTML
 ssl._create_default_https_context = ssl._create_unverified_context
 pd.set_option('display.max_colwidth', None)
 
+# Set stderr to null when using ray.init to avoid ray printing Broken pipe million times
+_stderr = sys.stderr                                                         
+null = open(os.devnull,'wb') 
+
 from .cluster_buster import *
 from .utils import *
 
@@ -186,6 +190,7 @@ class DEM():
             self.n_cpu = len(region_groups)
         
         if self.n_cpu > 1:
+            sys.stderr = null
             ray.init(num_cpus=self.n_cpu, **kwargs)
             DEM_list = ray.get([DEM_internal_ray.remote(dem_db_scores,
                                              region_groups[i],
@@ -195,6 +200,7 @@ class DEM():
                                              mean_fg_thr = self.mean_fg_thr,
                                              motif_hit_thr = self.motif_hit_thr) for i in range(len(contrasts))])
             ray.shutdown()
+            sys.stderr = sys.__stderr__ 
         else:
             DEM_list = [DEM_internal(dem_db_scores,
                                 region_groups[i],
