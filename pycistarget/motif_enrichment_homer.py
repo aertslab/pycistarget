@@ -315,8 +315,8 @@ def run_homer(homer_path: str,
         region_sets[key].to_bed(path=bed_path, keep=False, compression='infer', chain=False)
         bed_paths[key] = bed_path
     # Run Homer
-    sys.stderr = null
     ray.init(num_cpus=n_cpu, **kwargs)
+    sys.stderr = null
     homer_dict = ray.get([homer_ray.remote(homer_path,
                                 bed_paths[name],
                                 name,

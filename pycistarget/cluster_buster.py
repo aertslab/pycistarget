@@ -51,8 +51,8 @@ def cluster_buster(cbust_path: str,
         motifs = grep(motifs, '.cb')
     
     log.info('Scoring sequences')
-    sys.stderr = null
     ray.init(num_cpus=n_cpu, **kwargs)
+    sys.stderr = null
     crm_scores = ray.get([run_cluster_buster_for_motif.remote(cbust_path, path_to_regions_fasta, path_to_motifs+motifs[i], motifs[i], i, len(motifs), verbose) for i in range(len(motifs))])
     ray.shutdown()
     sys.stderr = sys.__stderr__

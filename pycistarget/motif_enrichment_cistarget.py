@@ -296,8 +296,8 @@ def run_cistarget(ctx_db: cisTargetDatabase,
     
     # Run cistarget analysis in parallel
     if n_cpu > 1:
-        sys.stderr = null
         ray.init(num_cpus=n_cpu, **kwargs)
+        sys.stderr = null
         ctx_dict = ray.get([ctx_internal_ray.remote(ctx_db = ctx_db, 
                                             region_set = region_sets[key], 
                                             name = key,  

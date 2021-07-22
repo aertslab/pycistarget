@@ -190,8 +190,8 @@ class DEM():
             self.n_cpu = len(region_groups)
         
         if self.n_cpu > 1:
+            ray.init(num_cpus=n_cpu, **kwargs)
             sys.stderr = null
-            ray.init(num_cpus=self.n_cpu, **kwargs)
             DEM_list = ray.get([DEM_internal_ray.remote(dem_db_scores,
                                              region_groups[i],
                                              contrasts_names[i],
