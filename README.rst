@@ -12,7 +12,9 @@ To install pycistarget::
 
 	git clone https://github.com/aertslab/pycistarget.git
 	cd pycistarget
-	pip install . 
+	pip install -e .
+	#or
+	pip install . --use-feature=in-tree-build 
 
 
 Check version
