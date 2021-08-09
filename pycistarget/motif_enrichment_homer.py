@@ -252,7 +252,7 @@ class Homer():
             else:
                 cistrome_dict_direct = {}
                 
-               if not 'Direct_annot' in annotation or len(annotation) > 1:
+            if not 'Direct_annot' in annotation or len(annotation) > 1:
                 tfs = get_TF_list(self.known_motifs, annotation=annotation)
                 cistrome_dict_extended = {tf+'_extended': get_cistrome_per_TF(self.known_motif_hits,  get_motifs_per_TF(self.known_motifs, tf, motif_column = 'Motif Name', annotation=annotation)) for tf in tfs}
             else:
@@ -268,7 +268,7 @@ class Homer():
             else:
                 cistrome_dict_direct = {}
                 
-               if not 'Direct_annot' in annotation or len(annotation) > 1:
+            if not 'Direct_annot' in annotation or len(annotation) > 1:
                 tfs = get_TF_list(self.denovo_motifs, annotation=annotation)
                 cistrome_dict_extended = {tf+'_extended': get_cistrome_per_TF(self.denovo_motif_hits,  get_motifs_per_TF(self.denovo_motifs, tf, motif_column = 'Motif Name', annotation=annotation)) for tf in tfs}
             else:
