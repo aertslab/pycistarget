@@ -169,9 +169,9 @@ def get_motifs_per_TF(motif_enrichment_table: pd.DataFrame,
         for name in annotation:
             if name in motif_enrichment_table:
                     if motif_column != 'Index':
-                        motifs = motifs + motif_enrichment_table[motif_enrichment_table[name].str.contains(tf+'$', na=False, regex=True)][motif_column].tolist()
+                        motifs = motifs + motif_enrichment_table[motif_enrichment_table[name].str.contains(tf+',|'+tf+'$', na=False, regex=True)][motif_column].tolist()
                     else:
-                        motifs = motifs + motif_enrichment_table[motif_enrichment_table[name].str.contains(tf+'$', na=False, regex=True)].index.tolist()
+                        motifs = motifs + motif_enrichment_table[motif_enrichment_table[name].str.contains(tf+',|'+tf+'$', na=False, regex=True)].index.tolist()
         return list(set(motifs))
         
 def get_cistrome_per_TF(motif_hits_dict,
