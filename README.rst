@@ -29,3 +29,5 @@ Tutorials
 **********************
 
 -  `PycisTarget on mouse liver ChIP-seq data <https://htmlpreview.github.io/?https://github.com/aertslab/pycistarget/blob/master/notebooks/pycistarget_chip.html>`__
+-  `PycisTarget on topics/DARs in the human cerebellum <https://htmlpreview.github.io/?https://github.com/aertslab/pycistarget/blob/master/notebooks/pycistarget_scenic+_human_brain.html>`__
+
