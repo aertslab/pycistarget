@@ -436,12 +436,12 @@ def DEM_internal(dem_db_scores: pd.DataFrame,
     log = logging.getLogger('DEM')
 
     motifs = dem_db_scores.index.tolist()
-    fg_mat = sparse.csr_matrix(dem_db_scores.loc[:,region_group[0]].values).toarray()
+    fg_mat = sparse.csc_matrix(dem_db_scores.loc[:,region_group[0]].values).toarray()
     
     if isinstance(region_group[1], list):
-        bg_mat = sparse.csr_matrix(dem_db_scores.loc[:,region_group[1]].values).toarray()
+        bg_mat = sparse.csc_matrix(dem_db_scores.loc[:,region_group[1]].values).toarray()
     else:
-        bg_mat = sparse.csr_matrix(region_group[1].values).toarray()
+        bg_mat = sparse.csc_matrix(region_group[1].values).toarray()
     
     # Delete db
     del dem_db_scores
@@ -452,8 +452,8 @@ def DEM_internal(dem_db_scores: pd.DataFrame,
     # Log2FC
     mean_fg = fg_mat.mean(axis=1)
     mean_bg = bg_mat.mean(axis=1)
-    logFC = [np.log2((mean_fg[x] + 10**-12) / 
-            (mean_bg[x] + 10**-12)) for x in range(fg_mat.shape[0])]
+    logFC = np.log2((mean_fg + 10 ** -12) / (mean_bg + 10 ** -12)).tolist()
+
     # P-value correction
     pvalue = [wilcox_test[x].pvalue for x in range(len(wilcox_test))]
     adj_pvalue = p_adjust_bh(pvalue)
