@@ -470,6 +470,8 @@ def run_cistarget(ctx_db: cisTargetDatabase,
 		Number of cores to use. If 1, ray will not be used. Default: 1
 	motifs_to_use: List, optional
 		A subset of motifs to use for the analysis. Default: None (All)
+	**kwargs:
+		Extra parameters to pass to `ray.init()`
 		
 	Return
 	---------
