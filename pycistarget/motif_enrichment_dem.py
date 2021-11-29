@@ -30,11 +30,40 @@ from .utils import *
 
 # DEM database
 class DEMDatabase: 
+    """
+    DEM Database class.
+    :class:`DEMDatabase` contains a dataframe with motifs as rows, regions as columns and CRM scores as
+    values. In addition, is contains a slot to map query regions to regions in the database. For more
+    information on how to generate databases, please visit: https://github.com/aertslab/create_cisTarget_databases
+    
+    Attributes
+    ---------
+    regions_to_db: pd.DataFrame
+        A dataframe containing the mapping between query regions and regions in the database.
+    db_scores: pd.DataFrame
+        A dataframe with motifs as rows, regions as columns and CRM scores as values.
+    total_regions: int
+        Total number of regions in the database
+    """
     def __init__(self, 
                 fname: str,
                 region_sets: Dict[str, pr.PyRanges] = None,
                 name: str = None,
                 fraction_overlap: float = 0.4):
+        """
+        Initialize DEMDatabase
+        
+        Parameters
+    	---------
+    	fname: str
+        	Path to feather file containing the DEM database (regions_vs_motifs)
+    	region_sets: Dict or pr.PyRanges, optional
+        	Dictionary or pr.PyRanges that are going to be analyzed with DEM. Default: None.
+    	name: str, optional
+        	Name for the DEM database. Default: None
+        fraction_overlap: float, optional
+        	Minimal overlap between query and regions in the database for the mapping. 	
+        """
         self.regions_to_db, self.db_scores = self.load_db(fname,
                                                           region_sets,
                                                           name,
@@ -45,6 +74,29 @@ class DEMDatabase:
                 region_sets: Dict[str, pr.PyRanges] = None,
                 name: str = None,
                 fraction_overlap: float = 0.4):
+        """
+        Load DEMDatabase
+        
+        Parameters
+    	---------
+    	fname: str
+        	Path to feather file containing the DEM database (regions_vs_motifs)
+    	region_sets: Dict or pr.PyRanges, optional
+        	Dictionary or pr.PyRanges that are going to be analyzed with DEM. Default: None.
+    	name: str, optional
+        	Name for the DEM database. Default: None
+        fraction_overlap: float, optional
+        	Minimal overlap between query and regions in the database for the mapping. 	
+        	
+        Return
+        ---------
+        target_to_db_dict: pd.DataFrame
+        	A dataframe containing the mapping between query regions and regions in the database.
+    	db_rankings: pd.DataFrame
+        	A dataframe with motifs as rows, regions as columns and CRM scores as values.
+    	total_regions: int
+        	Total number of regions in the database
+        """
         #Create logger
         level    = logging.INFO
         format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -69,6 +121,94 @@ class DEMDatabase:
         return target_to_db_dict, db_scores
 
 class DEM():
+    """
+    DEM class.
+    :class:`DEM` contains DEM method for motif enrichment analysis on sets of regions. 
+    
+    Attributes
+    ---------
+    regions_to_db: pd.DataFrame
+        A dataframe containing the mapping between query regions and regions in the database.
+    region_sets: Dict
+        A dictionary of PyRanges containing region coordinates for the regions to be analyzed.
+    specie: str
+    	Specie from which genomic coordinates come from.
+    subset_motifs: List, optional
+    	List of motifs to disregard in the analysis. Default: None
+    contrasts: List, optional
+    	List of contrasts to perform. Default: None (Each group versus all the rest)
+    name: str
+        Analysis name
+    max_bg_regions: int, optional
+    	Maximum number of regions to use as background. Default: None (All)
+    adjpval_thr: float, optional
+    	Adjusted p-value threshold to consider a motif enriched. Default: 0.05
+    log2fc_thr: float, optional
+    	Log2 Fold-change threshold to consider a motif enriched. Default: 1
+    mean_fg_thr: float, optional
+    	Minimul mean signal in the foreground to consider a motif enriched. Default: 0
+	motif_hit_thr: float, optional
+		Minimal CRM score to consider a region enriched for a motif. Default: None (It will be automatically
+		calculated based on precision-recall).
+	n_cpu: int, optional
+		Number of cores to use. Default: 1
+	fraction_overlap: float, optional
+        Minimal overlap between query and regions in the database for the mapping.
+    cluster_buster_path: str, optional
+    	Path to cluster buster bin. Only required if using a shuffled background. Default: None
+    path_to_genome_fasta: str, optional.
+     	Path to genome fasta file. Only required if using a shuffled background. Default: None
+    path_to_motifs: str, optional.
+     	Path to motif collection folder (in .cb format). Only required if using a shuffled background. 
+     	Default: None
+    genome_annotation: pr.PyRanges, optional.
+     	Pyranges containing genome annotation (e.g. biomart). Only required if using promoter balance. 
+     	Default: None
+    genome_annotation: pr.PyRanges, optional.
+		A pyRanges containing transcription start sites for each gene, with 'Chromosome', 'Start' and 
+		'Strand' as columns (additional columns will be ignored). This data frame can be easily obtained
+		via pybiomart:
+			# Get TSS annotations
+			import pybiomart as pbm
+			# For mouse
+			dataset = pbm.Dataset(name='mmusculus_gene_ensembl',  host='http://www.ensembl.org')
+			# For human
+			dataset = pbm.Dataset(name='hsapiens_gene_ensembl',  host='http://www.ensembl.org')
+			# For fly
+			dataset = pbm.Dataset(name='dmelanogaster_gene_ensembl',  host='http://www.ensembl.org')
+			# Query TSS list and format
+			annot = dataset.query(attributes=['chromosome_name', 'transcription_start_site', 'strand', 'external_gene_name', 'transcript_biotype'])
+			filter = annot['Chromosome/scaffold name'].str.contains('CHR|GL|JH|MT')
+			annot = annot[~filter]
+			annot['Chromosome/scaffold name'] = annot['Chromosome/scaffold name'].str.replace(r'(\b\\S)', r'chr\1')
+			annot.columns=['Chromosome', 'Start', 'Strand', 'Gene', 'Transcript_type']
+			# Select TSSs of protein coding genes
+			annot = annot[annot.Transcript_type == 'protein_coding']
+     	Only required if using promoter balance. Default: None
+    promoter_space: int, optional
+		Space around TSS to consider a region promoter. Only used if using promoter balance.
+		Default: 1000
+	path_to_motif_annotations: str, optional
+    	Path to motif annotations. If not provided, they will be downloaded from 
+    	https://resources.aertslab.org based on the specie name provided (only possible for mus_musculus,
+    	homo_sapiens and drosophila_melanogaster). Default: None
+	motif_similarity_fdr: float, optional
+		Minimal motif similarity value to consider two motifs similar. Default: 0.001
+	orthologous_identity_threshold: float, optional
+		Minimal orthology value for considering two TFs orthologous. Default: 0.0
+	motifs_to_use: List, optional
+		A subset of motifs to use for the analysis. Default: None (All)
+	tmp_dir: str, optional
+		Temp directory to use if running cluster_buster. Default: None (\tmp)
+	motif_enrichment: pd.DataFrame
+		A dataframe containing motif enrichment results
+	motif_hits: Dict
+		A dictionary containing regions that are considered enriched for each motif.
+	cistromes: Dict
+		A dictionary containing TF cistromes. Cistromes with no extension contain regions linked to directly
+		annotated motifs, while '_extended' cistromes can contain regions linked to motifs annotated by 
+		similarity or orthology.
+    """
     def __init__(self,
                  dem_db: Union[str, 'DEMDatabase'],
                  region_sets: Dict[str, pr.PyRanges],
@@ -95,7 +235,87 @@ class DEM():
                  orthologous_identity_threshold: float = 0.0,
                  tmp_dir: int = None,
                  **kwargs):
-        
+		"""
+		Initialize DEM 
+	
+		Parameters
+		---------
+		dem_db: :class:`DEMDatabase`
+			A DEM database object.
+		region_sets: Dict
+			A dictionary of PyRanges containing region coordinates for the regions to be analyzed.
+		specie: str
+			Specie from which genomic coordinates come from.
+		subset_motifs: List, optional
+			List of motifs to disregard in the analysis. Default: None
+		contrasts: List, optional
+			List of contrasts to perform. Default: None (Each group versus all the rest)
+		name: str
+			Analysis name
+		max_bg_regions: int, optional
+			Maximum number of regions to use as background. Default: None (All)
+		adjpval_thr: float, optional
+			Adjusted p-value threshold to consider a motif enriched. Default: 0.05
+		log2fc_thr: float, optional
+			Log2 Fold-change threshold to consider a motif enriched. Default: 1
+		mean_fg_thr: float, optional
+			Minimul mean signal in the foreground to consider a motif enriched. Default: 0
+		motif_hit_thr: float, optional
+			Minimal CRM score to consider a region enriched for a motif. Default: None (It will be automatically
+			calculated based on precision-recall).
+		n_cpu: int, optional
+			Number of cores to use. Default: 1
+		fraction_overlap: float, optional
+			Minimal overlap between query and regions in the database for the mapping.
+		cluster_buster_path: str, optional
+			Path to cluster buster bin. Only required if using a shuffled background. Default: None
+		path_to_genome_fasta: str, optional.
+			Path to genome fasta file. Only required if using a shuffled background. Default: None
+		path_to_motifs: str, optional.
+			Path to motif collection folder (in .cb format). Only required if using a shuffled background. 
+			Default: None
+		genome_annotation: pr.PyRanges, optional.
+			Pyranges containing genome annotation (e.g. biomart). Only required if using promoter balance. 
+			Default: None
+		genome_annotation: pr.PyRanges, optional.
+			A pyRanges containing transcription start sites for each gene, with 'Chromosome', 'Start' and 
+			'Strand' as columns (additional columns will be ignored). This data frame can be easily obtained
+			via pybiomart:
+				# Get TSS annotations
+				import pybiomart as pbm
+				# For mouse
+				dataset = pbm.Dataset(name='mmusculus_gene_ensembl',  host='http://www.ensembl.org')
+				# For human
+				dataset = pbm.Dataset(name='hsapiens_gene_ensembl',  host='http://www.ensembl.org')
+				# For fly
+				dataset = pbm.Dataset(name='dmelanogaster_gene_ensembl',  host='http://www.ensembl.org')
+				# Query TSS list and format
+				annot = dataset.query(attributes=['chromosome_name', 'transcription_start_site', 'strand', 'external_gene_name', 'transcript_biotype'])
+				filter = annot['Chromosome/scaffold name'].str.contains('CHR|GL|JH|MT')
+				annot = annot[~filter]
+				annot['Chromosome/scaffold name'] = annot['Chromosome/scaffold name'].str.replace(r'(\b\\S)', r'chr\1')
+				annot.columns=['Chromosome', 'Start', 'Strand', 'Gene', 'Transcript_type']
+				# Select TSSs of protein coding genes
+				annot = annot[annot.Transcript_type == 'protein_coding']
+			Only required if using promoter balance. Default: None
+		promoter_space: int, optional
+			Space around TSS to consider a region promoter. Only used if using promoter balance.
+			Default: 1000
+		path_to_motif_annotations: str, optional
+			Path to motif annotations. If not provided, they will be downloaded from 
+			https://resources.aertslab.org based on the specie name provided (only possible for mus_musculus,
+			homo_sapiens and drosophila_melanogaster). Default: None
+		motif_similarity_fdr: float, optional
+			Minimal motif similarity value to consider two motifs similar. Default: 0.001
+		orthologous_identity_threshold: float, optional
+			Minimal orthology value for considering two TFs orthologous. Default: 0.0
+		motifs_to_use: List, optional
+			A subset of motifs to use for the analysis. Default: None (All)
+		tmp_dir: str, optional
+			Temp directory to use if running cluster_buster. Default: None (\tmp)
+		**kwargs:
+			Additional parameters to pass to `ray.init()`
+		"""
         # Load database
         if isinstance(dem_db, str):
             dem_db = DEMDatabase(dem_db,
@@ -139,7 +359,17 @@ class DEM():
         self.cistromes = None
         self.run(dem_db.db_scores, **kwargs)
         
-    def run(self, dem_db_scores, **kwargs):
+    def run(self, dem_db_scores: pd.DataFrame, **kwargs):
+		"""
+		Run DEM
+	
+		Parameters
+		---------
+		dem_db_scores: pd.DataFrame
+			A dataframe containing maximum CRM score for each motif in each regions.
+		**kwargs
+			Additional parameters to pass to `ray.init()`
+		"""
         # Create logger
         level    = logging.INFO
         format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -225,6 +455,14 @@ class DEM():
         
     def add_motif_annotation_dem(self,
                        add_logo: Optional[bool] = True):
+        """
+		Add motif annotation
+
+		Parameters
+		---------
+		add_logo: boolean, optional
+			Whether to add the motif logo to the motif enrichment dataframe
+		"""
         # Create DEM logger
         level = logging.INFO
         format = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -274,6 +512,9 @@ class DEM():
 # Utils
 ## Shuffle sequences for shuffle background
 def shuffle_sequence(sequence: str):
+	"""
+	Shuffle given sequence
+	"""
     shuffled_sequence = np.frombuffer(sequence.encode('utf-8'), dtype='uint8')
     np.random.shuffle(shuffled_sequence)
     return shuffled_sequence.tobytes().decode('utf-8')
@@ -290,6 +531,9 @@ def create_groups(contrast: list,
                   promoter_space: int = 1000,
                   motifs: list = None,
                   n_cpu: int = 1):
+	""""
+	Format contrast groups
+	"""
     # Create DEM logger
     level = logging.INFO
     format = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -395,6 +639,9 @@ def DEM_internal_ray(dem_db_scores: pd.DataFrame,
             log2fc_thr: Optional[float] = 1,
             mean_fg_thr: Optional[float] = 0,
             motif_hit_thr: Optional[float] = None):
+    """"
+	Internal DEM function to use with ray.
+	"""
             
     return DEM_internal(dem_db_scores, region_group, contrast_name, adjpval_thr, log2fc_thr, mean_fg_thr, motif_hit_thr)
 
@@ -408,25 +655,7 @@ def DEM_internal(dem_db_scores: pd.DataFrame,
             mean_fg_thr: Optional[float] = 0,
             motif_hit_thr: Optional[float] = None):
     """
-    Find differentiallly enriched motifs.
-
-    Parameters
-    ---------
-    input_mat: :class:`pd.DataFrame`
-        A data frame including CRM scores.
-    barcode_group: List
-        List of length 2, including foreground cells on the first slot and background on the second (or shuffled scores).
-    contrast_name: str
-        Name of the contrast
-    adjpval_thr: float, optional
-        Adjusted p-values threshold. Default: 0.05
-    log2fc_thr: float, optional
-        Log2FC threshold. Default: np.log2(1.5)
-
-    Return
-    ------
-    List
-        `class::pd.DataFrame` with the selected motifs and logFC and adjusted p-values.
+    Internal operations for DEM.
     """
     # Create DEM logger
     level = logging.INFO
@@ -485,7 +714,9 @@ def DEM_internal(dem_db_scores: pd.DataFrame,
 
 # Helper function to adjust p-value
 def p_adjust_bh(p: float):
-    """Benjamini-Hochberg p-value correction for multiple hypothesis testing."""
+    """
+    Benjamini-Hochberg p-value correction for multiple hypothesis testing.
+    """
     p = np.asfarray(p)
     by_descend = p.argsort()[::-1]
     by_orig = by_descend.argsort()
@@ -495,6 +726,9 @@ def p_adjust_bh(p: float):
 
 # Helper function to determine optimal threshold for motif hits
 def get_motif_hits(scores, regions, labels, optimal_threshold=None):
+    """
+    Determine optimal score threshold based on precision-recall.
+    """
     df = pd.DataFrame([labels, scores.toarray()[0]], columns=regions, index=['Label', 'Score']).sample(frac=1).T
     if optimal_threshold is None:
         df = df[df['Score'] > 0]

@@ -176,6 +176,8 @@ class cisTarget:
 		A subset of motifs to use for the analysis. Default: None (All)
 	motif_enrichment: pd.DataFrame
 		A dataframe containing motif enrichment results
+	motif_hits: Dict
+		A dictionary containing regions that are considered enriched for each motif.
 	cistromes: Dict
 		A dictionary containing TF cistromes. Cistromes with no extension contain regions linked to directly
 		annotated motifs, while '_extended' cistromes can contain regions linked to motifs annotated by 
@@ -205,8 +207,8 @@ class cisTarget:
 
 		Parameters
 		---------
-		regions_to_db: pd.DataFrame
-			A dataframe containing the mapping between query regions and regions in the database.
+		ctx_db: :class:`cisTargetDatabase`
+			A cistarget database object.
 		region_set: pr.PyRanges
 			A PyRanges containing region coordinates for the regions to be analyzed.
 		name: str
@@ -584,12 +586,6 @@ def ctx_internal_ray(ctx_db: cisTargetDatabase,
 		Minimal orthology value for considering two TFs orthologous. Default: 0.0
 	motifs_to_use: List, optional
 		A subset of motifs to use for the analysis. Default: None (All)
-	motif_enrichment: pd.DataFrame
-		A dataframe containing motif enrichment results
-	cistromes: Dict
-		A dictionary containing TF cistromes. Cistromes with no extension contain regions linked to directly
-		annotated motifs, while '_extended' cistromes can contain regions linked to motifs annotated by 
-		similarity or orthology.
 		
 	Return
 	---------
@@ -664,12 +660,6 @@ def ctx_internal(ctx_db: cisTargetDatabase,
 		Minimal orthology value for considering two TFs orthologous. Default: 0.0
 	motifs_to_use: List, optional
 		A subset of motifs to use for the analysis. Default: None (All)
-	motif_enrichment: pd.DataFrame
-		A dataframe containing motif enrichment results
-	cistromes: Dict
-		A dictionary containing TF cistromes. Cistromes with no extension contain regions linked to directly
-		annotated motifs, while '_extended' cistromes can contain regions linked to motifs annotated by 
-		similarity or orthology.
 		
 	Return
 	---------
