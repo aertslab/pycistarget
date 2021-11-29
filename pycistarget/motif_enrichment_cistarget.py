@@ -25,11 +25,40 @@ null = open(os.devnull,'wb')
 from .utils import *
 
 class cisTargetDatabase: 
+    """
+    cisTarget Database class.
+    :class:`cisTargetDatabase` contains a dataframe with motifs as rows, regions as columns and rank as
+    values. In addition, is contains a slot to map query regions to regions in the database. For more
+    information on how to generate databases, please visit: https://github.com/aertslab/create_cisTarget_databases
+    
+    Attributes
+    ---------
+    regions_to_db: pd.DataFrame
+        A dataframe containing the mapping between query regions and regions in the database.
+    db_rankings: pd.DataFrame
+        A dataframe with motifs as rows, regions as columns and rank as values.
+    total_regions: int
+        Total number of regions in the database
+    """
     def __init__(self, 
                 fname: str,
                 region_sets: Union[Dict[str, pr.PyRanges], pr.PyRanges] = None,
                 name: str = None,
                 fraction_overlap: float = 0.4):
+        """
+        Initialize cisTargetDatabase
+        
+        Parameters
+    	---------
+    	fname: str
+        	Path to feather file containing the cisTarget database (regions_vs_motifs)
+    	region_sets: Dict or pr.PyRanges, optional
+        	Dictionary or pr.PyRanges that are going to be analyzed with cistarget. Default: None.
+    	name: str, optional
+        	Name for the cistarget database. Default: None
+        fraction_overlap: float, optional
+        	Minimal overlap between query and regions in the database for the mapping. 	
+        """
         self.regions_to_db, self.db_rankings, self.total_regions = self.load_db(fname,
                                                           region_sets,
                                                           name,
@@ -39,6 +68,29 @@ class cisTargetDatabase:
                 region_sets: Union[Dict[str, pr.PyRanges], pr.PyRanges] = None,
                 name: str = None,
                 fraction_overlap: float = 0.4):
+        """
+        Load cisTargetDatabase
+        
+        Parameters
+    	---------
+    	fname: str
+        	Path to feather file containing the cisTarget database (regions_vs_motifs)
+    	region_sets: Dict or pr.PyRanges, optional
+        	Dictionary or pr.PyRanges that are going to be analyzed with cistarget. Default: None.
+    	name: str, optional
+        	Name for the cistarget database. Default: None
+        fraction_overlap: float, optional
+        	Minimal overlap between query and regions in the database for the mapping. 	
+        	
+        Return
+        ---------
+        target_to_db_dict: pd.DataFrame
+        	A dataframe containing the mapping between query regions and regions in the database.
+    	db_rankings: pd.DataFrame
+        	A dataframe with motifs as rows, regions as columns and rank as values.
+    	total_regions: int
+        	Total number of regions in the database
+        """
         #Create logger
         level    = logging.INFO
         format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -83,6 +135,57 @@ class cisTargetDatabase:
 
 # cisTarget class
 class cisTarget:
+    """
+    cisTarget class.
+    :class:`cisTarget` contains method for motif enrichment analysis on sets of regions. 
+    
+    Attributes
+    ---------
+    regions_to_db: pd.DataFrame
+        A dataframe containing the mapping between query regions and regions in the database.
+    region_set: pr.PyRanges
+        A PyRanges containing region coordinates for the regions to be analyzed.
+    name: str
+        Analysis name
+    specie: str
+    	Specie from which genomic coordinates come from
+    auc_threshold: float, optional
+    	The fraction of the ranked genome to take into account for the calculation of the
+        Area Under the recovery Curve. Default: 0.005
+    nes_threshold: float, optional
+    	The Normalized Enrichment Score (NES) threshold to select enriched features. Default: 3.0
+    rank_threshold: float, optional
+    	The total number of ranked genes to take into account when creating a recovery curve.
+    	Default: 0.05
+    path_to_motif_annotations: str, optional
+    	Path to motif annotations. If not provided, they will be downloaded from 
+    	https://resources.aertslab.org based on the specie name provided (only possible for mus_musculus,
+    	homo_sapiens and drosophila_melanogaster). Default: None
+	annotation_version: str, optional
+		Motif collection version. Default: v9
+	annotation: List, optional
+		Annotation to use for forming cistromes. It can be 'Direct_annot' (direct evidence that the motif is 
+		linked to that TF), 'Motif_similarity_annot' (based on tomtom motif similarity), 'Orthology_annot'
+		(based on orthology with a TF that is directly linked to that motif) or 'Motif_similarity_and_Orthology_annot'.
+		Default: ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']
+	motif_similarity_fdr: float, optional
+		Minimal motif similarity value to consider two motifs similar. Default: 0.001
+	orthologous_identity_threshold: float, optional
+		Minimal orthology value for considering two TFs orthologous. Default: 0.0
+	motifs_to_use: List, optional
+		A subset of motifs to use for the analysis. Default: None (All)
+	motif_enrichment: pd.DataFrame
+		A dataframe containing motif enrichment results
+	cistromes: Dict
+		A dictionary containing TF cistromes. Cistromes with no extension contain regions linked to directly
+		annotated motifs, while '_extended' cistromes can contain regions linked to motifs annotated by 
+		similarity or orthology.
+		
+	References
+    ---------
+    Van de Sande B., Flerin C., et al. A scalable SCENIC workflow for single-cell gene regulatory network analysis.
+    Nat Protoc. June 2020:1-30. doi:10.1038/s41596-020-0336-2
+    """
     def __init__(self, 
                  ctx_db, 
                  region_set: pr.PyRanges,
@@ -97,6 +200,50 @@ class cisTarget:
                  motif_similarity_fdr: float = 0.001,
                  orthologous_identity_threshold: float = 0.0,
                  motifs_to_use: list = None):
+		"""
+		Initialize cisTarget class.
+
+		Parameters
+		---------
+		regions_to_db: pd.DataFrame
+			A dataframe containing the mapping between query regions and regions in the database.
+		region_set: pr.PyRanges
+			A PyRanges containing region coordinates for the regions to be analyzed.
+		name: str
+			Analysis name
+		specie: str
+			Specie from which genomic coordinates come from
+		auc_threshold: float, optional
+			The fraction of the ranked genome to take into account for the calculation of the
+			Area Under the recovery Curve. Default: 0.005
+		nes_threshold: float, optional
+			The Normalized Enrichment Score (NES) threshold to select enriched features. Default: 3.0
+		rank_threshold: float, optional
+			The total number of ranked genes to take into account when creating a recovery curve.
+			Default: 0.05
+		path_to_motif_annotations: str, optional
+			Path to motif annotations. If not provided, they will be downloaded from 
+			https://resources.aertslab.org based on the specie name provided (only possible for mus_musculus,
+			homo_sapiens and drosophila_melanogaster). Default: None
+		annotation_version: str, optional
+			Motif collection version. Default: v9
+		annotation: List, optional
+			Annotation to use for forming cistromes. It can be 'Direct_annot' (direct evidence that the motif is 
+			linked to that TF), 'Motif_similarity_annot' (based on tomtom motif similarity), 'Orthology_annot'
+			(based on orthology with a TF that is directly linked to that motif) or 'Motif_similarity_and_Orthology_annot'.
+			Default: ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']
+		motif_similarity_fdr: float, optional
+			Minimal motif similarity value to consider two motifs similar. Default: 0.001
+		orthologous_identity_threshold: float, optional
+			Minimal orthology value for considering two TFs orthologous. Default: 0.0
+		motifs_to_use: List, optional
+			A subset of motifs to use for the analysis. Default: None (All)
+	
+		References
+		---------
+		Van de Sande B., Flerin C., et al. A scalable SCENIC workflow for single-cell gene regulatory network analysis.
+		Nat Protoc. June 2020:1-30. doi:10.1038/s41596-020-0336-2
+		"""
         self.regions_to_db = ctx_db.regions_to_db[name] if type(ctx_db.regions_to_db) == dict else ctx_db.regions_to_db.loc[set(coord_to_region_names(region_set)) & set(ctx_db.regions_to_db['Target'])]
         self.region_set = region_set
         self.name = name
@@ -115,19 +262,19 @@ class cisTarget:
 
     def run_ctx(self,
             ctx_db: cisTargetDatabase) -> pd.DataFrame:
-        """
-        Finds features of which the rankings are enriched in the input region set
-        :param ctx_db: cistarget database object with loaded regions
-        :param weighted_recovery: wether or not to use weighted recovery in the analysis
-        :param auc_threshold: the cut-off for fraction of ranked genomic regions at which to calculate AUC. This measure is then used for comparing all the features.
-        :param nes_threshold: only the enriched regions with normalized enrichment score (NES) higher than the threshold will be returned
-        :param rank_threshold: The total number of ranked regions to take into account when creating a recovery curve
-        :return: a pandas dataframe with enriched features
-        REFERENCES:
-        ----------
-        Van de Sande B., Flerin C., et al. A scalable SCENIC workflow for single-cell gene regulatory network analysis.
-        Nat Protoc. June 2020:1-30. doi:10.1038/s41596-020-0336-2
-        """
+		"""
+		Run cisTarget
+
+		Parameters
+		---------
+		ctx_db: :class:`cisTargetDatabase`
+			A cistarget database object.
+	
+		References
+		---------
+		Van de Sande B., Flerin C., et al. A scalable SCENIC workflow for single-cell gene regulatory network analysis.
+		Nat Protoc. June 2020:1-30. doi:10.1038/s41596-020-0336-2
+		"""
         
         # Create logger
         level    = logging.INFO
@@ -218,6 +365,19 @@ class cisTarget:
         
     def add_motif_annotation_cistarget(self,
                        add_logo: Optional[bool] = True):
+        """
+		Add motif annotation
+
+		Parameters
+		---------
+		add_logo: boolean, optional
+			Whether to add the motif logo to the motif enrichment dataframe
+	
+		References
+		---------
+		Van de Sande B., Flerin C., et al. A scalable SCENIC workflow for single-cell gene regulatory network analysis.
+		Nat Protoc. June 2020:1-30. doi:10.1038/s41596-020-0336-2
+		"""
         # Create cisTarget logger
         level = logging.INFO
         format = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -268,18 +428,58 @@ def run_cistarget(ctx_db: cisTargetDatabase,
                                n_cpu : int = 1,
                                motifs_to_use: list = None,
                                **kwargs):
-    """
-    Finds features of which the rankings are enriched in the input region set
-    :param ctx_db: cistarget database
-    :param pr_regions_dict: dict of pyranges objects with input regions
-    :param species: species from which the regions originate
-    :param auc_threshold: the cut-off for fraction of ranked genomic regions at which to calculate AUC. This measure is then used for comparing all the features.
-    :param nes_threshold: only the enriched regions with normalized enrichment score (NES) higher than the threshold will be returned
-    :param rank_threshold: The total number of ranked regions to take into account when creating a recovery curve
-    :param n_cpu: number of cores to use
-    :param **kwargs: additional parameters to pass to ray.init.
-    :return: a dictionary of pandas data frames with enriched features
-    """
+	"""
+	Run cisTarget.
+
+	Parameters
+	---------
+	ctx_db: :class:`cisTargetDatabase`
+		A cistarget database object.
+	region_sets: Dict
+		A dictionary of PyRanges containing region coordinates for the region sets to be analyzed.
+	specie: str
+		Specie from which genomic coordinates come from
+	name: str, optional
+		Analysis name. Default: cisTarget
+	fraction_overlap: float, optional
+		Minimal overlap between query and regions in the database for the mapping. Default: 0.4
+	auc_threshold: float, optional
+		The fraction of the ranked genome to take into account for the calculation of the
+		Area Under the recovery Curve. Default: 0.005
+	nes_threshold: float, optional
+		The Normalized Enrichment Score (NES) threshold to select enriched features. Default: 3.0
+	rank_threshold: float, optional
+		The total number of ranked genes to take into account when creating a recovery curve.
+		Default: 0.05
+	path_to_motif_annotations: str, optional
+		Path to motif annotations. If not provided, they will be downloaded from 
+		https://resources.aertslab.org based on the specie name provided (only possible for mus_musculus,
+		homo_sapiens and drosophila_melanogaster). Default: None
+	annotation_version: str, optional
+		Motif collection version. Default: v9
+	annotation: List, optional
+		Annotation to use for forming cistromes. It can be 'Direct_annot' (direct evidence that the motif is 
+		linked to that TF), 'Motif_similarity_annot' (based on tomtom motif similarity), 'Orthology_annot'
+		(based on orthology with a TF that is directly linked to that motif) or 'Motif_similarity_and_Orthology_annot'.
+		Default: ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']
+	motif_similarity_fdr: float, optional
+		Minimal motif similarity value to consider two motifs similar. Default: 0.001
+	orthologous_identity_threshold: float, optional
+		Minimal orthology value for considering two TFs orthologous. Default: 0.0
+	n_cpu: int, optional
+		Number of cores to use. If 1, ray will not be used. Default: 1
+	motifs_to_use: List, optional
+		A subset of motifs to use for the analysis. Default: None (All)
+		
+	Return
+	---------
+		A dictionary with one :class:`cisTarget` object per analysis.
+		
+	References
+	---------
+	Van de Sande B., Flerin C., et al. A scalable SCENIC workflow for single-cell gene regulatory network analysis.
+	Nat Protoc. June 2020:1-30. doi:10.1038/s41596-020-0336-2
+	"""
     # Create cisTarget logger
     level = logging.INFO
     format = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -345,7 +545,59 @@ def ctx_internal_ray(ctx_db: cisTargetDatabase,
             motif_similarity_fdr: float = 0.001,
             orthologous_identity_threshold: float = 0.0,
             motifs_to_use: list = None) -> pd.DataFrame:
-    
+            
+    """
+	Internal function to run cistarget in parallel with Ray.
+	
+	Parameters
+    ---------
+	ctx_db: :class:`cisTargetDatabase`
+		A cistarget database object.
+    name: str
+        Analysis name
+    specie: str
+    	Specie from which genomic coordinates come from
+    auc_threshold: float, optional
+    	The fraction of the ranked genome to take into account for the calculation of the
+        Area Under the recovery Curve. Default: 0.005
+    nes_threshold: float, optional
+    	The Normalized Enrichment Score (NES) threshold to select enriched features. Default: 3.0
+    rank_threshold: float, optional
+    	The total number of ranked genes to take into account when creating a recovery curve.
+    	Default: 0.05
+    path_to_motif_annotations: str, optional
+    	Path to motif annotations. If not provided, they will be downloaded from 
+    	https://resources.aertslab.org based on the specie name provided (only possible for mus_musculus,
+    	homo_sapiens and drosophila_melanogaster). Default: None
+	annotation_version: str, optional
+		Motif collection version. Default: v9
+	annotation: List, optional
+		Annotation to use for forming cistromes. It can be 'Direct_annot' (direct evidence that the motif is 
+		linked to that TF), 'Motif_similarity_annot' (based on tomtom motif similarity), 'Orthology_annot'
+		(based on orthology with a TF that is directly linked to that motif) or 'Motif_similarity_and_Orthology_annot'.
+		Default: ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']
+	motif_similarity_fdr: float, optional
+		Minimal motif similarity value to consider two motifs similar. Default: 0.001
+	orthologous_identity_threshold: float, optional
+		Minimal orthology value for considering two TFs orthologous. Default: 0.0
+	motifs_to_use: List, optional
+		A subset of motifs to use for the analysis. Default: None (All)
+	motif_enrichment: pd.DataFrame
+		A dataframe containing motif enrichment results
+	cistromes: Dict
+		A dictionary containing TF cistromes. Cistromes with no extension contain regions linked to directly
+		annotated motifs, while '_extended' cistromes can contain regions linked to motifs annotated by 
+		similarity or orthology.
+		
+	Return
+	---------
+		A :class:`cisTarget` object.
+		
+	References
+	---------
+	Van de Sande B., Flerin C., et al. A scalable SCENIC workflow for single-cell gene regulatory network analysis.
+	Nat Protoc. June 2020:1-30. doi:10.1038/s41596-020-0336-2
+	"""
     return ctx_internal(ctx_db = ctx_db,
                         region_set = region_set,
                         name = name,
@@ -373,23 +625,59 @@ def ctx_internal(ctx_db: cisTargetDatabase,
             annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
             motif_similarity_fdr: float = 0.001,
             orthologous_identity_threshold: float = 0.0,
-            motifs_to_use: list = None ) -> pd.DataFrame:
+            motifs_to_use: list = None ):
     """
-    Finds features of which the rankings are enriched in the input region set
-    :param ctx_db: cistarget database object with loaded regions
-    :param pr_regions: pyranges object with input regions
-    :param name: name of the region set
-    :param species: species from which the regions originate
-    :param weighted_recovery: wether or not to use weighted recovery in the analysis
-    :param auc_threshold: the cut-off for fraction of ranked genomic regions at which to calculate AUC. This measure is then used for comparing all the features.
-    :param nes_threshold: only the enriched regions with normalized enrichment score (NES) higher than the threshold will be returned
-    :param rank_threshold: The total number of ranked regions to take into account when creating a recovery curve
-    :return: a pandas dataframe with enriched features
-    REFERENCES:
-    ----------
-    Van de Sande B., Flerin C., et al. A scalable SCENIC workflow for single-cell gene regulatory network analysis.
-    Nat Protoc. June 2020:1-30. doi:10.1038/s41596-020-0336-2
-    """
+	Internal function to run cistarget.
+	
+	Parameters
+    ---------
+	ctx_db: :class:`cisTargetDatabase`
+		A cistarget database object.
+    name: str
+        Analysis name
+    specie: str
+    	Specie from which genomic coordinates come from
+    auc_threshold: float, optional
+    	The fraction of the ranked genome to take into account for the calculation of the
+        Area Under the recovery Curve. Default: 0.005
+    nes_threshold: float, optional
+    	The Normalized Enrichment Score (NES) threshold to select enriched features. Default: 3.0
+    rank_threshold: float, optional
+    	The total number of ranked genes to take into account when creating a recovery curve.
+    	Default: 0.05
+    path_to_motif_annotations: str, optional
+    	Path to motif annotations. If not provided, they will be downloaded from 
+    	https://resources.aertslab.org based on the specie name provided (only possible for mus_musculus,
+    	homo_sapiens and drosophila_melanogaster). Default: None
+	annotation_version: str, optional
+		Motif collection version. Default: v9
+	annotation: List, optional
+		Annotation to use for forming cistromes. It can be 'Direct_annot' (direct evidence that the motif is 
+		linked to that TF), 'Motif_similarity_annot' (based on tomtom motif similarity), 'Orthology_annot'
+		(based on orthology with a TF that is directly linked to that motif) or 'Motif_similarity_and_Orthology_annot'.
+		Default: ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']
+	motif_similarity_fdr: float, optional
+		Minimal motif similarity value to consider two motifs similar. Default: 0.001
+	orthologous_identity_threshold: float, optional
+		Minimal orthology value for considering two TFs orthologous. Default: 0.0
+	motifs_to_use: List, optional
+		A subset of motifs to use for the analysis. Default: None (All)
+	motif_enrichment: pd.DataFrame
+		A dataframe containing motif enrichment results
+	cistromes: Dict
+		A dictionary containing TF cistromes. Cistromes with no extension contain regions linked to directly
+		annotated motifs, while '_extended' cistromes can contain regions linked to motifs annotated by 
+		similarity or orthology.
+		
+	Return
+	---------
+		A :class:`cisTarget` object.
+		
+	References
+	---------
+	Van de Sande B., Flerin C., et al. A scalable SCENIC workflow for single-cell gene regulatory network analysis.
+	Nat Protoc. June 2020:1-30. doi:10.1038/s41596-020-0336-2
+	"""
     ctx_result = cisTarget(ctx_db,
                            region_set, 
                            name, 
@@ -408,9 +696,19 @@ def ctx_internal(ctx_db: cisTargetDatabase,
 ## Show results 
 def cistarget_results(cistarget_dict,
                     name: Optional[str] = None):
-        motif_enrichment_dict = {key: cistarget_dict[key].motif_enrichment for key in cistarget_dict.keys()}
-        if name is None:
-            motif_enrichment_table=pd.concat([motif_enrichment_dict[key] for key in motif_enrichment_dict.keys()], axis=0, sort=False)
-        else:
-            motif_enrichment_table=motif_enrichment_dict[name]
-        return HTML(motif_enrichment_table.to_html(escape=False, col_space=80))
+    """
+    A function to show cistarget results in jupyter notebooks.
+    
+    Parameters
+    ---------
+    cistarget_dict: Dict
+    	A dictionary with one :class:`cisTarget` object per slot.
+    name: str
+        Dictionary key of the analysis result to show. Default: None (All)
+    """
+    motif_enrichment_dict = {key: cistarget_dict[key].motif_enrichment for key in cistarget_dict.keys()}
+    if name is None:
+        motif_enrichment_table=pd.concat([motif_enrichment_dict[key] for key in motif_enrichment_dict.keys()], axis=0, sort=False)
+    else:
+        motif_enrichment_table=motif_enrichment_dict[name]
+    return HTML(motif_enrichment_table.to_html(escape=False, col_space=80))
