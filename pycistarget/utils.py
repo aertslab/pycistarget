@@ -10,17 +10,17 @@ from typing import Dict, List, Sequence, Union
 
 
 def coord_to_region_names(coord: pr.PyRanges):
-	"""
-	Convert coordinates to region names (UCSC format)
-	"""
+    """
+    Convert coordinates to region names (UCSC format)
+    """
     if isinstance(coord, pr.PyRanges):
         coord = coord.as_df()
         return list(coord['Chromosome'].astype(str) + ':' + coord['Start'].astype(str) + '-' + coord['End'].astype(str))
 
 def region_names_to_coordinates(region_names: List):
-	"""
-	Convert region names (UCSC format) to coordinates (pd.DataFrame)
-	"""
+    """
+    Convert region names (UCSC format) to coordinates (pd.DataFrame)
+    """
     chrom=pd.DataFrame([i.split(':', 1)[0] for i in region_names if ':' in i])
     coor = [i.split(':', 1)[1] for i in region_names if ':' in i]
     start=pd.DataFrame([int(i.split('-', 1)[0]) for i in coor])
@@ -36,17 +36,17 @@ def region_sets_to_signature(region_set: list,
     Generates a gene signature object from a dict of PyRanges objects
     
     Parameters
-	---------
+    ---------
     pr_region_set: 
-    	PyRanges object to be converted in genesignature object
+        PyRanges object to be converted in genesignature object
     region_set_name:
-    	Name of the regions set
+        Name of the regions set
     weights_col: 
-    	If set uses this column of the pyranges object as gene2weight
-    	
-	Return
-	---------
-    	Gene signature object of input region dictionary
+        If set uses this column of the pyranges object as gene2weight
+        
+    Return
+    ---------
+        Gene signature object of input region dictionary
     """
     
     weights = np.ones(len(region_set))
@@ -72,23 +72,23 @@ def load_motif_annotations(specie: str,
     Load motif annotations from a motif2TF snapshot.
     
     Parameters
-	---------
-	specie:
-		Specie to retrieve annotations for.
-	version:
-		Motif collection version.
+    ---------
+    specie:
+        Specie to retrieve annotations for.
+    version:
+        Motif collection version.
     fname: 
-    	The snapshot taken from motif2TF.
+        The snapshot taken from motif2TF.
     column_names: 
-    	The names of the columns in the snapshot to load.
+        The names of the columns in the snapshot to load.
     motif_similarity_fdr: 
-    	The maximum False Discovery Rate to find factor annotations for enriched motifs.
+        The maximum False Discovery Rate to find factor annotations for enriched motifs.
     orthologuous_identity_threshold: 
-    	The minimum orthologuous identity to find factor annotations for enriched motifs.
+        The minimum orthologuous identity to find factor annotations for enriched motifs.
     
-	Return
-	---------
-    	A dataframe with motif annotations for each motif
+    Return
+    ---------
+        A dataframe with motif annotations for each motif
     """
     # Create a MultiIndex for the index combining unique gene name and motif ID. This should facilitate
     # later merging.
@@ -144,7 +144,7 @@ def tomtom(homer_motif_path: str,
           meme_path: str,
           meme_collection_path: str):
     """
-	Run tomtom for Homer motif annotation
+    Run tomtom for Homer motif annotation
     """
     homer2meme(homer_motif_path)
     meme_motif_path = homer_motif_path.replace('.motif', '.meme')
@@ -166,8 +166,8 @@ def tomtom(homer_motif_path: str,
         return pd.DataFrame([homer_motif_name, best_match_motif_name, evalue], index=['Best Match/Details', 'Best Match/Tomtom', 'E-value/Tomtom']).transpose()
     
 def homer2meme(homer_motif_path: str):
-	"""
-	Convert Homer motifs to meme format
+    """
+    Convert Homer motifs to meme format
     """
     out_file = open(homer_motif_path.replace('.motif', '.meme'), 'w')
     with open(homer_motif_path) as f:
@@ -186,7 +186,7 @@ def homer2meme(homer_motif_path: str):
 def get_TF_list(motif_enrichment_table: pd.DataFrame,
                annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
     """
-	Get TFs from motif enrichment tables
+    Get TFs from motif enrichment tables
     """
     tf_list = []
     for name in annotation:
@@ -203,7 +203,7 @@ def get_motifs_per_TF(motif_enrichment_table: pd.DataFrame,
                     motif_column: str,
                     annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
     """
-	Get motif annotated to each TF from a motif enrichment table
+    Get motif annotated to each TF from a motif enrichment table
     """
     motifs= []
     for name in annotation:
@@ -217,13 +217,13 @@ def get_motifs_per_TF(motif_enrichment_table: pd.DataFrame,
 def get_cistrome_per_TF(motif_hits_dict,
                        motifs):
     """
-	Format cistromes per TF
+    Format cistromes per TF
     """
     return list(set(sum([motif_hits_dict[x] for x in motifs if x in motif_hits_dict.keys()],[])))
     
 def inplace_change(filename, old_string, new_string):
     """
-	Replace string in a file
+    Replace string in a file
     """
     # Safely read the input filename using 'with'
     with open(filename) as f:
@@ -237,7 +237,7 @@ def inplace_change(filename, old_string, new_string):
         
 def get_position_index(query_list, target_list):
     """
-	Get position of a query within a list
+    Get position of a query within a list
     """
     d = {k: v for v, k in enumerate(target_list)}
     index = (d[k] for k in query_list)
@@ -247,7 +247,7 @@ def target_to_query(target: Union[pr.PyRanges, List[str]],
          query: Union[pr.PyRanges, List[str]],
          fraction_overlap: float = 0.4):
     """
-	Map query regions to another set of regions
+    Map query regions to another set of regions
     """
     #Read input
     if isinstance(target, str):
@@ -277,7 +277,7 @@ def get_cistromes_per_region_set(motif_enrichment_region_set,
                   motif_hits_regions_set,
                   annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
     """
-	Get (direct/extended) cistromes for TFs
+    Get (direct/extended) cistromes for TFs
     """
     if 'Direct_annot' in annotation:
         tfs = get_TF_list(motif_enrichment_region_set, annotation=['Direct_annot'])

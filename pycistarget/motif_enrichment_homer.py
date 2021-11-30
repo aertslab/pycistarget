@@ -31,44 +31,44 @@ class Homer():
     name: str
         Analysis name.
     outdir: str
-    	Path to folder to output Homer results.
+        Path to folder to output Homer results.
     genome: str
-    	Homer genome label to use.
+        Homer genome label to use.
     size: str, optional
-    	Fragment size to use for motif finding. Default: 'given' [uses the exact regions you give it]
+        Fragment size to use for motif finding. Default: 'given' [uses the exact regions you give it]
     mask: bool, optional
-    	Whether to mask repeats or not. Default: True
+        Whether to mask repeats or not. Default: True
     denovo : bool, optional
-    	Whether to infer overrepresented motifs de novo. Default: False
-	length: str, optional
-		Motif length values. Default: 8,10,12
-	meme_path: str, optional
-		Path to meme bin folder. Meme will be used if given for motif annotation. Default: None
-	meme_collection_path: str, optional
-		Path to motif collection (in .cb format) to compare homer motifs with. Default: None
-	cistrome_annotation: List, optional
-		Annotation to use for forming cistromes. It can be 'Direct_annot' (direct evidence that the motif is 
-		linked to that TF), 'Motif_similarity_annot' (based on tomtom motif similarity), 'Orthology_annot'
-		(based on orthology with a TF that is directly linked to that motif) or 'Motif_similarity_and_Orthology_annot'.
-		Default: ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']
-	motif_similarity_fdr: float, optional
-		Minimal motif similarity value to consider two motifs similar. Default: 0.001
-	orthologous_identity_threshold: float, optional
-		Minimal orthology value for considering two TFs orthologous. Default: 0.0
-	known_motifs: pd.DataFrame
-		A dataframe containing known motif enrichment results.
-	denovo_motifs: pd.DataFrame
-		A dataframe containing de novo motif enrichment results.
-	known_motif_hits: Dict
-		A dictionary containing regions with motif hits for each known motif.
-	denovo_motif_hits: Dict
-		A dictionary containing regions with motif hits for each de novo motif.
-	known_cistromes: Dict
-		A dictionary containing regions with motif hits for each TF found with known motifs.
-	denovo_motif_hits: Dict
-		A dictionary containing regions with motif hits for each TF found de novo.
+        Whether to infer overrepresented motifs de novo. Default: False
+    length: str, optional
+        Motif length values. Default: 8,10,12
+    meme_path: str, optional
+        Path to meme bin folder. Meme will be used if given for motif annotation. Default: None
+    meme_collection_path: str, optional
+        Path to motif collection (in .cb format) to compare homer motifs with. Default: None
+    cistrome_annotation: List, optional
+        Annotation to use for forming cistromes. It can be 'Direct_annot' (direct evidence that the motif is 
+        linked to that TF), 'Motif_similarity_annot' (based on tomtom motif similarity), 'Orthology_annot'
+        (based on orthology with a TF that is directly linked to that motif) or 'Motif_similarity_and_Orthology_annot'.
+        Default: ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']
+    motif_similarity_fdr: float, optional
+        Minimal motif similarity value to consider two motifs similar. Default: 0.001
+    orthologous_identity_threshold: float, optional
+        Minimal orthology value for considering two TFs orthologous. Default: 0.0
+    known_motifs: pd.DataFrame
+        A dataframe containing known motif enrichment results.
+    denovo_motifs: pd.DataFrame
+        A dataframe containing de novo motif enrichment results.
+    known_motif_hits: Dict
+        A dictionary containing regions with motif hits for each known motif.
+    denovo_motif_hits: Dict
+        A dictionary containing regions with motif hits for each de novo motif.
+    known_cistromes: Dict
+        A dictionary containing regions with motif hits for each TF found with known motifs.
+    denovo_motif_hits: Dict
+        A dictionary containing regions with motif hits for each TF found de novo.
 
-	References
+    References
     ---------
     Heinz S, Benner C, Spann N, Bertolino E et al. Simple Combinations of Lineage-Determining 
     Transcription Factors Prime cis-Regulatory Elements Required for Macrophage and B Cell Identities.
@@ -89,49 +89,49 @@ class Homer():
                  cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
                  motif_similarity_fdr: float = 0.001,
                  orthologous_identity_threshold: float = 0.0):
-		"""
-		Initialize Homer class. 
+        """
+        Initialize Homer class. 
 
-		Parameters
-		---------
-		homer_path: str
-			Path to Homer bin folder.
-		bed_path: str
-			Path to bed file containing region set to be analyzed with Homer.
-		name: str
-			Analysis name.
-		outdir: str
-			Path to folder to output Homer results.
-		genome: str
-			Homer genome label to use.
-		size: str, optional
-			Fragment size to use for motif finding. Default: 'given' [uses the exact regions you give it]
-		mask: bool, optional
-			Whether to mask repeats or not. Default: True
-		denovo : bool, optional
-			Whether to infer overrepresented motifs de novo. Default: False
-		length: str, optional
-			Motif length values. Default: 8,10,12
-		meme_path: str, optional
-			Path to meme bin folder. Meme will be used if given for motif annotation. Default: None
-		meme_collection_path: str, optional
-			Path to motif collection (in .cb format) to compare homer motifs with. Default: None
-		cistrome_annotation: List, optional
-			Annotation to use for forming cistromes. It can be 'Direct_annot' (direct evidence that the motif is 
-			linked to that TF), 'Motif_similarity_annot' (based on tomtom motif similarity), 'Orthology_annot'
-			(based on orthology with a TF that is directly linked to that motif) or 'Motif_similarity_and_Orthology_annot'.
-			Default: ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']
-		motif_similarity_fdr: float, optional
-			Minimal motif similarity value to consider two motifs similar. Default: 0.001
-		orthologous_identity_threshold: float, optional
-			Minimal orthology value for considering two TFs orthologous. Default: 0.0
+        Parameters
+        ---------
+        homer_path: str
+            Path to Homer bin folder.
+        bed_path: str
+            Path to bed file containing region set to be analyzed with Homer.
+        name: str
+            Analysis name.
+        outdir: str
+            Path to folder to output Homer results.
+        genome: str
+            Homer genome label to use.
+        size: str, optional
+            Fragment size to use for motif finding. Default: 'given' [uses the exact regions you give it]
+        mask: bool, optional
+            Whether to mask repeats or not. Default: True
+        denovo : bool, optional
+            Whether to infer overrepresented motifs de novo. Default: False
+        length: str, optional
+            Motif length values. Default: 8,10,12
+        meme_path: str, optional
+            Path to meme bin folder. Meme will be used if given for motif annotation. Default: None
+        meme_collection_path: str, optional
+            Path to motif collection (in .cb format) to compare homer motifs with. Default: None
+        cistrome_annotation: List, optional
+            Annotation to use for forming cistromes. It can be 'Direct_annot' (direct evidence that the motif is 
+            linked to that TF), 'Motif_similarity_annot' (based on tomtom motif similarity), 'Orthology_annot'
+            (based on orthology with a TF that is directly linked to that motif) or 'Motif_similarity_and_Orthology_annot'.
+            Default: ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']
+        motif_similarity_fdr: float, optional
+            Minimal motif similarity value to consider two motifs similar. Default: 0.001
+        orthologous_identity_threshold: float, optional
+            Minimal orthology value for considering two TFs orthologous. Default: 0.0
 
-		References
-		---------
-		Heinz S, Benner C, Spann N, Bertolino E et al. Simple Combinations of Lineage-Determining 
-		Transcription Factors Prime cis-Regulatory Elements Required for Macrophage and B Cell Identities.
-		Mol Cell 2010 May 28;38(4):576-589. PMID: 20513432
-		"""
+        References
+        ---------
+        Heinz S, Benner C, Spann N, Bertolino E et al. Simple Combinations of Lineage-Determining 
+        Transcription Factors Prime cis-Regulatory Elements Required for Macrophage and B Cell Identities.
+        Mol Cell 2010 May 28;38(4):576-589. PMID: 20513432
+        """
         
         self.homer_path = homer_path
         self.bed_path = bed_path
@@ -156,9 +156,9 @@ class Homer():
         self.run()
 
     def run(self):
-    	"""
-    	Run Homer
-    	"""
+        """
+        Run Homer
+        """
         # Create logger
         level    = logging.INFO
         format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -201,24 +201,24 @@ class Homer():
         
     def load_known(self):
         """
-    	Load known motif enrichment results from file.
-    	"""
+        Load known motif enrichment results from file.
+        """
         known = pd.read_csv(os.path.join(self.outdir, 'knownResults.txt'), sep='\t')
         return known
     
     def load_denovo(self):
         """
-    	Load de novo motif enrichment results from file.
-    	"""
+        Load de novo motif enrichment results from file.
+        """
         denovo = pd.read_html(os.path.join(self.outdir, 'homerResults.html'), header=0)[0].iloc[:,[7,2,3,4,5,6]]
         denovo.iloc[:,0] = [x.split('More')[0] for x in denovo.iloc[:,0]]
         denovo.to_csv(os.path.join(self.outdir, 'homerResults.txt'), sep='\t', index=False)
         return denovo
     
     def add_motif_annotation_homer(self):
-    	"""
-    	Add motif annotations (based on Homer, cisTarget and meme if specified)
-    	"""
+        """
+        Add motif annotations (based on Homer, cisTarget and meme if specified)
+        """
         # Create logger
         level    = logging.INFO
         format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -312,14 +312,14 @@ class Homer():
                     self.denovo_motifs = motifs
 
     def find_motif_hits(self, n_cpu=1):
-    	"""
-    	Find motif hits with `homer2 find`
-    	
-    	Parameters
-		---------
-		n_cpu: int
-			Number of cores to use.
-    	"""
+        """
+        Find motif hits with `homer2 find`
+        
+        Parameters
+        ---------
+        n_cpu: int
+            Number of cores to use.
+        """
         # Create logger
         level    = logging.INFO
         format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -366,17 +366,17 @@ class Homer():
                 
     def get_cistromes(self, annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']):
         """
-    	Format cistromes per TF
-    	
-    	Parameters
-		---------
-		cistrome_annotation: List, optional
-			Annotation to use for forming cistromes. It can be 'Direct_annot' (direct evidence that the motif is 
-			linked to that TF), 'Motif_similarity_annot' (based on tomtom motif similarity), 'Orthology_annot'
-			(based on orthology with a TF that is directly linked to that motif) or 'Motif_similarity_and_Orthology_annot'.
-			Default: ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']
+        Format cistromes per TF
+        
+        Parameters
+        ---------
+        cistrome_annotation: List, optional
+            Annotation to use for forming cistromes. It can be 'Direct_annot' (direct evidence that the motif is 
+            linked to that TF), 'Motif_similarity_annot' (based on tomtom motif similarity), 'Orthology_annot'
+            (based on orthology with a TF that is directly linked to that motif) or 'Motif_similarity_and_Orthology_annot'.
+            Default: ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']
 
-    	"""
+        """
         if self.known_motif_hits is not None:
             if 'Direct_annot' in annotation:
                 tfs = get_TF_list(self.known_motifs, annotation=['Direct_annot'])
@@ -426,51 +426,51 @@ def run_homer(homer_path: str,
                              motif_similarity_fdr: float = 0.001,
                              orthologous_identity_threshold: float = 0.0,
                              **kwargs):
-	"""
-	Run Homer 
+    """
+    Run Homer 
 
-	Parameters
-	---------
-	homer_path: str
-		Path to Homer bin folder.
-	region_sets: Dict
-		A dictionary of PyRanges containing region coordinates for the region sets to be analyzed.
-	outdir: str
-		Path to folder to output Homer results.
-	genome: str
-		Homer genome label to use.
-	size: str, optional
-		Fragment size to use for motif finding. Default: 'given' [uses the exact regions you give it]
-	mask: bool, optional
-		Whether to mask repeats or not. Default: True
-	denovo : bool, optional
-		Whether to infer overrepresented motifs de novo. Default: False
-	length: str, optional
-		Motif length values. Default: 8,10,12
-	n_cpu: int
-		Number of cores to use.
-	meme_path: str, optional
-		Path to meme bin folder. Meme will be used if given for motif annotation. Default: None
-	meme_collection_path: str, optional
-		Path to motif collection (in .cb format) to compare homer motifs with. Default: None
-	cistrome_annotation: List, optional
-		Annotation to use for forming cistromes. It can be 'Direct_annot' (direct evidence that the motif is 
-		linked to that TF), 'Motif_similarity_annot' (based on tomtom motif similarity), 'Orthology_annot'
-		(based on orthology with a TF that is directly linked to that motif) or 'Motif_similarity_and_Orthology_annot'.
-		Default: ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']
-	motif_similarity_fdr: float, optional
-		Minimal motif similarity value to consider two motifs similar. Default: 0.001
-	orthologous_identity_threshold: float, optional
-		Minimal orthology value for considering two TFs orthologous. Default: 0.0
-	**kwargs
-		Extra parameters to pass to `ray.init()`.
+    Parameters
+    ---------
+    homer_path: str
+        Path to Homer bin folder.
+    region_sets: Dict
+        A dictionary of PyRanges containing region coordinates for the region sets to be analyzed.
+    outdir: str
+        Path to folder to output Homer results.
+    genome: str
+        Homer genome label to use.
+    size: str, optional
+        Fragment size to use for motif finding. Default: 'given' [uses the exact regions you give it]
+    mask: bool, optional
+        Whether to mask repeats or not. Default: True
+    denovo : bool, optional
+        Whether to infer overrepresented motifs de novo. Default: False
+    length: str, optional
+        Motif length values. Default: 8,10,12
+    n_cpu: int
+        Number of cores to use.
+    meme_path: str, optional
+        Path to meme bin folder. Meme will be used if given for motif annotation. Default: None
+    meme_collection_path: str, optional
+        Path to motif collection (in .cb format) to compare homer motifs with. Default: None
+    cistrome_annotation: List, optional
+        Annotation to use for forming cistromes. It can be 'Direct_annot' (direct evidence that the motif is 
+        linked to that TF), 'Motif_similarity_annot' (based on tomtom motif similarity), 'Orthology_annot'
+        (based on orthology with a TF that is directly linked to that motif) or 'Motif_similarity_and_Orthology_annot'.
+        Default: ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot']
+    motif_similarity_fdr: float, optional
+        Minimal motif similarity value to consider two motifs similar. Default: 0.001
+    orthologous_identity_threshold: float, optional
+        Minimal orthology value for considering two TFs orthologous. Default: 0.0
+    **kwargs
+        Extra parameters to pass to `ray.init()`.
 
-	References
-	---------
-	Heinz S, Benner C, Spann N, Bertolino E et al. Simple Combinations of Lineage-Determining 
-	Transcription Factors Prime cis-Regulatory Elements Required for Macrophage and B Cell Identities.
-	Mol Cell 2010 May 28;38(4):576-589. PMID: 20513432
-	"""
+    References
+    ---------
+    Heinz S, Benner C, Spann N, Bertolino E et al. Simple Combinations of Lineage-Determining 
+    Transcription Factors Prime cis-Regulatory Elements Required for Macrophage and B Cell Identities.
+    Mol Cell 2010 May 28;38(4):576-589. PMID: 20513432
+    """
     # Create logger
     level    = logging.INFO
     format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -528,9 +528,9 @@ def homer_ray(homer_path: str,
               cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
               motif_similarity_fdr: float = 0.001,
               orthologous_identity_threshold: float = 0.0):
-	"""
-	Ray method to run Homer.
-	"""
+    """
+    Ray method to run Homer.
+    """
     # Create logger
     level    = logging.INFO
     format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -568,11 +568,11 @@ def homer_results(homer_dict, name, results='known'):
     Parameters
     ---------
     Homer_dict: Dict
-    	A dictionary with one :class:`Homer` object per slot.
+        A dictionary with one :class:`Homer` object per slot.
     name: str
         Dictionary key of the analysis result to show. Default: None (All)
     results: str
-    	Whether to show know or de novo results. Default: 'known'
+        Whether to show know or de novo results. Default: 'known'
     """
     if results == 'known':
         file = os.path.join(homer_dict[name].outdir, 'knownResults.html')

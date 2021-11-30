@@ -26,35 +26,35 @@ def cluster_buster(cbust_path: str,
                  verbose: Optional[bool] = False,
                  **kwargs):
     """
-	Add motif annotation
+    Add motif annotation
 
-	Parameters
-	---------
-	cluster_buster_path: str
-		Path to cluster buster bin.
-	path_to_motifs: str, optional.
-		Path to motif collection folder (in .cb format). Only required if using a shuffled background. 
-	region_sets: Dict
-		A dictionary of PyRanges containing region coordinates for the regions to be analyzed. Only required
-		if `path_to_regions_fasta` is not provided.
-	path_to_genome_fasta: str, optional.
-		Path to genome fasta file. Only required if `path_to_regions_fasta` is not provided. Default: None
-	path_to_regions_fasta: str, optional.
-		Path to regions fasta file. Only required if `path_to_genome_fasta` is not provided. Default: None
-	n_cpu: int, optional
-		Number of cores to use
-	motifs: List, optional
-		Names of the motif files to use (from `path_to_motifs`). Default: None (All)
-	verbose: bool, optional
-		Whether to print progress to screen
-	**kwargs:
-		Additional parameters to pass to `ray.init()`
-		
-	References
-	---------
-	Frith, Martin C., Michael C. Li, and Zhiping Weng. "Cluster-Buster: Finding dense clusters of motifs 
-	in DNA sequences." Nucleic acids research 31, no. 13 (2003): 3666-3668.
-	"""
+    Parameters
+    ---------
+    cluster_buster_path: str
+        Path to cluster buster bin.
+    path_to_motifs: str, optional.
+        Path to motif collection folder (in .cb format). Only required if using a shuffled background. 
+    region_sets: Dict
+        A dictionary of PyRanges containing region coordinates for the regions to be analyzed. Only required
+        if `path_to_regions_fasta` is not provided.
+    path_to_genome_fasta: str, optional.
+        Path to genome fasta file. Only required if `path_to_regions_fasta` is not provided. Default: None
+    path_to_regions_fasta: str, optional.
+        Path to regions fasta file. Only required if `path_to_genome_fasta` is not provided. Default: None
+    n_cpu: int, optional
+        Number of cores to use
+    motifs: List, optional
+        Names of the motif files to use (from `path_to_motifs`). Default: None (All)
+    verbose: bool, optional
+        Whether to print progress to screen
+    **kwargs:
+        Additional parameters to pass to `ray.init()`
+        
+    References
+    ---------
+    Frith, Martin C., Michael C. Li, and Zhiping Weng. "Cluster-Buster: Finding dense clusters of motifs 
+    in DNA sequences." Nucleic acids research 31, no. 13 (2003): 3666-3668.
+    """
     # Create logger
     level    = logging.INFO
     format   = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -167,9 +167,9 @@ def run_cluster_buster_for_motif(cluster_buster_path: str,
 
 # Utils functions for Cluster-buster
 def get_sequence_names_from_fasta(fasta_filename: str):
-	"""
-	Retrieve sequence names from fasta
-	"""
+    """
+    Retrieve sequence names from fasta
+    """
     sequence_names_list = list()
     sequence_names_set = set()
     duplicated_sequences = False
