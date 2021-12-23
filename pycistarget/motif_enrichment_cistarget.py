@@ -13,6 +13,7 @@ import ray
 import ssl
 import sys
 from typing import Union, Dict, Sequence, Optional
+import h5py
 
 from IPython.display import HTML
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -21,6 +22,7 @@ pd.set_option('display.max_colwidth', None)
 # Set stderr to null when using ray.init to avoid ray printing Broken pipe million times
 _stderr = sys.stderr                                                         
 null = open(os.devnull,'wb') 
+
 
 from .utils import *
 
@@ -132,6 +134,21 @@ class cisTargetDatabase:
             target_to_db_dict = None
             db_rankings = db.load_full()
         return target_to_db_dict, db_rankings, total_regions
+
+#define cistarget class attributes, these will be saved to h5ad
+CTX_CLASS_ATTR = [
+    'name',
+    'specie',
+    'auc_threshold',
+    'nes_threshold',
+    'rank_threshold',
+    'annotation_version',
+    'annotation',
+    'path_to_motif_annotations',
+    'motif_similarity_fdr',
+    'orthologous_identity_threshold',
+    'motifs_to_use'
+]
 
 # cisTarget class
 class cisTarget:
@@ -412,6 +429,8 @@ class cisTarget:
             else:
                 motif_enrichment_w_annot = motif_enrichment_w_annot[['Region_set', 'NES', 'AUC', 'Rank_at_max']]
         self.motif_enrichment = motif_enrichment_w_annot 
+
+       
 
 # Run cisTarget            
 def run_cistarget(ctx_db: cisTargetDatabase,
