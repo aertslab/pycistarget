@@ -14,6 +14,8 @@ import ssl
 import sys
 from typing import Union, Dict, Sequence, Optional
 import h5py
+from collections.abc import Mapping
+from utils import is_iterable_not_string
 
 from IPython.display import HTML
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -135,20 +137,6 @@ class cisTargetDatabase:
             db_rankings = db.load_full()
         return target_to_db_dict, db_rankings, total_regions
 
-#define cistarget class attributes, these will be saved to h5ad
-CTX_CLASS_ATTR = [
-    'name',
-    'specie',
-    'auc_threshold',
-    'nes_threshold',
-    'rank_threshold',
-    'annotation_version',
-    'annotation',
-    'path_to_motif_annotations',
-    'motif_similarity_fdr',
-    'orthologous_identity_threshold',
-    'motifs_to_use'
-]
 
 # cisTarget class
 class cisTarget:
@@ -430,7 +418,119 @@ class cisTarget:
                 motif_enrichment_w_annot = motif_enrichment_w_annot[['Region_set', 'NES', 'AUC', 'Rank_at_max']]
         self.motif_enrichment = motif_enrichment_w_annot 
 
-       
+    def to_h5ad(self,
+                grp_or_fname: Union[h5py.Group, str],
+                compression_type = 'gzip',
+                compression_opts = 4,
+                verbose = False):
+        if not isinstance(grp_or_fname, h5py.Group):
+            #create a hdf5 file with a new group
+            had5_file = h5py.File(grp_or_fname, "w")
+            if verbose:
+                print(f"Creating group: {self.name}")
+            grp = had5_file.create_group(name = self.name)
+        else:
+            grp = grp_or_fname
+        try:
+            #save each attribute
+            for attr_name in self.__dict__.keys():
+                if getattr(self, attr_name) is not None:
+                    if not is_iterable_not_string(getattr(self, attr_name)):
+                        #numbers and strings can be saved directly as attributes
+                        if verbose:
+                            print(f"Adding attribute {attr_name} to group {grp.name}")
+                        grp.attrs[attr_name] = getattr(self, attr_name)
+                    elif not isinstance(getattr(self, attr_name), Mapping):
+                        #array like objects can be saved as datasets
+                        if verbose:
+                            print(f"Creating dataset {attr_name} in group {grp.name}")
+                        if isinstance(getattr(self, attr_name), pr.PyRanges):
+                            grp.create_dataset(name = attr_name,
+                                            data = getattr(self, attr_name).as_df().to_numpy(dtype = 'S'),
+                                            compression = compression_type,
+                                            compression_opts = compression_opts)
+                        elif type(getattr(self, attr_name)) == list:
+                            grp.create_dataset(name = attr_name,
+                                            data = np.array(getattr(self, attr_name), dtype = 'S'),
+                                            compression = compression_type,
+                                            compression_opts = compression_opts)
+                        else:
+                            grp.create_dataset(name = attr_name,
+                                            data = getattr(self, attr_name).to_numpy(dtype = 'S'),
+                                            compression = compression_type,
+                                            compression_opts = compression_opts)
+                    else:
+                        #attribute is a mappable
+                        attr = getattr(self, attr_name)
+                        def _walk_down_mappable(x, grp, name = None, verbose = False):
+                            if isinstance(x, Mapping):
+                                for key in x.keys():
+                                    if verbose:
+                                        print(f"Creating group {key} in group {grp.name}")
+                                    new_grp = grp.create_group(name = key)
+                                    _walk_down_mappable(x[key], new_grp, key, verbose)
+                            else:
+                                if verbose:
+                                    print(f"Creating dataset {name} in group {grp.name}")
+                                if isinstance(x, pr.PyRanges):
+                                    grp.create_dataset(name = name,
+                                                    data = x.as_df().to_numpy(dtype = 'S'),
+                                                    compression = compression_type,
+                                                    compression_opts  = compression_opts)
+                                elif type(x) == list:
+                                    grp.create_dataset(name = attr_name,
+                                            data = np.array(x, dtype = 'S'),
+                                            compression = compression_type,
+                                            compression_opts = compression_opts)
+                                else:
+                                    grp.create_dataset(name = name,
+                                                    data = x.to_numpy(dtype = 'S'),
+                                                    compression = compression_type,
+                                                    compression_opts  = compression_opts)
+                        if verbose:
+                            print(f"Creating group {attr_name} in group {grp.name}")
+                        grp = grp.create_group(name = attr_name)
+                        _walk_down_mappable(attr, grp, name = attr_name, verbose = verbose) 
+        except Exception as e:
+            print(e)
+        finally:
+            #close had5_file if it was opened before
+            if not isinstance(grp_or_fname, h5py.Group):
+                had5_file.close()
+
+def write_h5ad(ctx_result: Union[cisTarget, dict],
+               had5_file_or_file_path: Union[h5py.File, str],
+               compression_type = 'gzip',
+               compression_opts = 4,
+               verbose = False):
+    if isinstance(ctx_result, cisTarget):
+        ctx_result.to_h5ad( 
+            grp_or_fname = had5_file_or_file_path, 
+            compression_type = compression_type, 
+            compression_opts = compression_opts, 
+            verbose = verbose)
+    elif type(ctx_result, dict):
+        if isinstance(had5_file_or_file_path, h5py.File):
+            had5_file = had5_file_or_file_path
+        elif type(had5_file_or_file_path) == str:
+            had5_file = h5py.File(had5_file_or_file_path, "w")
+        try:
+            for key in ctx_result.keys():
+                if verbose:
+                    print(f"Creating group: {key}")
+                grp = had5_file.create_group(name = key)
+                ctx_result[key].to_h5ad(
+                    grp_or_fname = grp,
+                    compression_type = compression_type, 
+                    compression_opts = compression_opts, 
+                    verbose = verbose)
+        except Exception as e:
+            raise Exception(e)
+        finally:
+            if type(had5_file_or_file_path) == str:
+                had5_file.close()
+    else:
+        raise ValueError('ctx_result should be an instance of class cisTarget or a dict of instances.')
 
 # Run cisTarget            
 def run_cistarget(ctx_db: cisTargetDatabase,
