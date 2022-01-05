@@ -492,7 +492,7 @@ class DEM():
                 motif_enrichment_dict_w_annot = {key: motif_enrichment_dict_w_annot[key][['Logo', 'Contrast', 'Log2FC', 'Adjusted_pval', 'Mean_fg', 'Mean_bg', 'Motif_hit_thr', 'Motif_hits']] for key in motif_enrichment_dict_w_annot.keys()}
         else:
             if annot_df is not None:
-                motif_enrichment_dict_w_annot = {key: motif_enrichment_dict_w_annot[key][sum([['Contrast'], self.motif_annotation, []'Log2FC', 'Adjusted_pval', 'Mean_fg', 'Mean_bg', 'Motif_hit_thr', 'Motif_hits']],[])] for key in motif_enrichment_dict_w_annot.keys()}
+                motif_enrichment_dict_w_annot = {key: motif_enrichment_dict_w_annot[key][sum([['Contrast'], self.motif_annotation, ['Log2FC', 'Adjusted_pval', 'Mean_fg', 'Mean_bg', 'Motif_hit_thr', 'Motif_hits']],[])] for key in motif_enrichment_dict_w_annot.keys()}
             else:
                 motif_enrichment_dict_w_annot = {key: motif_enrichment_dict_w_annot[key][['Contrast', 'Log2FC', 'Adjusted_pval', 'Mean_fg', 'Mean_bg', 'Motif_hit_thr', 'Motif_hits']] for key in motif_enrichment_dict_w_annot.keys()}
         
