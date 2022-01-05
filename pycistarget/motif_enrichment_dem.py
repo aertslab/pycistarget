@@ -487,14 +487,14 @@ class DEM():
             for key in self.motif_enrichment.keys():
                 motif_enrichment_dict_w_annot[key]['Logo']=['<img src="' +'https://motifcollections.aertslab.org/' + self.annotation_version + '/logos/'+ motif_enrichment_dict_w_annot[key].index.tolist()[i] + '.png' + '" width="200" >' for i in range(motif_enrichment_dict_w_annot[key].shape[0])]
             if annot_df is not None:
-                motif_enrichment_dict_w_annot = {key: motif_enrichment_dict_w_annot[key].loc[:,['Logo', 'Contrast', self.motif_annotation, 'Log2FC', 'Adjusted_pval', 'Mean_fg', 'Mean_bg', 'Motif_hit_thr', 'Motif_hits']] for key in motif_enrichment_dict_w_annot.keys()}
+                motif_enrichment_dict_w_annot = {key: motif_enrichment_dict_w_annot[key][sum([['Logo', 'Contrast'], self.motif_annotation, ['Log2FC', 'Adjusted_pval', 'Mean_fg', 'Mean_bg', 'Motif_hit_thr', 'Motif_hits']], [])] for key in motif_enrichment_dict_w_annot.keys()}
             else:
-                motif_enrichment_dict_w_annot = {key: motif_enrichment_dict_w_annot[key].loc[:,['Logo', 'Contrast', 'Log2FC', 'Adjusted_pval', 'Mean_fg', 'Mean_bg', 'Motif_hit_thr', 'Motif_hits']] for key in motif_enrichment_dict_w_annot.keys()}
+                motif_enrichment_dict_w_annot = {key: motif_enrichment_dict_w_annot[key][['Logo', 'Contrast', 'Log2FC', 'Adjusted_pval', 'Mean_fg', 'Mean_bg', 'Motif_hit_thr', 'Motif_hits']] for key in motif_enrichment_dict_w_annot.keys()}
         else:
             if annot_df is not None:
-                motif_enrichment_dict_w_annot = {key: motif_enrichment_dict_w_annot[key].loc[:,['Contrast', self.motif_annotation, 'Log2FC', 'Adjusted_pval', 'Mean_fg', 'Mean_bg', 'Motif_hit_thr', 'Motif_hits']] for key in motif_enrichment_dict_w_annot.keys()}
+                motif_enrichment_dict_w_annot = {key: motif_enrichment_dict_w_annot[key][sum([['Contrast'], self.motif_annotation, []'Log2FC', 'Adjusted_pval', 'Mean_fg', 'Mean_bg', 'Motif_hit_thr', 'Motif_hits']],[])] for key in motif_enrichment_dict_w_annot.keys()}
             else:
-                motif_enrichment_dict_w_annot = {key: motif_enrichment_dict_w_annot[key].loc[:,['Contrast', 'Log2FC', 'Adjusted_pval', 'Mean_fg', 'Mean_bg', 'Motif_hit_thr', 'Motif_hits']] for key in motif_enrichment_dict_w_annot.keys()}
+                motif_enrichment_dict_w_annot = {key: motif_enrichment_dict_w_annot[key][['Contrast', 'Log2FC', 'Adjusted_pval', 'Mean_fg', 'Mean_bg', 'Motif_hit_thr', 'Motif_hits']] for key in motif_enrichment_dict_w_annot.keys()}
         
         self.motif_enrichment = motif_enrichment_dict_w_annot 
     
