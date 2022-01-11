@@ -153,7 +153,6 @@ class Homer():
         self.denovo_motif_hits = None
         self.known_cistromes = None
         self.denovo_cistromes = None
-        self.run()
 
     def run(self):
         """
@@ -556,6 +555,7 @@ def homer_ray(homer_path: str,
                 meme_collection_path, 
                 cistrome_annotation, 
                 motif_similarity_fdr)
+    Homer_res.run()
     log.info(name + ' done!')
     return Homer_res
             
