@@ -104,7 +104,7 @@ def _writer(
                                     new_attribute.append(x.fillna('nan'))
                         attribute = new_attribute
 
-                write_attribute(grp, attribute_name, attribute)
+                write_attribute(grp, attribute_name, attribute, dataset_kwargs = {'compression': 'gzip', 'compression_opts': 9})
 
 
 def _add_analysis_type_to_grp(grp, result):
@@ -290,6 +290,7 @@ def _cisTarget_reader(hdf5_grp: h5py.Group) -> cisTarget:
         setattr(cisTarget_obj, 'regions_to_db', regions_to_db)
     
     return cisTarget_obj
+
 
 def read_h5ad(f_name) -> Union[Mapping[str, Union[cisTarget, DEM, Homer]], cisTarget, DEM, Homer]:
     hdf5_file = h5py.File(f_name, 'r')
