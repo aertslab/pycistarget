@@ -118,8 +118,13 @@ def _add_analysis_type_to_grp(grp, result):
 
 def write_hdf5(
         result: Union[Mapping[str, Union[cisTarget, DEM, Homer]], cisTarget, DEM, Homer],
-        f_name: str):
-    hdf5_file = h5py.File(f_name, 'w')
+        f_name_or_grp: Union[str, h5py.Group, h5py.File]):
+    
+    if type(f_name_or_grp) == str:
+        hdf5_file = h5py.File(f_name_or_grp, 'w')
+    elif isinstance(f_name_or_grp, h5py.Group) or isinstance(f_name_or_grp, h5py.File):
+        hdf5_file = f_name_or_grp
+
     try:
         if type(result) == dict:
             if not all([isinstance(x, cisTarget) or isinstance(x, DEM) or isinstance(x, Homer) for x in result.values()]):
@@ -141,10 +146,12 @@ def write_hdf5(
             raise ValueError(
                 f'result should be an instance of cisTarget, DEM or Homer or a dict mapping keys to such instances. Not: {type(result)}')
     except Exception as e:
-        hdf5_file.close()
+        if type(f_name_or_grp) == str:
+            hdf5_file.close()
         raise(e)
     finally:
-        hdf5_file.close()
+        if type(f_name_or_grp) == str:
+            hdf5_file.close()
 
 
 def _DEM_reader(hdf5_grp: h5py.Group) -> DEM:
@@ -292,8 +299,12 @@ def _cisTarget_reader(hdf5_grp: h5py.Group) -> cisTarget:
     return cisTarget_obj
 
 
-def read_h5ad(f_name) -> Union[Mapping[str, Union[cisTarget, DEM, Homer]], cisTarget, DEM, Homer]:
-    hdf5_file = h5py.File(f_name, 'r')
+def read_h5ad(f_name_or_grp) -> Union[Mapping[str, Union[cisTarget, DEM, Homer]], cisTarget, DEM, Homer]:
+    if type(f_name_or_grp) == str:
+        hdf5_file = h5py.File(f_name_or_grp, 'r')
+    elif isinstance(f_name_or_grp, h5py.Group) or isinstance(f_name_or_grp, h5py.File):
+        hdf5_file = f_name_or_grp
+
     try:
         if len(hdf5_file.keys()) == 1:
             hdf5_grp = hdf5_file[list(hdf5_file.keys())[0]]
@@ -319,9 +330,11 @@ def read_h5ad(f_name) -> Union[Mapping[str, Union[cisTarget, DEM, Homer]], cisTa
                     raise NotImplementedError(f"A reader for {hdf5_grp.attrs['analysis_type']} does not exists, existing readers: cisTarget, DEM, Homer")
                 return_object[key] = return_sub_object      
     except Exception as e:
-        hdf5_file.close()
+        if type(f_name_or_grp) == str:
+            hdf5_file.close()
         raise(e)
     finally:
-        hdf5_file.close()
+        if type(f_name_or_grp) == str:
+            hdf5_file.close()
     return return_object
 
