@@ -1,3 +1,4 @@
+from typing_extensions import final
 from ctxcore.genesig import Regulon, GeneSignature
 from ctxcore.recovery import recovery, aucs as calc_aucs
 from ctxcore.recovery import leading_edge4row
@@ -13,14 +14,18 @@ import ray
 import ssl
 import sys
 from typing import Union, Dict, Sequence, Optional
+import h5py
+from collections.abc import Mapping
+from .utils import is_iterable_not_string
 
 from IPython.display import HTML
 ssl._create_default_https_context = ssl._create_unverified_context
 pd.set_option('display.max_colwidth', None)
 
 # Set stderr to null when using ray.init to avoid ray printing Broken pipe million times
-_stderr = sys.stderr                                                         
+_stderr = sys.stderr
 null = open(os.devnull,'wb') 
+
 
 from .utils import *
 
@@ -133,6 +138,7 @@ class cisTargetDatabase:
             db_rankings = db.load_full()
         return target_to_db_dict, db_rankings, total_regions
 
+
 # cisTarget class
 class cisTarget:
     """
@@ -189,7 +195,6 @@ class cisTarget:
     Nat Protoc. June 2020:1-30. doi:10.1038/s41596-020-0336-2
     """
     def __init__(self, 
-                 ctx_db, 
                  region_set: pr.PyRanges,
                  name: str,
                  specie: str,
@@ -246,7 +251,6 @@ class cisTarget:
         Van de Sande B., Flerin C., et al. A scalable SCENIC workflow for single-cell gene regulatory network analysis.
         Nat Protoc. June 2020:1-30. doi:10.1038/s41596-020-0336-2
         """
-        self.regions_to_db = ctx_db.regions_to_db[name] if type(ctx_db.regions_to_db) == dict else ctx_db.regions_to_db.loc[set(coord_to_region_names(region_set)) & set(ctx_db.regions_to_db['Target'])]
         self.region_set = region_set
         self.name = name
         self.specie = specie
@@ -259,9 +263,7 @@ class cisTarget:
         self.motif_similarity_fdr = motif_similarity_fdr
         self.orthologous_identity_threshold = orthologous_identity_threshold
         self.motifs_to_use = motifs_to_use
-        # Run ctx
-        self.run_ctx(ctx_db)
-
+        
     def run_ctx(self,
             ctx_db: cisTargetDatabase) -> pd.DataFrame:
         """
@@ -293,6 +295,8 @@ class cisTarget:
         COLUMN_NAME_TARGET_GENES = "TargetRegions"
         COLUMN_NAME_RANK_AT_MAX = "RankAtMax"
         COLUMN_NAME_TYPE = "Type"
+
+        self.regions_to_db = ctx_db.regions_to_db[self.name] if type(ctx_db.regions_to_db) == dict else ctx_db.regions_to_db.loc[set(coord_to_region_names(self.region_set)) & set(ctx_db.regions_to_db['Target'])]
 
         # Log
         log.info("Running cisTarget for {} which has {} regions".format(self.name, len(self.regions_to_db['Query'].tolist())))
@@ -412,6 +416,7 @@ class cisTarget:
             else:
                 motif_enrichment_w_annot = motif_enrichment_w_annot[['Region_set', 'NES', 'AUC', 'Rank_at_max']]
         self.motif_enrichment = motif_enrichment_w_annot 
+
 
 # Run cisTarget            
 def run_cistarget(ctx_db: cisTargetDatabase,
@@ -670,8 +675,7 @@ def ctx_internal(ctx_db: cisTargetDatabase,
     Van de Sande B., Flerin C., et al. A scalable SCENIC workflow for single-cell gene regulatory network analysis.
     Nat Protoc. June 2020:1-30. doi:10.1038/s41596-020-0336-2
     """
-    ctx_result = cisTarget(ctx_db,
-                           region_set, 
+    ctx_result = cisTarget(region_set, 
                            name, 
                            specie,
                            auc_threshold,
@@ -683,6 +687,7 @@ def ctx_internal(ctx_db: cisTargetDatabase,
                            motif_similarity_fdr,
                            orthologous_identity_threshold,
                            motifs_to_use)
+    ctx_result.run_ctx(ctx_db)
     return ctx_result
     
 ## Show results 
@@ -704,3 +709,5 @@ def cistarget_results(cistarget_dict,
     else:
         motif_enrichment_table=motif_enrichment_dict[name]
     return HTML(motif_enrichment_table.to_html(escape=False, col_space=80))
+
+

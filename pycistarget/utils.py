@@ -7,7 +7,7 @@ import re
 import subprocess
 import ssl
 from typing import Dict, List, Sequence, Union
-
+from collections.abc import Iterable
 
 def coord_to_region_names(coord: pr.PyRanges):
     """
@@ -302,3 +302,9 @@ def get_cistromes_per_region_set(motif_enrichment_region_set,
     cistromes_per_region_set = {**cistromes_per_region_set_direct, **cistromes_per_region_set_extended}
     cistromes_per_region_set = {x + '_(' + str(len(cistromes_per_region_set[x])) + 'r)': cistromes_per_region_set[x] for x in cistromes_per_region_set.keys()}
     return cistromes_per_region_set
+
+def is_iterable_not_string(i):
+    if type(i) == str:
+        return False
+    else:
+        return isinstance(i, Iterable)

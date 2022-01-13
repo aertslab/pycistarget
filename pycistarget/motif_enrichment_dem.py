@@ -210,7 +210,7 @@ class DEM():
         similarity or orthology.
     """
     def __init__(self,
-                 dem_db: Union[str, 'DEMDatabase'],
+                 dem_db_fname,
                  region_sets: Dict[str, pr.PyRanges],
                  specie: str,
                  subset_motifs: Optional[List[str]] = None,
@@ -316,20 +316,12 @@ class DEM():
         **kwargs:
             Additional parameters to pass to `ray.init()`
         """
-        # Load database
-        if isinstance(dem_db, str):
-            dem_db = DEMDatabase(dem_db,
-                                 region_sets,
-                                 name = name,
-                                 fraction_overlap = fraction_overlap)
-
-        self.regions_to_db = dem_db.regions_to_db
+        self.dem_db_fname = dem_db_fname
         # Other params
+        self.fraction_overlap = fraction_overlap
         self.region_sets = region_sets
         self.specie = specie
         self.subset_motifs= subset_motifs
-        if subset_motifs is not None:
-            dem_db_scores = dem_db_scores.loc[subset_motifs,:]
         self.contrasts = contrasts
         self.name = name
         self.max_bg_regions = max_bg_regions
@@ -357,9 +349,8 @@ class DEM():
         self.motif_enrichment = None
         self.motif_hits = None
         self.cistromes = None
-        self.run(dem_db.db_scores, **kwargs)
         
-    def run(self, dem_db_scores: pd.DataFrame, **kwargs):
+    def run(self, **kwargs):
         """
         Run DEM
     
@@ -377,6 +368,14 @@ class DEM():
         logging.basicConfig(level = level, format = format, handlers = handlers)
         log = logging.getLogger('DEM')
         
+        dem_db = DEMDatabase(self.dem_db_fname,
+                            self.region_sets,
+                            name = self.name,
+                            fraction_overlap = self.fraction_overlap)
+        self.regions_to_db = dem_db.regions_to_db
+        if self.subset_motifs is not None:
+            dem_db.db_scores = dem_db.db_scores.loc[self.subset_motifs,:]
+
         contrast_keys=[x for x in self.region_sets.keys()]
         
         region_sets_names = {key: self.regions_to_db[key]['Query'].tolist() for key in self.regions_to_db.keys()}
@@ -412,7 +411,7 @@ class DEM():
                                    path_to_motifs = self.path_to_motifs,
                                    annotation = self.genome_annotation,
                                    promoter_space = self.promoter_space,
-                                   motifs = dem_db_scores.index.tolist(),
+                                   motifs = dem_db.db_scores.index.tolist(),
                                    n_cpu = self.n_cpu) for x in range(len(contrasts))]
 
         # Compute p-val and log2FC
@@ -420,9 +419,9 @@ class DEM():
             self.n_cpu = len(region_groups)
         
         if self.n_cpu > 1:
-            ray.init(num_cpus=n_cpu, **kwargs)
+            ray.init(num_cpus=self.n_cpu, **kwargs)
             sys.stderr = null
-            DEM_list = ray.get([DEM_internal_ray.remote(dem_db_scores,
+            DEM_list = ray.get([DEM_internal_ray.remote(dem_db.db_scores,
                                              region_groups[i],
                                              contrasts_names[i],
                                              adjpval_thr = self.adjpval_thr,
@@ -432,7 +431,7 @@ class DEM():
             ray.shutdown()
             sys.stderr = sys.__stderr__ 
         else:
-            DEM_list = [DEM_internal(dem_db_scores,
+            DEM_list = [DEM_internal(dem_db.db_scores,
                                 region_groups[i],
                                 contrasts_names[i],
                                 adjpval_thr = self.adjpval_thr,
@@ -621,7 +620,7 @@ def create_groups(contrast: list,
                 region_names = foreground_subset[0:max_bg_regions]
                 background_pr = pr.PyRanges(region_names_to_coordinates(region_names))   
                                           
-            background_sequences = pd.DataFrame([reegion_names, pr.get_fasta(background_pr, path_to_genome_fasta).tolist()], index=['Name', 'Sequence']).T
+            background_sequences = pd.DataFrame([region_names, pr.get_fasta(background_pr, path_to_genome_fasta).tolist()], index=['Name', 'Sequence']).T
             background_sequences['Sequence'] = [shuffle_sequence(x) for x in background_sequences['Sequence']] 
             background_sequences['Name'] = '>' + background_sequences['Name'] 
             background_sequences.to_csv(path_to_regions_fasta, header=False, index=False, sep='\n')
