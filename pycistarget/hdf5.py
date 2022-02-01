@@ -175,7 +175,7 @@ def _DEM_reader(hdf5_grp: h5py.Group) -> DEM:
         name                            = hdf5_grp_attributes_dict['name']                              if 'name'                           in hdf5_grp_attributes_dict.keys() else 'DEM', 
         specie                          = hdf5_grp_attributes_dict['specie']                            if 'specie'                         in hdf5_grp_attributes_dict.keys() else None, 
         tmp_dir                         = hdf5_grp_attributes_dict['tmp_dir']                           if 'tmp_dir'                        in hdf5_grp_attributes_dict.keys() else None,
-        dem_db_fname                    = hdf5_grp_attributes_dict['dem_db']                            if 'dem_db'                         in hdf5_grp_attributes_dict.keys() else None,
+        dem_db                          = None,
         motif_hit_thr                   = hdf5_grp_attributes_dict['motif_hit_thr']                     if 'motif_hit_thr'                  in hdf5_grp_attributes_dict.keys() else None,
         fraction_overlap                = hdf5_grp_attributes_dict['fraction_overlap']                  if 'fraction_overlap'               in hdf5_grp_attributes_dict.keys() else 0.4,
         cluster_buster_path             = hdf5_grp_attributes_dict['cluster_buster_path']               if 'cluster_buster_path'            in hdf5_grp_attributes_dict.keys() else None, 

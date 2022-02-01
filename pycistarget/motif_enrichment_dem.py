@@ -210,7 +210,7 @@ class DEM():
         similarity or orthology.
     """
     def __init__(self,
-                 dem_db_fname,
+                 dem_db,
                  region_sets: Dict[str, pr.PyRanges],
                  specie: str,
                  subset_motifs: Optional[List[str]] = None,
@@ -316,9 +316,17 @@ class DEM():
         **kwargs:
             Additional parameters to pass to `ray.init()`
         """
-        self.dem_db_fname = dem_db_fname
+        # DEM db
+        if dem_db is not None:
+            if isinstance(dem_db, str):
+                dem_db = DEMDatabase(dem_db,
+                                     region_sets,
+                                     name = name,
+                                     fraction_overlap = fraction_overlap)
+            self.regions_to_db = dem_db.regions_to_db
+            if self.subset_motifs is not None:
+                dem_db.db_scores = dem_db.db_scores.loc[self.subset_motifs,:]
         # Other params
-        self.fraction_overlap = fraction_overlap
         self.region_sets = region_sets
         self.specie = specie
         self.subset_motifs= subset_motifs
@@ -349,8 +357,10 @@ class DEM():
         self.motif_enrichment = None
         self.motif_hits = None
         self.cistromes = None
+        if dem_db is not None:
+            self.run(dem_db.db_scores)
         
-    def run(self, **kwargs):
+    def run(self, dem_db_scores, **kwargs):
         """
         Run DEM
     
@@ -368,14 +378,6 @@ class DEM():
         logging.basicConfig(level = level, format = format, handlers = handlers)
         log = logging.getLogger('DEM')
         
-        dem_db = DEMDatabase(self.dem_db_fname,
-                            self.region_sets,
-                            name = self.name,
-                            fraction_overlap = self.fraction_overlap)
-        self.regions_to_db = dem_db.regions_to_db
-        if self.subset_motifs is not None:
-            dem_db.db_scores = dem_db.db_scores.loc[self.subset_motifs,:]
-
         contrast_keys=[x for x in self.region_sets.keys()]
         
         region_sets_names = {key: self.regions_to_db[key]['Query'].tolist() for key in self.regions_to_db.keys()}
@@ -421,7 +423,7 @@ class DEM():
         if self.n_cpu > 1:
             ray.init(num_cpus=self.n_cpu, **kwargs)
             sys.stderr = null
-            DEM_list = ray.get([DEM_internal_ray.remote(dem_db.db_scores,
+            DEM_list = ray.get([DEM_internal_ray.remote(dem_db_scores,
                                              region_groups[i],
                                              contrasts_names[i],
                                              adjpval_thr = self.adjpval_thr,
@@ -431,7 +433,7 @@ class DEM():
             ray.shutdown()
             sys.stderr = sys.__stderr__ 
         else:
-            DEM_list = [DEM_internal(dem_db.db_scores,
+            DEM_list = [DEM_internal(dem_db_scores,
                                 region_groups[i],
                                 contrasts_names[i],
                                 adjpval_thr = self.adjpval_thr,
