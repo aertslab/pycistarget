@@ -324,8 +324,8 @@ class DEM():
                                      name = name,
                                      fraction_overlap = fraction_overlap)
             self.regions_to_db = dem_db.regions_to_db
-            if self.subset_motifs is not None:
-                dem_db.db_scores = dem_db.db_scores.loc[self.subset_motifs,:]
+            if subset_motifs is not None:
+                dem_db.db_scores = dem_db.db_scores.loc[subset_motifs,:]
         # Other params
         self.region_sets = region_sets
         self.specie = specie
