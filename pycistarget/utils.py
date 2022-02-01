@@ -189,6 +189,8 @@ def get_TF_list(motif_enrichment_table: pd.DataFrame,
     Get TFs from motif enrichment tables
     """
     tf_list = []
+    tf = tf.replace('(', '\(')
+    tf = tf.replace(')', '\)')
     for name in annotation:
         if name in motif_enrichment_table:
             tfs = motif_enrichment_table.loc[:,name].tolist()
