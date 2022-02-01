@@ -189,8 +189,6 @@ def get_TF_list(motif_enrichment_table: pd.DataFrame,
     Get TFs from motif enrichment tables
     """
     tf_list = []
-    tf = tf.replace('(', '\(')
-    tf = tf.replace(')', '\)')
     for name in annotation:
         if name in motif_enrichment_table:
             tfs = motif_enrichment_table.loc[:,name].tolist()
@@ -208,6 +206,8 @@ def get_motifs_per_TF(motif_enrichment_table: pd.DataFrame,
     Get motif annotated to each TF from a motif enrichment table
     """
     motifs= []
+    tf = tf.replace('(', '\(')
+    tf = tf.replace(')', '\)')
     for name in annotation:
         if name in motif_enrichment_table:
                 if motif_column != 'Index':
