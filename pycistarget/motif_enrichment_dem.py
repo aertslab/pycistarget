@@ -413,7 +413,7 @@ class DEM():
                                    path_to_motifs = self.path_to_motifs,
                                    annotation = self.genome_annotation,
                                    promoter_space = self.promoter_space,
-                                   motifs = dem_db.db_scores.index.tolist(),
+                                   motifs = dem_db_scores.index.tolist(),
                                    n_cpu = self.n_cpu) for x in range(len(contrasts))]
 
         # Compute p-val and log2FC
