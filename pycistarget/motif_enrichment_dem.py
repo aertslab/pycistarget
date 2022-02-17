@@ -358,7 +358,7 @@ class DEM():
         self.motif_hits = None
         self.cistromes = None
         if dem_db is not None:
-            self.run(dem_db.db_scores)
+            self.run(dem_db.db_scores, **kwargs)
         
     def run(self, dem_db_scores, **kwargs):
         """
