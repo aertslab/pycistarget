@@ -6,29 +6,24 @@ Usage
 Installation
 ------------
 
-To use Lumache, first install it using pip:
+To install pycistarget
 
 .. code-block:: console
 
-   (.venv) $ pip install lumache
+   (.venv) $ git clone https://github.com/aertslab/pycistarget.git
+   (.venv) $ cd pycistarget
 
-Creating recipes
-----------------
+and run
 
-To retrieve a list of random ingredients,
-you can use the ``lumache.get_random_ingredients()`` function:
+.. code-block:: console
+   (.venv) $ pip install -e .
 
-.. autofunction:: lumache.get_random_ingredients
+or 
 
-The ``kind`` parameter should be either ``"meat"``, ``"fish"``,
-or ``"veggies"``. Otherwise, :py:func:`lumache.get_random_ingredients`
-will raise an exception.
+.. code-block:: console
+   (.venv) $ pip install . --use-feature=in-tree-build
 
-.. autoexception:: lumache.InvalidKindError
+Check your pycistarget version by running:
 
-For example:
-
->>> import lumache
->>> lumache.get_random_ingredients()
-['shells', 'gorgonzola', 'parsley']
-
+>>> import pycistarget
+>>> pycistarget.__version__
