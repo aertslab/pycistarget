@@ -12,16 +12,7 @@ To install pycistarget
 
    (.venv) $ git clone https://github.com/aertslab/pycistarget.git
    (.venv) $ cd pycistarget
-
-and run
-
-.. code-block:: console
    (.venv) $ pip install -e .
-
-or 
-
-.. code-block:: console
-   (.venv) $ pip install . --use-feature=in-tree-build
 
 Check your pycistarget version by running:
 
