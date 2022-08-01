@@ -9,3 +9,7 @@ ray[default]
 scipy
 scikit-learn
 typing
+sphinx_rtd_theme
+nbsphinx
+nbsphinx_link
+numpydoc
