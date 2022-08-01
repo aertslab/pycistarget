@@ -1,19 +1,20 @@
-Welcome to the documentation of pycistarget
-===========================================
+Welcome to the documentation of pycistarget!
+==========
 
-**pycistarget** is a python packge for DNA motif enrichment analysis.
+pycistarget is a python module to perform motif enrichment analysis in sets of regions with different tools and identify high confidence TF cistromes.
 
-Check out the :doc:`usage` section for further information, including
-how to :ref:`installation` the project.
+.. warning::
+	pycistarget is still under development. It is currently a beta version. Functions in this package may change in a future release.
+	
+.. warning::
+	Detailed tutorials will be posted in the coming days. Stay tuned!
 
-.. note::
-
-   This project is under active development.
 
 Contents
 --------
 
 .. toctree::
 
-   usage
+   installation
+   tutorials
    api

@@ -164,27 +164,6 @@ class DEM():
     genome_annotation: pr.PyRanges, optional.
          Pyranges containing genome annotation (e.g. biomart). Only required if using promoter balance. 
          Default: None
-    genome_annotation: pr.PyRanges, optional.
-        A pyRanges containing transcription start sites for each gene, with 'Chromosome', 'Start' and 
-        'Strand' as columns (additional columns will be ignored). This data frame can be easily obtained
-        via pybiomart:
-            # Get TSS annotations
-            import pybiomart as pbm
-            # For mouse
-            dataset = pbm.Dataset(name='mmusculus_gene_ensembl',  host='http://www.ensembl.org')
-            # For human
-            dataset = pbm.Dataset(name='hsapiens_gene_ensembl',  host='http://www.ensembl.org')
-            # For fly
-            dataset = pbm.Dataset(name='dmelanogaster_gene_ensembl',  host='http://www.ensembl.org')
-            # Query TSS list and format
-            annot = dataset.query(attributes=['chromosome_name', 'transcription_start_site', 'strand', 'external_gene_name', 'transcript_biotype'])
-            filter = annot['Chromosome/scaffold name'].str.contains('CHR|GL|JH|MT')
-            annot = annot[~filter]
-            annot['Chromosome/scaffold name'] = annot['Chromosome/scaffold name'].str.replace(r'(\b\\S)', r'chr\1')
-            annot.columns=['Chromosome', 'Start', 'Strand', 'Gene', 'Transcript_type']
-            # Select TSSs of protein coding genes
-            annot = annot[annot.Transcript_type == 'protein_coding']
-         Only required if using promoter balance. Default: None
     promoter_space: int, optional
         Space around TSS to consider a region promoter. Only used if using promoter balance.
         Default: 1000
@@ -259,7 +238,7 @@ class DEM():
         log2fc_thr: float, optional
             Log2 Fold-change threshold to consider a motif enriched. Default: 1
         mean_fg_thr: float, optional
-            Minimul mean signal in the foreground to consider a motif enriched. Default: 0
+            Minimal mean signal in the foreground to consider a motif enriched. Default: 0
         motif_hit_thr: float, optional
             Minimal CRM score to consider a region enriched for a motif. Default: None (It will be automatically
             calculated based on precision-recall).
@@ -277,27 +256,6 @@ class DEM():
         genome_annotation: pr.PyRanges, optional.
             Pyranges containing genome annotation (e.g. biomart). Only required if using promoter balance. 
             Default: None
-        genome_annotation: pr.PyRanges, optional.
-            A pyRanges containing transcription start sites for each gene, with 'Chromosome', 'Start' and 
-            'Strand' as columns (additional columns will be ignored). This data frame can be easily obtained
-            via pybiomart:
-                # Get TSS annotations
-                import pybiomart as pbm
-                # For mouse
-                dataset = pbm.Dataset(name='mmusculus_gene_ensembl',  host='http://www.ensembl.org')
-                # For human
-                dataset = pbm.Dataset(name='hsapiens_gene_ensembl',  host='http://www.ensembl.org')
-                # For fly
-                dataset = pbm.Dataset(name='dmelanogaster_gene_ensembl',  host='http://www.ensembl.org')
-                # Query TSS list and format
-                annot = dataset.query(attributes=['chromosome_name', 'transcription_start_site', 'strand', 'external_gene_name', 'transcript_biotype'])
-                filter = annot['Chromosome/scaffold name'].str.contains('CHR|GL|JH|MT')
-                annot = annot[~filter]
-                annot['Chromosome/scaffold name'] = annot['Chromosome/scaffold name'].str.replace(r'(\b\\S)', r'chr\1')
-                annot.columns=['Chromosome', 'Start', 'Strand', 'Gene', 'Transcript_type']
-                # Select TSSs of protein coding genes
-                annot = annot[annot.Transcript_type == 'protein_coding']
-            Only required if using promoter balance. Default: None
         promoter_space: int, optional
             Space around TSS to consider a region promoter. Only used if using promoter balance.
             Default: 1000

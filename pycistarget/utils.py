@@ -41,8 +41,6 @@ def region_sets_to_signature(region_set: list,
         PyRanges object to be converted in genesignature object
     region_set_name:
         Name of the regions set
-    weights_col: 
-        If set uses this column of the pyranges object as gene2weight
         
     Return
     ---------
