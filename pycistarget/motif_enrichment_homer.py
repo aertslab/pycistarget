@@ -86,6 +86,8 @@ class Homer():
                  length: str = '8,10,12',
                  meme_path: str = None,
                  meme_collection_path: str = None,
+                 path_to_motif_annotations: str = None,
+                 annotation_version: str = 'v9',
                  cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
                  motif_similarity_fdr: float = 0.001,
                  orthologous_identity_threshold: float = 0.0):
@@ -116,6 +118,12 @@ class Homer():
             Path to meme bin folder. Meme will be used if given for motif annotation. Default: None
         meme_collection_path: str, optional
             Path to motif collection (in .cb format) to compare homer motifs with. Default: None
+        path_to_motif_annotations: str, optional
+            Path to motif annotations. If not provided, they will be downloaded from 
+            https://resources.aertslab.org based on the specie name provided (only possible for mus_musculus,
+            homo_sapiens and drosophila_melanogaster). Default: None
+        annotation_version: str, optional
+            Motif collection version. Default: v9
         cistrome_annotation: List, optional
             Annotation to use for forming cistromes. It can be 'Direct_annot' (direct evidence that the motif is 
             linked to that TF), 'Motif_similarity_annot' (based on tomtom motif similarity), 'Orthology_annot'
@@ -144,6 +152,8 @@ class Homer():
         self.name = name
         self.meme_path = meme_path
         self.meme_collection_path = meme_collection_path
+        self.path_to_motif_annotations = path_to_motif_annotations
+        self.annotation_version = annotation_version
         self.cistrome_annotation = cistrome_annotation
         self.motif_similarity_fdr = motif_similarity_fdr
         self.orthologous_identity_threshold = orthologous_identity_threshold
@@ -236,8 +246,10 @@ class Homer():
                 if 'hg' in self.genome:
                     species = 'homo_sapiens'
                 ctx_motif_annotation = load_motif_annotations(species,
+                                         version = self.annotation_version,
+                                         fname = self.path_to_motif_annotations,
                                          motif_similarity_fdr= self.motif_similarity_fdr,
-                                          orthologous_identity_threshold=self.orthologous_identity_threshold)
+                                         orthologous_identity_threshold=self.orthologous_identity_threshold)
                 motifs = self.known_motifs
                 homer_motifs = 'homer__' + motifs['Consensus'] + '_' + [x.split('(')[0] for x in motifs['Motif Name']]
 
@@ -300,8 +312,10 @@ class Homer():
                     homer_motif_paths = [x for x in homer_motif_paths if 'similar' not in x] 
                     tomtom_pd = pd.concat([tomtom(x, self.meme_path, self.meme_collection_path) for x in homer_motif_paths])
                     ctx_motif_annotation = load_motif_annotations(species,
+                                         version = self.annotation_version,
+                                         fname = self.path_to_motif_annotations,
                                          motif_similarity_fdr= self.motif_similarity_fdr,
-                                          orthologous_identity_threshold=self.orthologous_identity_threshold)
+                                         orthologous_identity_threshold=self.orthologous_identity_threshold)
                     homer_motifs = [x for x in tomtom_pd.iloc[:,1].tolist() if x in ctx_motif_annotation.index.tolist()]
                     ctx_motif_annotation = ctx_motif_annotation.loc[list(set(homer_motifs))].reset_index()
                     ctx_motif_annotation = ctx_motif_annotation.rename(columns={'MotifID': 'Best Match/Tomtom'})
@@ -395,13 +409,13 @@ class Homer():
         if self.denovo_motif_hits is not None:
             if 'Direct_annot' in annotation:
                 tfs = get_TF_list(self.denovo_motifs, annotation=['Direct_annot'])
-                cistrome_dict_direct = {tf: get_cistrome_per_TF(self.denovo_motif_hits,  get_motifs_per_TF(self.denovo_motifs, tf, motif_column = 'Motif Name', annotation=['Direct_annot'])) for tf in tfs}
+                cistrome_dict_direct = {tf: get_cistrome_per_TF(self.denovo_motif_hits,  get_motifs_per_TF(self.denovo_motifs, tf, motif_column = 'Best Match/Details', annotation=['Direct_annot'])) for tf in tfs}
             else:
                 cistrome_dict_direct = {}
                 
             if not 'Direct_annot' in annotation or len(annotation) > 1:
                 tfs = get_TF_list(self.denovo_motifs, annotation=annotation)
-                cistrome_dict_extended = {tf+'_extended': get_cistrome_per_TF(self.denovo_motif_hits,  get_motifs_per_TF(self.denovo_motifs, tf, motif_column = 'Motif Name', annotation=annotation)) for tf in tfs}
+                cistrome_dict_extended = {tf+'_extended': get_cistrome_per_TF(self.denovo_motif_hits,  get_motifs_per_TF(self.denovo_motifs, tf, motif_column = 'Best Match/Details', annotation=annotation)) for tf in tfs}
             else:
                 cistrome_dict_extended = {}
                 
