@@ -13,3 +13,4 @@ sphinx_rtd_theme
 nbsphinx
 nbsphinx_link
 numpydoc
+typing_extensions
