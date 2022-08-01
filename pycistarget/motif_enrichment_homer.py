@@ -46,6 +46,12 @@ class Homer():
         Path to meme bin folder. Meme will be used if given for motif annotation. Default: None
     meme_collection_path: str, optional
         Path to motif collection (in .cb format) to compare homer motifs with. Default: None
+    path_to_motif_annotations: str, optional
+        Path to motif annotations. If not provided, they will be downloaded from 
+        https://resources.aertslab.org based on the specie name provided (only possible for mus_musculus,
+        homo_sapiens and drosophila_melanogaster). Default: None
+    annotation_version: str, optional
+        Motif collection version. Default: v9
     cistrome_annotation: List, optional
         Annotation to use for forming cistromes. It can be 'Direct_annot' (direct evidence that the motif is 
         linked to that TF), 'Motif_similarity_annot' (based on tomtom motif similarity), 'Orthology_annot'
@@ -435,6 +441,8 @@ def run_homer(homer_path: str,
                              n_cpu: int = 1,
                              meme_path: str = None,
                              meme_collection_path: str = None,
+                             path_to_motif_annotations: str = None,
+                               annotation_version: str = 'v9',
                              cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
                              motif_similarity_fdr: float = 0.001,
                              orthologous_identity_threshold: float = 0.0,
@@ -466,6 +474,12 @@ def run_homer(homer_path: str,
         Path to meme bin folder. Meme will be used if given for motif annotation. Default: None
     meme_collection_path: str, optional
         Path to motif collection (in .cb format) to compare homer motifs with. Default: None
+    path_to_motif_annotations: str, optional
+        Path to motif annotations. If not provided, they will be downloaded from 
+        https://resources.aertslab.org based on the specie name provided (only possible for mus_musculus,
+        homo_sapiens and drosophila_melanogaster). Default: None
+    annotation_version: str, optional
+        Motif collection version. Default: v9
     cistrome_annotation: List, optional
         Annotation to use for forming cistromes. It can be 'Direct_annot' (direct evidence that the motif is 
         linked to that TF), 'Motif_similarity_annot' (based on tomtom motif similarity), 'Orthology_annot'
@@ -518,6 +532,8 @@ def run_homer(homer_path: str,
                                 length, 
                                 meme_path,
                                 meme_collection_path,
+                                path_to_motif_annotations,
+                                annotation_version,
                                 cistrome_annotation,
                                 motif_similarity_fdr,
                                 orthologous_identity_threshold) for name in list(bed_paths.keys())])
@@ -538,6 +554,8 @@ def homer_ray(homer_path: str,
               length: str = '8,10,12',
               meme_path: str = None,
               meme_collection_path: str = None,
+              path_to_motif_annotations: str = None,
+              annotation_version: str = 'v9',
               cistrome_annotation: List[str] = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
               motif_similarity_fdr: float = 0.001,
               orthologous_identity_threshold: float = 0.0):
@@ -567,6 +585,8 @@ def homer_ray(homer_path: str,
                 length, 
                 meme_path, 
                 meme_collection_path, 
+                path_to_motif_annotations,
+                annotation_version,
                 cistrome_annotation, 
                 motif_similarity_fdr)
     Homer_res.run()
