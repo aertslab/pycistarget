@@ -1,6 +1,7 @@
 ctxcore
 IPython
 numpy
+pandoc
 pandas
 pyranges
 pybiomart
