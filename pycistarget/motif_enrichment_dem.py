@@ -372,7 +372,8 @@ class DEM():
                                    annotation = self.genome_annotation,
                                    promoter_space = self.promoter_space,
                                    motifs = dem_db_scores.index.tolist(),
-                                   n_cpu = self.n_cpu) for x in range(len(contrasts))]
+                                   n_cpu = self.n_cpu,
+                                   **kwargs) for x in range(len(contrasts))]
 
         # Compute p-val and log2FC
         if self.n_cpu > len(region_groups):
@@ -489,7 +490,8 @@ def create_groups(contrast: list,
                   annotation: pr.PyRanges = None,
                   promoter_space: int = 1000,
                   motifs: list = None,
-                  n_cpu: int = 1):
+                  n_cpu: int = 1,
+                  **kwargs):
     """"
     Format contrast groups
     """
@@ -586,7 +588,7 @@ def create_groups(contrast: list,
             background_sequences.to_csv(path_to_regions_fasta, header=False, index=False, sep='\n')
         # Motifs should include .cb
         motifs = [motif + '.cb' for motif in motifs]
-        background  = cluster_buster(cbust_path, path_to_motifs, path_to_regions_fasta=path_to_regions_fasta, n_cpu=n_cpu, motifs=motifs)
+        background  = cluster_buster(cbust_path, path_to_motifs, path_to_regions_fasta=path_to_regions_fasta, n_cpu=n_cpu, motifs=motifs, **kwargs)
     return [foreground, background]
  
 ## Ray function for getting LogFC, pAdj and motif hits between groups   
