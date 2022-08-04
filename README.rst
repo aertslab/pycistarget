@@ -25,9 +25,7 @@ To check your pycistarget version::
 	import pycistarget
 	pycistarget.__version__
 
-Tutorials
+Tutorials & documentation
 **********************
 
--  `PycisTarget on mouse liver ChIP-seq data <https://htmlpreview.github.io/?https://github.com/aertslab/pycistarget/blob/master/notebooks/pycistarget_chip.html>`__
--  `PycisTarget on topics/DARs in the human cerebellum <https://htmlpreview.github.io/?https://github.com/aertslab/pycistarget/blob/master/notebooks/pycistarget_scenic+_human_brain.html>`__
-
+Tutorial and documentation are available at [read the docs](https://pycistarget.readthedocs.io/).
