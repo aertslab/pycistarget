@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pycistarget.cluster_buster &mdash; pycistarget 1.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> pycistarget
+          </a>
+              <div class="version">
+                1.0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">pycisTarget methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../motif_table.html">SCENIC+ motif collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pycistarget</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>pycistarget.cluster_buster</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pycistarget.cluster_buster</h1><div class="highlight"><pre>
+<span></span><span class="c1"># TO BE UPDATED WITH CTXCORE</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">pyranges</span> <span class="k">as</span> <span class="nn">pr</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">ray</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span>
+
+<div class="viewcode-block" id="cluster_buster"><a class="viewcode-back" href="../../api.html#pycistarget.cluster_buster.cluster_buster">[docs]</a><span class="k">def</span> <span class="nf">cluster_buster</span><span class="p">(</span><span class="n">cbust_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">path_to_motifs</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">region_sets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pr</span><span class="o">.</span><span class="n">PyRanges</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">path_to_genome_fasta</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">path_to_regions_fasta</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">n_cpu</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+                 <span class="n">motifs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">verbose</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add motif annotation</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------</span>
+<span class="sd">    cluster_buster_path: str</span>
+<span class="sd">        Path to cluster buster bin.</span>
+<span class="sd">    path_to_motifs: str, optional.</span>
+<span class="sd">        Path to motif collection folder (in .cb format). Only required if using a shuffled background. </span>
+<span class="sd">    region_sets: Dict</span>
+<span class="sd">        A dictionary of PyRanges containing region coordinates for the regions to be analyzed. Only required</span>
+<span class="sd">        if `path_to_regions_fasta` is not provided.</span>
+<span class="sd">    path_to_genome_fasta: str, optional.</span>
+<span class="sd">        Path to genome fasta file. Only required if `path_to_regions_fasta` is not provided. Default: None</span>
+<span class="sd">    path_to_regions_fasta: str, optional.</span>
+<span class="sd">        Path to regions fasta file. Only required if `path_to_genome_fasta` is not provided. Default: None</span>
+<span class="sd">    n_cpu: int, optional</span>
+<span class="sd">        Number of cores to use</span>
+<span class="sd">    motifs: List, optional</span>
+<span class="sd">        Names of the motif files to use (from `path_to_motifs`). Default: None (All)</span>
+<span class="sd">    verbose: bool, optional</span>
+<span class="sd">        Whether to print progress to screen</span>
+<span class="sd">    **kwargs:</span>
+<span class="sd">        Additional parameters to pass to `ray.init()`</span>
+<span class="sd">        </span>
+<span class="sd">    References</span>
+<span class="sd">    ---------</span>
+<span class="sd">    Frith, Martin C., Michael C. Li, and Zhiping Weng. &quot;Cluster-Buster: Finding dense clusters of motifs </span>
+<span class="sd">    in DNA sequences.&quot; Nucleic acids research 31, no. 13 (2003): 3666-3668.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create logger</span>
+    <span class="n">level</span>    <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>
+    <span class="nb">format</span>   <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(name)-12s</span><span class="s1"> </span><span class="si">%(levelname)-8s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span>
+    <span class="n">handlers</span> <span class="o">=</span> <span class="p">[</span><span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)]</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span> <span class="o">=</span> <span class="n">level</span><span class="p">,</span> <span class="nb">format</span> <span class="o">=</span> <span class="nb">format</span><span class="p">,</span> <span class="n">handlers</span> <span class="o">=</span> <span class="n">handlers</span><span class="p">)</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;Cluster-Buster&#39;</span><span class="p">)</span>
+    <span class="c1"># Generate fasta file</span>
+    <span class="k">if</span> <span class="n">path_to_regions_fasta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">path_to_regions_fasta</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span><span class="s1">&#39;regions.fa&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path_to_regions_fasta</span><span class="p">):</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Getting sequences&#39;</span><span class="p">)</span>
+        <span class="n">pr_regions_names_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">pyranges2names</span><span class="p">(</span><span class="n">region_sets</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">region_sets</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+        <span class="n">pr_sequence_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">region_sets</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">pr</span><span class="o">.</span><span class="n">get_fasta</span><span class="p">(</span><span class="n">region_sets</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">path_to_genome_fasta</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()],</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="s1">&#39;Sequence&#39;</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="n">region_sets</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">region_sets</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+        <span class="n">seq_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">pr_sequence_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">seq_df</span> <span class="o">=</span> <span class="n">seq_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="o">~</span><span class="n">seq_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">duplicated</span><span class="p">()]</span>
+        <span class="n">seq_df</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">path_to_regions_fasta</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">sequence_names</span> <span class="o">=</span>  <span class="p">[</span><span class="n">seq</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">seq_df</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sequence_names</span> <span class="o">=</span> <span class="n">get_sequence_names_from_fasta</span><span class="p">(</span><span class="n">path_to_regions_fasta</span><span class="p">)</span>
+        
+    <span class="c1"># Get motifs and sequence name</span>
+    <span class="k">if</span> <span class="n">motifs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">motifs</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">path_to_motifs</span><span class="p">)</span>
+        <span class="n">motifs</span> <span class="o">=</span> <span class="n">grep</span><span class="p">(</span><span class="n">motifs</span><span class="p">,</span> <span class="s1">&#39;.cb&#39;</span><span class="p">)</span>
+    
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Scoring sequences&#39;</span><span class="p">)</span>
+    <span class="n">ray</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">num_cpus</span><span class="o">=</span><span class="n">n_cpu</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">crm_scores</span> <span class="o">=</span> <span class="n">ray</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="n">run_cluster_buster_for_motif</span><span class="o">.</span><span class="n">remote</span><span class="p">(</span><span class="n">cbust_path</span><span class="p">,</span> <span class="n">path_to_regions_fasta</span><span class="p">,</span> <span class="n">path_to_motifs</span><span class="o">+</span><span class="n">motifs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">motifs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">i</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">motifs</span><span class="p">),</span> <span class="n">verbose</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">motifs</span><span class="p">))])</span>
+    <span class="n">ray</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+    <span class="n">crm_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">crm_scores</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+    <span class="c1"># Remove .cb from motifs names</span>
+    <span class="n">crm_df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.cb&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">crm_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Done!&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">crm_df</span></div>
+
+<span class="c1"># Utils</span>
+<span class="nd">@ray</span><span class="o">.</span><span class="n">remote</span>
+<span class="k">def</span> <span class="nf">run_cluster_buster_for_motif</span><span class="p">(</span><span class="n">cluster_buster_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                <span class="n">fasta_filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                <span class="n">motif_filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                <span class="n">motif_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                                <span class="n">nr_motifs</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                                <span class="n">verbose</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ray method to run cluster buster for one motif</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create logger</span>
+    <span class="n">level</span>    <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>
+    <span class="nb">format</span>   <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(name)-12s</span><span class="s1"> </span><span class="si">%(levelname)-8s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span>
+    <span class="n">handlers</span> <span class="o">=</span> <span class="p">[</span><span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)]</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span> <span class="o">=</span> <span class="n">level</span><span class="p">,</span> <span class="nb">format</span> <span class="o">=</span> <span class="nb">format</span><span class="p">,</span> <span class="n">handlers</span> <span class="o">=</span> <span class="n">handlers</span><span class="p">)</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;Cluster-Buster&#39;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">verbose</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Scoring motif &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; out of &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nr_motifs</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; motifs&#39;</span><span class="p">)</span>
+    <span class="c1"># Score each region in FASTA file with Cluster-Buster</span>
+    <span class="c1"># for motif and get top CRM score for each region.</span>
+    <span class="n">clusterbuster_command</span> <span class="o">=</span> <span class="p">[</span><span class="n">cluster_buster_path</span><span class="p">,</span>
+                             <span class="s1">&#39;-f&#39;</span><span class="p">,</span> <span class="s1">&#39;4&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;-c&#39;</span><span class="p">,</span> <span class="s1">&#39;0.0&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;-r&#39;</span><span class="p">,</span> <span class="s1">&#39;10000&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;-t&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;-l&#39;</span><span class="p">,</span> <span class="c1">#Mask repeats</span>
+                             <span class="n">motif_filename</span><span class="p">,</span>
+                             <span class="n">fasta_filename</span><span class="p">]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">pid</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">clusterbuster_command</span><span class="p">,</span>
+                               <span class="n">bufsize</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                               <span class="n">executable</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                               <span class="n">stdin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                               <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                               <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                               <span class="n">preexec_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                               <span class="n">close_fds</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                               <span class="n">shell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                               <span class="n">cwd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                               <span class="n">env</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                               <span class="n">universal_newlines</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                               <span class="n">startupinfo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                               <span class="n">creationflags</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">stdout_data</span><span class="p">,</span> <span class="n">stderr_data</span> <span class="o">=</span> <span class="n">pid</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">msg</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Execution error for: &#39;&quot;</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">clusterbuster_command</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;&#39;: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">msg</span><span class="p">),</span>
+              <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">pid</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Error: Non-zero exit status for: &quot;</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">clusterbuster_command</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">,</span>
+              <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">crm_scores_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+        <span class="n">filepath_or_buffer</span><span class="o">=</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">stdout_data</span><span class="p">),</span>
+        <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;motifs&#39;</span><span class="p">,</span> <span class="s1">&#39;crm_score&#39;</span><span class="p">],</span>
+        <span class="n">index_col</span><span class="o">=</span><span class="s1">&#39;motifs&#39;</span><span class="p">,</span>
+        <span class="n">usecols</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;motifs&#39;</span><span class="p">,</span><span class="s1">&#39;crm_score&#39;</span><span class="p">],</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;crm_score&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">},</span>
+        <span class="n">engine</span><span class="o">=</span><span class="s1">&#39;c&#39;</span>
+    <span class="p">)</span>
+    
+    <span class="n">crm_scores_df</span><span class="o">.</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="n">motif_name</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">crm_scores_df</span>
+
+
+<span class="c1"># Utils functions for Cluster-buster</span>
+<div class="viewcode-block" id="get_sequence_names_from_fasta"><a class="viewcode-back" href="../../api.html#pycistarget.cluster_buster.get_sequence_names_from_fasta">[docs]</a><span class="k">def</span> <span class="nf">get_sequence_names_from_fasta</span><span class="p">(</span><span class="n">fasta_filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieve sequence names from fasta</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sequence_names_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">sequence_names_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">duplicated_sequences</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fasta_filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;&gt;&#39;</span><span class="p">):</span>
+                <span class="c1"># Get sequence name by getting everything after &#39;&gt;&#39; up till the first whitespace.</span>
+                <span class="n">sequence_name</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+                <span class="c1"># Check if all sequence names only appear once.</span>
+                <span class="k">if</span> <span class="n">sequence_name</span> <span class="ow">in</span> <span class="n">sequence_names_set</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="s1">&#39;Error: Sequence name &quot;</span><span class="si">{0:s}</span><span class="s1">&quot; is not unique in FASTA file &quot;</span><span class="si">{1:s}</span><span class="s1">&quot;.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">sequence_name</span><span class="p">,</span>
+                            <span class="n">fasta_filename</span>
+                        <span class="p">),</span>
+                        <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span>
+                    <span class="p">)</span>
+                    <span class="n">duplicated_sequences</span> <span class="o">=</span> <span class="kc">True</span>
+
+                <span class="n">sequence_names_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sequence_name</span><span class="p">)</span>
+                <span class="n">sequence_names_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">sequence_name</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">duplicated_sequences</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sequence_names_list</span></div>
+
+<div class="viewcode-block" id="pyranges2names"><a class="viewcode-back" href="../../api.html#pycistarget.cluster_buster.pyranges2names">[docs]</a><span class="k">def</span> <span class="nf">pyranges2names</span><span class="p">(</span><span class="n">regions</span><span class="p">:</span> <span class="n">pr</span><span class="o">.</span><span class="n">PyRanges</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert pyranges to sequence name (fasta format)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;&gt;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">chrom</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;:&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">end</span><span class="p">)</span> <span class="k">for</span> <span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">regions</span><span class="o">.</span><span class="n">Chromosome</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">regions</span><span class="o">.</span><span class="n">Start</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">regions</span><span class="o">.</span><span class="n">End</span><span class="p">))]</span></div>
+
+<div class="viewcode-block" id="grep"><a class="viewcode-back" href="../../api.html#pycistarget.cluster_buster.grep">[docs]</a><span class="k">def</span> <span class="nf">grep</span><span class="p">(</span><span class="n">l</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span>
+         <span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper for grep</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">l</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Carmen Bravo Gonzalez Blas, Seppe de Winter.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

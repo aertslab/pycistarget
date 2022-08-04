@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pycistarget.motif_enrichment_homer &mdash; pycistarget 1.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> pycistarget
+          </a>
+              <div class="version">
+                1.0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tools.html">pycisTarget methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../motif_table.html">SCENIC+ motif collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pycistarget</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>pycistarget.motif_enrichment_homer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pycistarget.motif_enrichment_homer</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="k">import</span> <span class="n">HTML</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">pybiomart</span> <span class="k">import</span> <span class="n">Dataset</span>
+<span class="kn">import</span> <span class="nn">pyranges</span> <span class="k">as</span> <span class="nn">pr</span> 
+<span class="kn">import</span> <span class="nn">ray</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="o">*</span>
+
+<span class="c1"># Set stderr to null when using ray.init to avoid ray printing Broken pipe million times</span>
+<span class="n">_stderr</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span>                                                         
+<span class="n">null</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span><span class="s1">&#39;wb&#39;</span><span class="p">)</span> 
+
+<div class="viewcode-block" id="Homer"><a class="viewcode-back" href="../../api.html#pycistarget.motif_enrichment_homer.Homer">[docs]</a><span class="k">class</span> <span class="nc">Homer</span><span class="p">():</span> 
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Homer class.</span>
+<span class="sd">    :class:`Homer` contains Homer for motif enrichment analysis on sets of regions. </span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ---------</span>
+<span class="sd">    homer_path: str</span>
+<span class="sd">        Path to Homer bin folder.</span>
+<span class="sd">    bed_path: str</span>
+<span class="sd">        Path to bed file containing region set to be analyzed with Homer.</span>
+<span class="sd">    name: str</span>
+<span class="sd">        Analysis name.</span>
+<span class="sd">    outdir: str</span>
+<span class="sd">        Path to folder to output Homer results.</span>
+<span class="sd">    genome: str</span>
+<span class="sd">        Homer genome label to use.</span>
+<span class="sd">    size: str, optional</span>
+<span class="sd">        Fragment size to use for motif finding. Default: &#39;given&#39; [uses the exact regions you give it]</span>
+<span class="sd">    mask: bool, optional</span>
+<span class="sd">        Whether to mask repeats or not. Default: True</span>
+<span class="sd">    denovo : bool, optional</span>
+<span class="sd">        Whether to infer overrepresented motifs de novo. Default: False</span>
+<span class="sd">    length: str, optional</span>
+<span class="sd">        Motif length values. Default: 8,10,12</span>
+<span class="sd">    meme_path: str, optional</span>
+<span class="sd">        Path to meme bin folder. Meme will be used if given for motif annotation. Default: None</span>
+<span class="sd">    meme_collection_path: str, optional</span>
+<span class="sd">        Path to motif collection (in .cb format) to compare homer motifs with. Default: None</span>
+<span class="sd">    path_to_motif_annotations: str, optional</span>
+<span class="sd">        Path to motif annotations. If not provided, they will be downloaded from </span>
+<span class="sd">        https://resources.aertslab.org based on the specie name provided (only possible for mus_musculus,</span>
+<span class="sd">        homo_sapiens and drosophila_melanogaster). Default: None</span>
+<span class="sd">    annotation_version: str, optional</span>
+<span class="sd">        Motif collection version. Default: v9</span>
+<span class="sd">    cistrome_annotation: List, optional</span>
+<span class="sd">        Annotation to use for forming cistromes. It can be &#39;Direct_annot&#39; (direct evidence that the motif is </span>
+<span class="sd">        linked to that TF), &#39;Motif_similarity_annot&#39; (based on tomtom motif similarity), &#39;Orthology_annot&#39;</span>
+<span class="sd">        (based on orthology with a TF that is directly linked to that motif) or &#39;Motif_similarity_and_Orthology_annot&#39;.</span>
+<span class="sd">        Default: [&#39;Direct_annot&#39;, &#39;Motif_similarity_annot&#39;, &#39;Orthology_annot&#39;, &#39;Motif_similarity_and_Orthology_annot&#39;]</span>
+<span class="sd">    motif_similarity_fdr: float, optional</span>
+<span class="sd">        Minimal motif similarity value to consider two motifs similar. Default: 0.001</span>
+<span class="sd">    orthologous_identity_threshold: float, optional</span>
+<span class="sd">        Minimal orthology value for considering two TFs orthologous. Default: 0.0</span>
+<span class="sd">    known_motifs: pd.DataFrame</span>
+<span class="sd">        A dataframe containing known motif enrichment results.</span>
+<span class="sd">    denovo_motifs: pd.DataFrame</span>
+<span class="sd">        A dataframe containing de novo motif enrichment results.</span>
+<span class="sd">    known_motif_hits: Dict</span>
+<span class="sd">        A dictionary containing regions with motif hits for each known motif.</span>
+<span class="sd">    denovo_motif_hits: Dict</span>
+<span class="sd">        A dictionary containing regions with motif hits for each de novo motif.</span>
+<span class="sd">    known_cistromes: Dict</span>
+<span class="sd">        A dictionary containing regions with motif hits for each TF found with known motifs.</span>
+<span class="sd">    denovo_motif_hits: Dict</span>
+<span class="sd">        A dictionary containing regions with motif hits for each TF found de novo.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ---------</span>
+<span class="sd">    Heinz S, Benner C, Spann N, Bertolino E et al. Simple Combinations of Lineage-Determining </span>
+<span class="sd">    Transcription Factors Prime cis-Regulatory Elements Required for Macrophage and B Cell Identities.</span>
+<span class="sd">    Mol Cell 2010 May 28;38(4):576-589. PMID: 20513432</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">homer_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">bed_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">outdir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">genome</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">size</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;given&#39;</span><span class="p">,</span>
+                 <span class="n">mask</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                 <span class="n">denovo</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">length</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;8,10,12&#39;</span><span class="p">,</span>
+                 <span class="n">meme_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">meme_collection_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">path_to_motif_annotations</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">annotation_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;v9&#39;</span><span class="p">,</span>
+                 <span class="n">cistrome_annotation</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Direct_annot&#39;</span><span class="p">,</span> <span class="s1">&#39;Motif_similarity_annot&#39;</span><span class="p">,</span> <span class="s1">&#39;Orthology_annot&#39;</span><span class="p">,</span> <span class="s1">&#39;Motif_similarity_and_Orthology_annot&#39;</span><span class="p">],</span>
+                 <span class="n">motif_similarity_fdr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span>
+                 <span class="n">orthologous_identity_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize Homer class. </span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ---------</span>
+<span class="sd">        homer_path: str</span>
+<span class="sd">            Path to Homer bin folder.</span>
+<span class="sd">        bed_path: str</span>
+<span class="sd">            Path to bed file containing region set to be analyzed with Homer.</span>
+<span class="sd">        name: str</span>
+<span class="sd">            Analysis name.</span>
+<span class="sd">        outdir: str</span>
+<span class="sd">            Path to folder to output Homer results.</span>
+<span class="sd">        genome: str</span>
+<span class="sd">            Homer genome label to use.</span>
+<span class="sd">        size: str, optional</span>
+<span class="sd">            Fragment size to use for motif finding. Default: &#39;given&#39; [uses the exact regions you give it]</span>
+<span class="sd">        mask: bool, optional</span>
+<span class="sd">            Whether to mask repeats or not. Default: True</span>
+<span class="sd">        denovo : bool, optional</span>
+<span class="sd">            Whether to infer overrepresented motifs de novo. Default: False</span>
+<span class="sd">        length: str, optional</span>
+<span class="sd">            Motif length values. Default: 8,10,12</span>
+<span class="sd">        meme_path: str, optional</span>
+<span class="sd">            Path to meme bin folder. Meme will be used if given for motif annotation. Default: None</span>
+<span class="sd">        meme_collection_path: str, optional</span>
+<span class="sd">            Path to motif collection (in .cb format) to compare homer motifs with. Default: None</span>
+<span class="sd">        path_to_motif_annotations: str, optional</span>
+<span class="sd">            Path to motif annotations. If not provided, they will be downloaded from </span>
+<span class="sd">            https://resources.aertslab.org based on the specie name provided (only possible for mus_musculus,</span>
+<span class="sd">            homo_sapiens and drosophila_melanogaster). Default: None</span>
+<span class="sd">        annotation_version: str, optional</span>
+<span class="sd">            Motif collection version. Default: v9</span>
+<span class="sd">        cistrome_annotation: List, optional</span>
+<span class="sd">            Annotation to use for forming cistromes. It can be &#39;Direct_annot&#39; (direct evidence that the motif is </span>
+<span class="sd">            linked to that TF), &#39;Motif_similarity_annot&#39; (based on tomtom motif similarity), &#39;Orthology_annot&#39;</span>
+<span class="sd">            (based on orthology with a TF that is directly linked to that motif) or &#39;Motif_similarity_and_Orthology_annot&#39;.</span>
+<span class="sd">            Default: [&#39;Direct_annot&#39;, &#39;Motif_similarity_annot&#39;, &#39;Orthology_annot&#39;, &#39;Motif_similarity_and_Orthology_annot&#39;]</span>
+<span class="sd">        motif_similarity_fdr: float, optional</span>
+<span class="sd">            Minimal motif similarity value to consider two motifs similar. Default: 0.001</span>
+<span class="sd">        orthologous_identity_threshold: float, optional</span>
+<span class="sd">            Minimal orthology value for considering two TFs orthologous. Default: 0.0</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ---------</span>
+<span class="sd">        Heinz S, Benner C, Spann N, Bertolino E et al. Simple Combinations of Lineage-Determining </span>
+<span class="sd">        Transcription Factors Prime cis-Regulatory Elements Required for Macrophage and B Cell Identities.</span>
+<span class="sd">        Mol Cell 2010 May 28;38(4):576-589. PMID: 20513432</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">homer_path</span> <span class="o">=</span> <span class="n">homer_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bed_path</span> <span class="o">=</span> <span class="n">bed_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">genome</span> <span class="o">=</span> <span class="n">genome</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">=</span> <span class="n">outdir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">len</span> <span class="o">=</span> <span class="n">length</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">denovo</span> <span class="o">=</span> <span class="n">denovo</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meme_path</span> <span class="o">=</span> <span class="n">meme_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meme_collection_path</span> <span class="o">=</span> <span class="n">meme_collection_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path_to_motif_annotations</span> <span class="o">=</span> <span class="n">path_to_motif_annotations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">annotation_version</span> <span class="o">=</span> <span class="n">annotation_version</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cistrome_annotation</span> <span class="o">=</span> <span class="n">cistrome_annotation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">motif_similarity_fdr</span> <span class="o">=</span> <span class="n">motif_similarity_fdr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">orthologous_identity_threshold</span> <span class="o">=</span> <span class="n">orthologous_identity_threshold</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">known_motifs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">denovo_motifs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">known_motif_hits</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">denovo_motif_hits</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">known_cistromes</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">denovo_cistromes</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Homer.run"><a class="viewcode-back" href="../../api.html#pycistarget.motif_enrichment_homer.Homer.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run Homer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Create logger</span>
+        <span class="n">level</span>    <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>
+        <span class="nb">format</span>   <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(name)-12s</span><span class="s1"> </span><span class="si">%(levelname)-8s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span>
+        <span class="n">handlers</span> <span class="o">=</span> <span class="p">[</span><span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)]</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span> <span class="o">=</span> <span class="n">level</span><span class="p">,</span> <span class="nb">format</span> <span class="o">=</span> <span class="nb">format</span><span class="p">,</span> <span class="n">handlers</span> <span class="o">=</span> <span class="n">handlers</span><span class="p">)</span>
+        <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;Homer&#39;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">==</span> <span class="kc">True</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">denovo</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">homer_path</span><span class="p">,</span> <span class="s1">&#39;findMotifsGenome.pl&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> -preparsedDir </span><span class="si">%s</span><span class="s1"> -size </span><span class="si">%s</span><span class="s1"> -len </span><span class="si">%s</span><span class="s1"> -mask -nomotif -keepFiles&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">==</span> <span class="kc">True</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">denovo</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">homer_path</span><span class="p">,</span> <span class="s1">&#39;findMotifsGenome.pl&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> -preparsedDir </span><span class="si">%s</span><span class="s1"> -size </span><span class="si">%s</span><span class="s1"> -len </span><span class="si">%s</span><span class="s1"> -mask -keepFiles&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">==</span> <span class="kc">False</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">denovo</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">homer_path</span><span class="p">,</span> <span class="s1">&#39;findMotifsGenome.pl&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> -preparsedDir </span><span class="si">%s</span><span class="s1"> -size </span><span class="si">%s</span><span class="s1"> -len </span><span class="si">%s</span><span class="s1"> -nomotif -keepFiles&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">==</span> <span class="kc">False</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">denovo</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">homer_path</span><span class="p">,</span> <span class="s1">&#39;findMotifsGenome.pl&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> -preparsedDir </span><span class="si">%s</span><span class="s1"> -size </span><span class="si">%s</span><span class="s1"> -len </span><span class="si">%s</span><span class="s1"> -keepFiles&#39;</span>
+            
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bed_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">genome</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">len</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running Homer for &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; with </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;command &#39;</span><span class="si">{}</span><span class="s2">&#39; return with error (code </span><span class="si">{}</span><span class="s2">): </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">cmd</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">returncode</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">output</span><span class="p">))</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">known_motifs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_known</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;No known results found&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">denovo</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">denovo_motifs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_denovo</span><span class="p">()</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;No de novo results found&#39;</span><span class="p">)</span>
+           
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Annotating motifs for &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>     
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_motif_annotation_homer</span><span class="p">()</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Finding motif hits for &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>   
+        <span class="bp">self</span><span class="o">.</span><span class="n">find_motif_hits</span><span class="p">(</span><span class="n">n_cpu</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Getting cistromes for &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_cistromes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cistrome_annotation</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="Homer.load_known"><a class="viewcode-back" href="../../api.html#pycistarget.motif_enrichment_homer.Homer.load_known">[docs]</a>    <span class="k">def</span> <span class="nf">load_known</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load known motif enrichment results from file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">known</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;knownResults.txt&#39;</span><span class="p">),</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">known</span></div>
+    
+<div class="viewcode-block" id="Homer.load_denovo"><a class="viewcode-back" href="../../api.html#pycistarget.motif_enrichment_homer.Homer.load_denovo">[docs]</a>    <span class="k">def</span> <span class="nf">load_denovo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load de novo motif enrichment results from file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">denovo</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_html</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;homerResults.html&#39;</span><span class="p">),</span> <span class="n">header</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,[</span><span class="mi">7</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">]]</span>
+        <span class="n">denovo</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;More&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">denovo</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">denovo</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;homerResults.txt&#39;</span><span class="p">),</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">denovo</span></div>
+    
+<div class="viewcode-block" id="Homer.add_motif_annotation_homer"><a class="viewcode-back" href="../../api.html#pycistarget.motif_enrichment_homer.Homer.add_motif_annotation_homer">[docs]</a>    <span class="k">def</span> <span class="nf">add_motif_annotation_homer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add motif annotations (based on Homer, cisTarget and meme if specified)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Create logger</span>
+        <span class="n">level</span>    <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>
+        <span class="nb">format</span>   <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(name)-12s</span><span class="s1"> </span><span class="si">%(levelname)-8s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span>
+        <span class="n">handlers</span> <span class="o">=</span> <span class="p">[</span><span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)]</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span> <span class="o">=</span> <span class="n">level</span><span class="p">,</span> <span class="nb">format</span> <span class="o">=</span> <span class="nb">format</span><span class="p">,</span> <span class="n">handlers</span> <span class="o">=</span> <span class="n">handlers</span><span class="p">)</span>
+        <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;Homer&#39;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">known_motifs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">known_motifs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Annotating known motifs&#39;</span><span class="p">)</span>
+                <span class="c1"># Prepare cistarget annotation</span>
+                <span class="k">if</span> <span class="s1">&#39;mm&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">genome</span><span class="p">:</span>
+                    <span class="n">species</span> <span class="o">=</span> <span class="s1">&#39;mus_musculus&#39;</span>
+                <span class="k">if</span> <span class="s1">&#39;dm&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">genome</span><span class="p">:</span>
+                    <span class="n">species</span> <span class="o">=</span> <span class="s1">&#39;drosophila_melanogaster&#39;</span>
+                <span class="k">if</span> <span class="s1">&#39;hg&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">genome</span><span class="p">:</span>
+                    <span class="n">species</span> <span class="o">=</span> <span class="s1">&#39;homo_sapiens&#39;</span>
+                <span class="n">ctx_motif_annotation</span> <span class="o">=</span> <span class="n">load_motif_annotations</span><span class="p">(</span><span class="n">species</span><span class="p">,</span>
+                                         <span class="n">version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotation_version</span><span class="p">,</span>
+                                         <span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_to_motif_annotations</span><span class="p">,</span>
+                                         <span class="n">motif_similarity_fdr</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">motif_similarity_fdr</span><span class="p">,</span>
+                                         <span class="n">orthologous_identity_threshold</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">orthologous_identity_threshold</span><span class="p">)</span>
+                <span class="n">motifs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">known_motifs</span>
+                <span class="n">homer_motifs</span> <span class="o">=</span> <span class="s1">&#39;homer__&#39;</span> <span class="o">+</span> <span class="n">motifs</span><span class="p">[</span><span class="s1">&#39;Consensus&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">motifs</span><span class="p">[</span><span class="s1">&#39;Motif Name&#39;</span><span class="p">]]</span>
+
+                <span class="n">motifs</span><span class="p">[</span><span class="s1">&#39;MotifID&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">homer_motifs</span>
+                <span class="n">homer_motifs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">homer_motifs</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ctx_motif_annotation</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
+                <span class="n">ctx_motif_annotation</span> <span class="o">=</span> <span class="n">ctx_motif_annotation</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">homer_motifs</span><span class="p">))]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+                <span class="c1"># Prepare homer annotation</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">homer_motif_annotation</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">homer_path</span><span class="p">),</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;motifs/extras/table.txt&#39;</span><span class="p">)),</span>
+                                                    <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">error_bad_lines</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">11</span><span class="p">]]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="n">homer_motif_annotation</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">homer_path</span><span class="p">),</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;motifs/extras/motifTable.txt&#39;</span><span class="p">)),</span>
+                                                    <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">error_bad_lines</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">11</span><span class="p">]]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+                    <span class="n">homer_motif_annotation</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="s1">&#39;Symbol&#39;</span><span class="p">]</span> 
+                <span class="c1"># If not human, convert by homology</span>
+                <span class="k">if</span> <span class="n">species</span> <span class="o">!=</span> <span class="s1">&#39;homo_sapiens&#39;</span><span class="p">:</span>
+                    <span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;hsapiens_gene_ensembl&#39;</span><span class="p">,</span>
+                                  <span class="n">host</span><span class="o">=</span><span class="s1">&#39;http://www.ensembl.org&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">species</span> <span class="o">==</span> <span class="s1">&#39;mus_musculus&#39;</span><span class="p">:</span>
+                        <span class="n">biomart_query</span> <span class="o">=</span> <span class="s1">&#39;mmusculus_homolog_associated_gene_name&#39;</span>
+                    <span class="k">if</span> <span class="n">species</span> <span class="o">==</span> <span class="s1">&#39;drosophila_melanogaster&#39;</span><span class="p">:</span>
+                        <span class="n">biomart_query</span> <span class="o">=</span> <span class="s1">&#39;dmelanogaster_homolog_associated_gene_name&#39;</span>
+
+                    <span class="n">human2specie</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">attributes</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;external_gene_name&#39;</span><span class="p">,</span> <span class="n">biomart_query</span><span class="p">])</span>
+                    <span class="n">human2specie</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">human2specie</span><span class="p">[</span><span class="s1">&#39;Gene name&#39;</span><span class="p">]</span>
+                    <span class="c1"># Check that the TF has homolog</span>
+                    <span class="n">TF_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">homer_motif_annotation</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">human2specie</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
+                    <span class="n">human2specie</span> <span class="o">=</span> <span class="n">human2specie</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">TF_names</span><span class="p">,:]</span>
+                    <span class="n">human2specie</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Symbol&#39;</span><span class="p">,</span> <span class="s1">&#39;Homolog&#39;</span><span class="p">]</span>
+                    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">homer_motif_annotation</span><span class="p">,</span> <span class="n">human2specie</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;Symbol&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                    <span class="n">homer_motif_annotation</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]]</span>
+                    <span class="n">homer_motif_annotation</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="s1">&#39;Symbol&#39;</span><span class="p">]</span>
+
+                <span class="c1"># We first bind the cisTarget annotation</span>
+                <span class="n">motifs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">motifs</span><span class="p">,</span> <span class="n">ctx_motif_annotation</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;MotifID&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                <span class="c1"># We now bind the Homer annotation</span>
+                <span class="n">homer_motif_annotation</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Motif Name&#39;</span><span class="p">,</span> <span class="s1">&#39;Homer_annot&#39;</span><span class="p">]</span>
+                <span class="n">motifs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">motifs</span><span class="p">,</span> <span class="n">homer_motif_annotation</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;Motif Name&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                <span class="c1"># If Homer_annot is not in Direct_annot we will add it</span>
+                <span class="c1"># Concatenate</span>
+                <span class="n">motifs</span><span class="o">.</span><span class="n">Direct_annot</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">motifs</span><span class="o">.</span><span class="n">Direct_annot</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[</span><span class="n">x</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">motifs</span><span class="o">.</span><span class="n">Homer_annot</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[</span><span class="n">x</span><span class="p">])</span> 
+                                   <span class="k">if</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">motifs</span><span class="o">.</span><span class="n">Homer_annot</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[</span><span class="n">x</span><span class="p">])</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">motifs</span><span class="o">.</span><span class="n">Direct_annot</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[</span><span class="n">x</span><span class="p">]))</span>
+                                   <span class="k">else</span> <span class="n">motifs</span><span class="o">.</span><span class="n">Direct_annot</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">motifs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+                <span class="n">motifs</span><span class="o">.</span><span class="n">Direct_annot</span> <span class="o">=</span> <span class="n">motifs</span><span class="o">.</span><span class="n">Direct_annot</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;nan, &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">motifs</span><span class="o">.</span><span class="n">Direct_annot</span> <span class="o">=</span> <span class="n">motifs</span><span class="o">.</span><span class="n">Direct_annot</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;, nan&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">motifs</span> <span class="o">=</span> <span class="n">motifs</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;MotifID&#39;</span><span class="p">,</span> <span class="s1">&#39;Homer_annot&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">known_motifs</span> <span class="o">=</span> <span class="n">motifs</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">denovo_motifs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">denovo_motifs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">meme_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Parameter meme_path is not provided. Skipping annotation of de novo motifs&#39;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">meme_collection_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Parameter meme_collection_path is not provided. Skipping annotation of de novo motifs&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Find closest match for denovo motifs in cistarget database (as meme)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Comparing de novo motifs with given motif collection with tomtom&#39;</span><span class="p">)</span>
+                    <span class="n">homer_motif_paths</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;homerResults&#39;</span><span class="p">,</span> <span class="s1">&#39;motif*[0-9$].motif&#39;</span><span class="p">))</span>
+                    <span class="n">homer_motif_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">homer_motif_paths</span> <span class="k">if</span> <span class="s1">&#39;similar&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span> 
+                    <span class="n">tomtom_pd</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">tomtom</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meme_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meme_collection_path</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">homer_motif_paths</span><span class="p">])</span>
+                    <span class="n">ctx_motif_annotation</span> <span class="o">=</span> <span class="n">load_motif_annotations</span><span class="p">(</span><span class="n">species</span><span class="p">,</span>
+                                         <span class="n">version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotation_version</span><span class="p">,</span>
+                                         <span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_to_motif_annotations</span><span class="p">,</span>
+                                         <span class="n">motif_similarity_fdr</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">motif_similarity_fdr</span><span class="p">,</span>
+                                         <span class="n">orthologous_identity_threshold</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">orthologous_identity_threshold</span><span class="p">)</span>
+                    <span class="n">homer_motifs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">tomtom_pd</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ctx_motif_annotation</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
+                    <span class="n">ctx_motif_annotation</span> <span class="o">=</span> <span class="n">ctx_motif_annotation</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">homer_motifs</span><span class="p">))]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+                    <span class="n">ctx_motif_annotation</span> <span class="o">=</span> <span class="n">ctx_motif_annotation</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;MotifID&#39;</span><span class="p">:</span> <span class="s1">&#39;Best Match/Tomtom&#39;</span><span class="p">})</span>
+                    <span class="c1"># Bind cisTarget annotation</span>
+                    <span class="n">tomtom_pd</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">tomtom_pd</span><span class="p">,</span> <span class="n">ctx_motif_annotation</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;Best Match/Tomtom&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                    <span class="n">motifs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">denovo_motifs</span><span class="p">,</span> <span class="n">tomtom_pd</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;Best Match/Details&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">denovo_motifs</span> <span class="o">=</span> <span class="n">motifs</span></div>
+
+<div class="viewcode-block" id="Homer.find_motif_hits"><a class="viewcode-back" href="../../api.html#pycistarget.motif_enrichment_homer.Homer.find_motif_hits">[docs]</a>    <span class="k">def</span> <span class="nf">find_motif_hits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_cpu</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find motif hits with `homer2 find`</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ---------</span>
+<span class="sd">        n_cpu: int</span>
+<span class="sd">            Number of cores to use.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Create logger</span>
+        <span class="n">level</span>    <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>
+        <span class="nb">format</span>   <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(name)-12s</span><span class="s1"> </span><span class="si">%(levelname)-8s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span>
+        <span class="n">handlers</span> <span class="o">=</span> <span class="p">[</span><span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)]</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span> <span class="o">=</span> <span class="n">level</span><span class="p">,</span> <span class="nb">format</span> <span class="o">=</span> <span class="nb">format</span><span class="p">,</span> <span class="n">handlers</span> <span class="o">=</span> <span class="n">handlers</span><span class="p">)</span>
+        <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;Homer&#39;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">known_motifs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">known_motifs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Merge all motifs to file</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Retrieving enriched regions per known motif&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;knownResults&#39;</span><span class="p">,</span> <span class="s1">&#39;all_motifs.motif&#39;</span><span class="p">)):</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;knownResults&#39;</span><span class="p">,</span> <span class="s1">&#39;all_motifs.motif&#39;</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;knownResults&#39;</span><span class="p">,</span> <span class="s1">&#39;*.motif&#39;</span><span class="p">)):</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;cat &quot;</span><span class="o">+</span><span class="n">f</span><span class="o">+</span><span class="s2">&quot; &gt;&gt; &quot;</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;knownResults&#39;</span><span class="p">,</span> <span class="s1">&#39;all_motifs.motif&#39;</span><span class="p">))</span>
+                <span class="n">cmd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">homer_path</span><span class="p">,</span> <span class="s1">&#39;homer2 find&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; -s </span><span class="si">%s</span><span class="s1"> -m </span><span class="si">%s</span><span class="s1"> -o </span><span class="si">%s</span><span class="s1"> -p </span><span class="si">%s</span><span class="s1">&#39;</span>
+                <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span> <span class="o">%</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;targetgiven.seq&#39;</span><span class="p">),</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;knownResults&#39;</span><span class="p">,</span> <span class="s1">&#39;all_motifs.motif&#39;</span><span class="p">),</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;knownResults_motif_hits.bed&#39;</span><span class="p">),</span> <span class="n">n_cpu</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;command &#39;</span><span class="si">{}</span><span class="s2">&#39; return with error (code </span><span class="si">{}</span><span class="s2">): </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">cmd</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">returncode</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">output</span><span class="p">))</span>
+
+                <span class="n">known_motif_hits</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;knownResults_motif_hits.bed&#39;</span><span class="p">),</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">known_motif_hits</span> <span class="o">=</span> <span class="n">known_motif_hits</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="mi">3</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">g</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">())))</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">denovo_motifs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">denovo_motifs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Merge all motifs to file</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Retrieving enriched regions per de novo motif&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;homerResults&#39;</span><span class="p">,</span> <span class="s1">&#39;all_motifs.motif&#39;</span><span class="p">)):</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;homerResults&#39;</span><span class="p">,</span> <span class="s1">&#39;all_motifs.motif&#39;</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;homerResults&#39;</span><span class="p">,</span> <span class="s1">&#39;*.motif&#39;</span><span class="p">)):</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;cat &quot;</span><span class="o">+</span><span class="n">f</span><span class="o">+</span><span class="s2">&quot; &gt;&gt; &quot;</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;homerResults&#39;</span><span class="p">,</span> <span class="s1">&#39;all_motifs.motif&#39;</span><span class="p">))</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;sed -i &#39;s/</span><span class="se">\t</span><span class="s2">.*BestGuess:/</span><span class="se">\t</span><span class="s2">/g&#39; &quot;</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;homerResults&#39;</span><span class="p">,</span> <span class="s1">&#39;all_motifs.motif&#39;</span><span class="p">))</span>
+                <span class="n">cmd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">homer_path</span><span class="p">,</span> <span class="s1">&#39;homer2 find&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; -s </span><span class="si">%s</span><span class="s1"> -m </span><span class="si">%s</span><span class="s1"> -o </span><span class="si">%s</span><span class="s1"> -p </span><span class="si">%s</span><span class="s1">&#39;</span>
+                <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span> <span class="o">%</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;targetgiven.seq&#39;</span><span class="p">),</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;homerResults&#39;</span><span class="p">,</span> <span class="s1">&#39;all_motifs.motif&#39;</span><span class="p">),</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;homerResults_motif_hits.bed&#39;</span><span class="p">),</span> <span class="n">n_cpu</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;command &#39;</span><span class="si">{}</span><span class="s2">&#39; return with error (code </span><span class="si">{}</span><span class="s2">): </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">cmd</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">returncode</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">output</span><span class="p">))</span>
+
+                <span class="n">denovo_motif_hits</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;homerResults_motif_hits.bed&#39;</span><span class="p">),</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+                <span class="n">denovo_motif_hits</span>  <span class="o">=</span> <span class="n">denovo_motif_hits</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="mi">3</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">g</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">())))</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">denovo_motif_hits</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">denovo_motif_hits</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">denovo_motif_hits</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()}</span></div>
+                
+<div class="viewcode-block" id="Homer.get_cistromes"><a class="viewcode-back" href="../../api.html#pycistarget.motif_enrichment_homer.Homer.get_cistromes">[docs]</a>    <span class="k">def</span> <span class="nf">get_cistromes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">annotation</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Direct_annot&#39;</span><span class="p">,</span> <span class="s1">&#39;Motif_similarity_annot&#39;</span><span class="p">,</span> <span class="s1">&#39;Orthology_annot&#39;</span><span class="p">,</span> <span class="s1">&#39;Motif_similarity_and_Orthology_annot&#39;</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Format cistromes per TF</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ---------</span>
+<span class="sd">        cistrome_annotation: List, optional</span>
+<span class="sd">            Annotation to use for forming cistromes. It can be &#39;Direct_annot&#39; (direct evidence that the motif is </span>
+<span class="sd">            linked to that TF), &#39;Motif_similarity_annot&#39; (based on tomtom motif similarity), &#39;Orthology_annot&#39;</span>
+<span class="sd">            (based on orthology with a TF that is directly linked to that motif) or &#39;Motif_similarity_and_Orthology_annot&#39;.</span>
+<span class="sd">            Default: [&#39;Direct_annot&#39;, &#39;Motif_similarity_annot&#39;, &#39;Orthology_annot&#39;, &#39;Motif_similarity_and_Orthology_annot&#39;]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">known_motif_hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;Direct_annot&#39;</span> <span class="ow">in</span> <span class="n">annotation</span><span class="p">:</span>
+                <span class="n">tfs</span> <span class="o">=</span> <span class="n">get_TF_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">known_motifs</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Direct_annot&#39;</span><span class="p">])</span>
+                <span class="n">cistrome_dict_direct</span> <span class="o">=</span> <span class="p">{</span><span class="n">tf</span><span class="p">:</span> <span class="n">get_cistrome_per_TF</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">known_motif_hits</span><span class="p">,</span>  <span class="n">get_motifs_per_TF</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">known_motifs</span><span class="p">,</span> <span class="n">tf</span><span class="p">,</span> <span class="n">motif_column</span> <span class="o">=</span> <span class="s1">&#39;Motif Name&#39;</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Direct_annot&#39;</span><span class="p">]))</span> <span class="k">for</span> <span class="n">tf</span> <span class="ow">in</span> <span class="n">tfs</span><span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cistrome_dict_direct</span> <span class="o">=</span> <span class="p">{}</span>
+                
+            <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;Direct_annot&#39;</span> <span class="ow">in</span> <span class="n">annotation</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">annotation</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">tfs</span> <span class="o">=</span> <span class="n">get_TF_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">known_motifs</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="n">annotation</span><span class="p">)</span>
+                <span class="n">cistrome_dict_extended</span> <span class="o">=</span> <span class="p">{</span><span class="n">tf</span><span class="o">+</span><span class="s1">&#39;_extended&#39;</span><span class="p">:</span> <span class="n">get_cistrome_per_TF</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">known_motif_hits</span><span class="p">,</span>  <span class="n">get_motifs_per_TF</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">known_motifs</span><span class="p">,</span> <span class="n">tf</span><span class="p">,</span> <span class="n">motif_column</span> <span class="o">=</span> <span class="s1">&#39;Motif Name&#39;</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="n">annotation</span><span class="p">))</span> <span class="k">for</span> <span class="n">tf</span> <span class="ow">in</span> <span class="n">tfs</span><span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cistrome_dict_extended</span> <span class="o">=</span> <span class="p">{}</span>
+                
+            <span class="n">cistrome_dict</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">cistrome_dict_direct</span><span class="p">,</span> <span class="o">**</span><span class="n">cistrome_dict_extended</span><span class="p">}</span>
+            <span class="n">cistrome_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span> <span class="o">+</span> <span class="s1">&#39; (&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cistrome_dict</span><span class="p">[</span><span class="n">x</span><span class="p">]))</span> <span class="o">+</span> <span class="s1">&#39;r)&#39;</span><span class="p">:</span> <span class="n">cistrome_dict</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">cistrome_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">known_cistromes</span> <span class="o">=</span> <span class="n">cistrome_dict</span> 
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">denovo_motif_hits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;Direct_annot&#39;</span> <span class="ow">in</span> <span class="n">annotation</span><span class="p">:</span>
+                <span class="n">tfs</span> <span class="o">=</span> <span class="n">get_TF_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">denovo_motifs</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Direct_annot&#39;</span><span class="p">])</span>
+                <span class="n">cistrome_dict_direct</span> <span class="o">=</span> <span class="p">{</span><span class="n">tf</span><span class="p">:</span> <span class="n">get_cistrome_per_TF</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">denovo_motif_hits</span><span class="p">,</span>  <span class="n">get_motifs_per_TF</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">denovo_motifs</span><span class="p">,</span> <span class="n">tf</span><span class="p">,</span> <span class="n">motif_column</span> <span class="o">=</span> <span class="s1">&#39;Best Match/Details&#39;</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Direct_annot&#39;</span><span class="p">]))</span> <span class="k">for</span> <span class="n">tf</span> <span class="ow">in</span> <span class="n">tfs</span><span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cistrome_dict_direct</span> <span class="o">=</span> <span class="p">{}</span>
+                
+            <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;Direct_annot&#39;</span> <span class="ow">in</span> <span class="n">annotation</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">annotation</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">tfs</span> <span class="o">=</span> <span class="n">get_TF_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">denovo_motifs</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="n">annotation</span><span class="p">)</span>
+                <span class="n">cistrome_dict_extended</span> <span class="o">=</span> <span class="p">{</span><span class="n">tf</span><span class="o">+</span><span class="s1">&#39;_extended&#39;</span><span class="p">:</span> <span class="n">get_cistrome_per_TF</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">denovo_motif_hits</span><span class="p">,</span>  <span class="n">get_motifs_per_TF</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">denovo_motifs</span><span class="p">,</span> <span class="n">tf</span><span class="p">,</span> <span class="n">motif_column</span> <span class="o">=</span> <span class="s1">&#39;Best Match/Details&#39;</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="n">annotation</span><span class="p">))</span> <span class="k">for</span> <span class="n">tf</span> <span class="ow">in</span> <span class="n">tfs</span><span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cistrome_dict_extended</span> <span class="o">=</span> <span class="p">{}</span>
+                
+            <span class="n">cistrome_dict</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">cistrome_dict_direct</span><span class="p">,</span> <span class="o">**</span><span class="n">cistrome_dict_extended</span><span class="p">}</span>
+            <span class="n">cistrome_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span> <span class="o">+</span> <span class="s1">&#39;_(&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cistrome_dict</span><span class="p">[</span><span class="n">x</span><span class="p">]))</span> <span class="o">+</span> <span class="s1">&#39;r)&#39;</span><span class="p">:</span> <span class="n">cistrome_dict</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">cistrome_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">denovo_cistromes</span> <span class="o">=</span> <span class="n">cistrome_dict</span></div></div>
+ 
+<span class="c1"># Run Homer           </span>
+<div class="viewcode-block" id="run_homer"><a class="viewcode-back" href="../../api.html#pycistarget.motif_enrichment_homer.run_homer">[docs]</a><span class="k">def</span> <span class="nf">run_homer</span><span class="p">(</span><span class="n">homer_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                             <span class="n">region_sets</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pr</span><span class="o">.</span><span class="n">PyRanges</span><span class="p">],</span>
+                             <span class="n">outdir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                             <span class="n">genome</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                             <span class="n">size</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;given&#39;</span><span class="p">,</span>
+                             <span class="n">mask</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                             <span class="n">denovo</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                             <span class="n">length</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;8,10,12&#39;</span><span class="p">,</span>
+                             <span class="n">n_cpu</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+                             <span class="n">meme_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                             <span class="n">meme_collection_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                             <span class="n">path_to_motif_annotations</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                               <span class="n">annotation_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;v9&#39;</span><span class="p">,</span>
+                             <span class="n">cistrome_annotation</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Direct_annot&#39;</span><span class="p">,</span> <span class="s1">&#39;Motif_similarity_annot&#39;</span><span class="p">,</span> <span class="s1">&#39;Orthology_annot&#39;</span><span class="p">,</span> <span class="s1">&#39;Motif_similarity_and_Orthology_annot&#39;</span><span class="p">],</span>
+                             <span class="n">motif_similarity_fdr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span>
+                             <span class="n">orthologous_identity_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+                             <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run Homer </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------</span>
+<span class="sd">    homer_path: str</span>
+<span class="sd">        Path to Homer bin folder.</span>
+<span class="sd">    region_sets: Dict</span>
+<span class="sd">        A dictionary of PyRanges containing region coordinates for the region sets to be analyzed.</span>
+<span class="sd">    outdir: str</span>
+<span class="sd">        Path to folder to output Homer results.</span>
+<span class="sd">    genome: str</span>
+<span class="sd">        Homer genome label to use.</span>
+<span class="sd">    size: str, optional</span>
+<span class="sd">        Fragment size to use for motif finding. Default: &#39;given&#39; [uses the exact regions you give it]</span>
+<span class="sd">    mask: bool, optional</span>
+<span class="sd">        Whether to mask repeats or not. Default: True</span>
+<span class="sd">    denovo : bool, optional</span>
+<span class="sd">        Whether to infer overrepresented motifs de novo. Default: False</span>
+<span class="sd">    length: str, optional</span>
+<span class="sd">        Motif length values. Default: 8,10,12</span>
+<span class="sd">    n_cpu: int</span>
+<span class="sd">        Number of cores to use.</span>
+<span class="sd">    meme_path: str, optional</span>
+<span class="sd">        Path to meme bin folder. Meme will be used if given for motif annotation. Default: None</span>
+<span class="sd">    meme_collection_path: str, optional</span>
+<span class="sd">        Path to motif collection (in .cb format) to compare homer motifs with. Default: None</span>
+<span class="sd">    path_to_motif_annotations: str, optional</span>
+<span class="sd">        Path to motif annotations. If not provided, they will be downloaded from </span>
+<span class="sd">        https://resources.aertslab.org based on the specie name provided (only possible for mus_musculus,</span>
+<span class="sd">        homo_sapiens and drosophila_melanogaster). Default: None</span>
+<span class="sd">    annotation_version: str, optional</span>
+<span class="sd">        Motif collection version. Default: v9</span>
+<span class="sd">    cistrome_annotation: List, optional</span>
+<span class="sd">        Annotation to use for forming cistromes. It can be &#39;Direct_annot&#39; (direct evidence that the motif is </span>
+<span class="sd">        linked to that TF), &#39;Motif_similarity_annot&#39; (based on tomtom motif similarity), &#39;Orthology_annot&#39;</span>
+<span class="sd">        (based on orthology with a TF that is directly linked to that motif) or &#39;Motif_similarity_and_Orthology_annot&#39;.</span>
+<span class="sd">        Default: [&#39;Direct_annot&#39;, &#39;Motif_similarity_annot&#39;, &#39;Orthology_annot&#39;, &#39;Motif_similarity_and_Orthology_annot&#39;]</span>
+<span class="sd">    motif_similarity_fdr: float, optional</span>
+<span class="sd">        Minimal motif similarity value to consider two motifs similar. Default: 0.001</span>
+<span class="sd">    orthologous_identity_threshold: float, optional</span>
+<span class="sd">        Minimal orthology value for considering two TFs orthologous. Default: 0.0</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        Extra parameters to pass to `ray.init()`.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ---------</span>
+<span class="sd">    Heinz S, Benner C, Spann N, Bertolino E et al. Simple Combinations of Lineage-Determining </span>
+<span class="sd">    Transcription Factors Prime cis-Regulatory Elements Required for Macrophage and B Cell Identities.</span>
+<span class="sd">    Mol Cell 2010 May 28;38(4):576-589. PMID: 20513432</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create logger</span>
+    <span class="n">level</span>    <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>
+    <span class="nb">format</span>   <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(name)-12s</span><span class="s1"> </span><span class="si">%(levelname)-8s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span>
+    <span class="n">handlers</span> <span class="o">=</span> <span class="p">[</span><span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)]</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span> <span class="o">=</span> <span class="n">level</span><span class="p">,</span> <span class="nb">format</span> <span class="o">=</span> <span class="nb">format</span><span class="p">,</span> <span class="n">handlers</span> <span class="o">=</span> <span class="n">handlers</span><span class="p">)</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;Homer&#39;</span><span class="p">)</span>
+    <span class="c1"># Save regions in dict to the output dir</span>
+    <span class="n">bed_paths</span><span class="o">=</span><span class="p">{}</span>
+    <span class="n">bed_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;regions_bed&#39;</span><span class="p">)</span>
+    <span class="c1"># Create bed directory</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">outdir</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">outdir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">bed_dir</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">bed_dir</span><span class="p">)</span>
+    <span class="c1"># Create bed files for Homer</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">region_sets</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">bed_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bed_dir</span><span class="p">,</span> <span class="n">key</span><span class="o">+</span><span class="s1">&#39;.bed&#39;</span><span class="p">)</span>
+        <span class="n">region_sets</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">Name</span> <span class="o">=</span>  <span class="n">coord_to_region_names</span><span class="p">(</span><span class="n">region_sets</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+        <span class="n">region_sets</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">to_bed</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">bed_path</span><span class="p">,</span> <span class="n">keep</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;infer&#39;</span><span class="p">,</span> <span class="n">chain</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">bed_paths</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">bed_path</span>
+    <span class="c1"># Run Homer</span>
+    <span class="n">ray</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">num_cpus</span><span class="o">=</span><span class="n">n_cpu</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span> <span class="o">=</span> <span class="n">null</span>
+    <span class="n">homer_dict</span> <span class="o">=</span> <span class="n">ray</span><span class="o">.</span><span class="n">get</span><span class="p">([</span><span class="n">homer_ray</span><span class="o">.</span><span class="n">remote</span><span class="p">(</span><span class="n">homer_path</span><span class="p">,</span>
+                                <span class="n">bed_paths</span><span class="p">[</span><span class="n">name</span><span class="p">],</span>
+                                <span class="n">name</span><span class="p">,</span>
+                                <span class="n">outdir</span> <span class="o">+</span> <span class="n">name</span><span class="p">,</span> 
+                                <span class="n">genome</span><span class="p">,</span>
+                                <span class="n">size</span><span class="p">,</span>
+                                <span class="n">mask</span><span class="p">,</span>
+                                <span class="n">denovo</span><span class="p">,</span>
+                                <span class="n">length</span><span class="p">,</span> 
+                                <span class="n">meme_path</span><span class="p">,</span>
+                                <span class="n">meme_collection_path</span><span class="p">,</span>
+                                <span class="n">path_to_motif_annotations</span><span class="p">,</span>
+                                <span class="n">annotation_version</span><span class="p">,</span>
+                                <span class="n">cistrome_annotation</span><span class="p">,</span>
+                                <span class="n">motif_similarity_fdr</span><span class="p">,</span>
+                                <span class="n">orthologous_identity_threshold</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">bed_paths</span><span class="o">.</span><span class="n">keys</span><span class="p">())])</span>
+    <span class="n">ray</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">__stderr__</span>
+    <span class="n">homer_dict</span><span class="o">=</span><span class="p">{</span><span class="nb">list</span><span class="p">(</span><span class="n">bed_paths</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">i</span><span class="p">]:</span> <span class="n">homer_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">homer_dict</span><span class="p">))}</span>
+    <span class="k">return</span> <span class="n">homer_dict</span></div>
+
+<span class="nd">@ray</span><span class="o">.</span><span class="n">remote</span>
+<span class="k">def</span> <span class="nf">homer_ray</span><span class="p">(</span><span class="n">homer_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+              <span class="n">bed_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+              <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+              <span class="n">outdir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+              <span class="n">genome</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+              <span class="n">size</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;given&#39;</span><span class="p">,</span>
+              <span class="n">mask</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+              <span class="n">denovo</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+              <span class="n">length</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;8,10,12&#39;</span><span class="p">,</span>
+              <span class="n">meme_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="n">meme_collection_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="n">path_to_motif_annotations</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="n">annotation_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;v9&#39;</span><span class="p">,</span>
+              <span class="n">cistrome_annotation</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Direct_annot&#39;</span><span class="p">,</span> <span class="s1">&#39;Motif_similarity_annot&#39;</span><span class="p">,</span> <span class="s1">&#39;Orthology_annot&#39;</span><span class="p">,</span> <span class="s1">&#39;Motif_similarity_and_Orthology_annot&#39;</span><span class="p">],</span>
+              <span class="n">motif_similarity_fdr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span>
+              <span class="n">orthologous_identity_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ray method to run Homer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create logger</span>
+    <span class="n">level</span>    <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>
+    <span class="nb">format</span>   <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(name)-12s</span><span class="s1"> </span><span class="si">%(levelname)-8s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span>
+    <span class="n">handlers</span> <span class="o">=</span> <span class="p">[</span><span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)]</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span> <span class="o">=</span> <span class="n">level</span><span class="p">,</span> <span class="nb">format</span> <span class="o">=</span> <span class="nb">format</span><span class="p">,</span> <span class="n">handlers</span> <span class="o">=</span> <span class="n">handlers</span><span class="p">)</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;Homer&#39;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">outdir</span><span class="p">):</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">outdir</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">outdir</span><span class="p">)</span>
+    
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Running &#39;</span><span class="o">+</span> <span class="n">name</span><span class="p">)</span>
+    <span class="n">Homer_res</span> <span class="o">=</span> <span class="n">Homer</span><span class="p">(</span><span class="n">homer_path</span><span class="p">,</span>
+                <span class="n">bed_path</span><span class="p">,</span>
+                <span class="n">name</span><span class="p">,</span>
+                <span class="n">outdir</span><span class="p">,</span> 
+                <span class="n">genome</span><span class="p">,</span> 
+                <span class="n">size</span><span class="p">,</span> 
+                <span class="n">mask</span><span class="p">,</span> 
+                <span class="n">denovo</span><span class="p">,</span> 
+                <span class="n">length</span><span class="p">,</span> 
+                <span class="n">meme_path</span><span class="p">,</span> 
+                <span class="n">meme_collection_path</span><span class="p">,</span> 
+                <span class="n">path_to_motif_annotations</span><span class="p">,</span>
+                <span class="n">annotation_version</span><span class="p">,</span>
+                <span class="n">cistrome_annotation</span><span class="p">,</span> 
+                <span class="n">motif_similarity_fdr</span><span class="p">)</span>
+    <span class="n">Homer_res</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39; done!&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Homer_res</span>
+            
+<span class="c1"># Utils</span>
+<span class="c1">## Show results</span>
+<div class="viewcode-block" id="homer_results"><a class="viewcode-back" href="../../api.html#pycistarget.motif_enrichment_homer.homer_results">[docs]</a><span class="k">def</span> <span class="nf">homer_results</span><span class="p">(</span><span class="n">homer_dict</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">results</span><span class="o">=</span><span class="s1">&#39;known&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A function to show Homer results in jupyter notebooks.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------</span>
+<span class="sd">    Homer_dict: Dict</span>
+<span class="sd">        A dictionary with one :class:`Homer` object per slot.</span>
+<span class="sd">    name: str</span>
+<span class="sd">        Dictionary key of the analysis result to show. Default: None (All)</span>
+<span class="sd">    results: str</span>
+<span class="sd">        Whether to show know or de novo results. Default: &#39;known&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">results</span> <span class="o">==</span> <span class="s1">&#39;known&#39;</span><span class="p">:</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">homer_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;knownResults.html&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">results</span> <span class="o">==</span> <span class="s1">&#39;denovo&#39;</span><span class="p">:</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">homer_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;homerResults.html&#39;</span><span class="p">)</span>
+    <span class="n">inplace_change</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;width=&quot;505&quot; height=&quot;50&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;width=&quot;1010&quot; height=&quot;200&quot;&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">HTML</span><span class="p">(</span><span class="n">file</span><span class="p">)</span></div>
+                
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Carmen Bravo Gonzalez Blas, Seppe de Winter.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

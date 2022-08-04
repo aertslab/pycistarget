@@ -1,0 +1,2683 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PycisTarget on human cerebellum DARs and topics &mdash; pycistarget 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API" href="api.html" />
+    <link rel="prev" title="Using pycisTarget within the SCENIC+ workflow" href="pycistarget_scenic%2B_wrapper.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> pycistarget
+          </a>
+              <div class="version">
+                1.0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">pycisTarget methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="motif_table.html">SCENIC+ motif collection</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="tutorials.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pycistarget_chip-RTD.html">Motif enrichment with pycisTarget using mouse liver ChIP-seq regions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycistarget_scenic%2B_wrapper.html">Using pycisTarget within the SCENIC+ workflow</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">PycisTarget on human cerebellum DARs and topics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#1.-Deriving-cistromes-using-topics-with-cisTarget">1. Deriving cistromes using topics with cisTarget</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#A.-Loading-your-region-sets">A. Loading your region sets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#B.-Create-cisTarget-database">B. Create cisTarget database</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#2.-Deriving-cistromes-using-DARs">2. Deriving cistromes using DARs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1">A. Loading your region sets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#B.-cisTarget">B. cisTarget</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pycistarget</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="tutorials.html">Tutorials</a> &raquo;</li>
+      <li>PycisTarget on human cerebellum DARs and topics</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/pycistarget_scenic+_human_brain.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt *,
+div.nbinput.container div.input_area pre,
+div.nboutput.container div.output_area pre,
+div.nbinput.container div.input_area .highlight,
+div.nboutput.container div.output_area .highlight {
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+div.nbinput.container > div[class*=highlight],
+div.nboutput.container > div[class*=highlight] {
+    margin: 0;
+}
+
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt * {
+    background: none;
+}
+
+div.nboutput.container div.output_area .highlight,
+div.nboutput.container div.output_area pre {
+    background: unset;
+}
+
+div.nboutput.container div.output_area div.highlight {
+    color: unset;  /* override Pygments text color */
+}
+
+/* avoid gaps between output lines */
+div.nboutput.container div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput.container,
+div.nboutput.container {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput.container,
+    div.nboutput.container {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput.container {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast.container {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
+}
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
+@media (max-width: 540px) {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
+        width: unset;
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput.container div.prompt.empty {
+        padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    /*background: #f5f5f5;*/
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput.container div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput.container div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 5px;
+    margin: 0;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt .copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+.jp-RenderedHTMLCommon table,
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+.jp-RenderedHTMLCommon thead,
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+.jp-RenderedHTMLCommon tr,
+.jp-RenderedHTMLCommon th,
+.jp-RenderedHTMLCommon td,
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+.jp-RenderedHTMLCommon th,
+div.rendered_html th {
+  font-weight: bold;
+}
+.jp-RenderedHTMLCommon tbody tr:nth-child(odd),
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+.jp-RenderedHTMLCommon tbody tr:hover,
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="PycisTarget-on-human-cerebellum-DARs-and-topics">
+<h1>PycisTarget on human cerebellum DARs and topics<a class="headerlink" href="#PycisTarget-on-human-cerebellum-DARs-and-topics" title="Permalink to this heading"></a></h1>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="kn">import</span> <span class="nn">pycistarget</span>
+<span class="n">pycistarget</span><span class="o">.</span><span class="n">__version__</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&#39;1.0.1.dev29+g95fd9fb&#39;
+</pre></div></div>
+</div>
+<p><strong>pycisTarget</strong> is a python module that allows to perform motif enrichment analysis and derive genome-wide cistromes implementing <strong>cisTarget</strong> (Herrmann et al., 2012; Imrichova et al., 2015). In addition, <em>de novo</em> cistromes can also be derived (via <strong>Homer</strong> (Heinz et al., 2010)) and pycisTarget also includes a novel approach to derive differentially enriched motifs and cistromes between one or more groups of regions, named <strong>Differentially Enriched Motifs (DEM)</strong>.</p>
+<p>In this tutorial we will show how to obtain cistromes from topics and DARs using cisTarget. For more information on how to use DEM and Homer, take a look to the full tutorial, and within the SCENIC+ workflow, take a look to the wrapper function.</p>
+<div class="section" id="1.-Deriving-cistromes-using-topics-with-cisTarget">
+<h2>1. Deriving cistromes using topics with cisTarget<a class="headerlink" href="#1.-Deriving-cistromes-using-topics-with-cisTarget" title="Permalink to this heading"></a></h2>
+<div class="section" id="A.-Loading-your-region-sets">
+<h3>A. Loading your region sets<a class="headerlink" href="#A.-Loading-your-region-sets" title="Permalink to this heading"></a></h3>
+<p><strong>pycisTarget</strong> uses as input a dictionary containing the region set name as label and regions (as pyranges) as values. We will start by loading the binarized topics (see pycisTopic - Single sample workfllow tutorial).</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load region binarized topics</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="n">infile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/staging/leuven/stg_00002/lcb/cbravo/Multiomics_pipeline/analysis/10x_multiome_brain/output/atac/pycistopic/topic_binarization/binarized_topic_region.pkl&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+<span class="n">binarized_topic_region</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span>
+<span class="n">infile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pyranges</span> <span class="k">as</span> <span class="nn">pr</span>
+<span class="kn">from</span> <span class="nn">pycistarget.utils</span> <span class="k">import</span> <span class="o">*</span>
+<span class="n">region_sets</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">pr</span><span class="o">.</span><span class="n">PyRanges</span><span class="p">(</span><span class="n">region_names_to_coordinates</span><span class="p">(</span><span class="n">binarized_topic_region</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">binarized_topic_region</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="B.-Create-cisTarget-database">
+<h3>B. Create cisTarget database<a class="headerlink" href="#B.-Create-cisTarget-database" title="Permalink to this heading"></a></h3>
+<p>To run <strong>cisTarget</strong> you will need to provide a <strong>ranking database</strong> (that is, a feather file with a dataframe with motifs as rows, genomic regions as columns and their ranked position [based on cis-regulatory module (CRM) score (Frith et al., 2003)] as values). We provide those databases for human (hg38, hg19), mouse (mm10, mm9) and fly (dm3, dm6) at <a class="reference external" href="https://resources.aertslab.org/cistarget/">https://resources.aertslab.org/cistarget/</a>.</p>
+<p>In addition, <strong>if you want to use other regions or genomes to build your databases</strong>, we provide a step-by-step tutorial and scripts at <a class="reference external" href="https://github.com/aertslab/create_cisTarget_databases">https://github.com/aertslab/create_cisTarget_databases</a>. Below you can find the basic steps to do so:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>%%bash
+<span class="c1">#### Variables</span>
+<span class="nv">genome_fasta</span> <span class="o">=</span> <span class="s1">&#39;/staging/leuven/stg_00002/lcb/resources/human/hg38/hg38.fa&#39;</span>
+<span class="nv">region_bed</span> <span class="o">=</span> <span class="s1">&#39;/staging/leuven/stg_00002/lcb/cbravo/Multiomics_pipeline/analysis/10x_multiome_brain/output/atac/pycistopic/consensus_peak_calling/consensus_regions.bed&#39;</span>
+<span class="nv">region_fasta</span> <span class="o">=</span> <span class="s1">&#39;/staging/leuven/stg_00002/lcb/cbravo/Multiomics_pipeline/analysis/10x_multiome_brain/output/atac/pycistopic/consensus_peak_calling/consensus_regions.fa&#39;</span>
+<span class="nv">database_suffix</span> <span class="o">=</span> <span class="s1">&#39;/staging/leuven/stg_00002/lcb/cbravo/Multiomics_pipeline/analysis/10x_multiome_brain/output/atac/pycistarget/dbs/human_brain&#39;</span>
+<span class="nv">path_to_motif_collection</span> <span class="o">=</span> <span class="s1">&#39;PATH_TO_MOTIF_COLLECTION_IN_CLUSTER_BUSTER_FORMAT&#39;</span>
+<span class="nv">motif_list</span> <span class="o">=</span> <span class="s1">&#39;PATH_TO_FILE_WITH_MOTIFS_TO_SCORE&#39;</span>
+<span class="nv">n_cpu</span> <span class="o">=</span> <span class="s1">&#39;20&#39;</span>
+<span class="c1">#### Get fasta sequences</span>
+module load BEDTools <span class="c1"># In our system, load BEDTools</span>
+bedtools getfasta -fi <span class="si">${</span><span class="nv">genome_fasta</span><span class="si">}</span> -bed <span class="si">${</span><span class="nv">region_bed</span><span class="si">}</span> &gt; <span class="si">${</span><span class="nv">region_fasta</span><span class="si">}</span>
+<span class="c1">#### Activate environment</span>
+my_conda_initialize <span class="c1"># In our system, initialize conda</span>
+conda activate /staging/leuven/stg_00002/lcb/ghuls/software/miniconda3/envs/create_cistarget_databases
+<span class="c1">#### Set ${create_cistarget_databases_dir} to https://github.com/aertslab/create_cisTarget_databases</span>
+<span class="nv">create_cistarget_databases_dir</span><span class="o">=</span><span class="s1">&#39;/staging/leuven/stg_00002/lcb/ghuls/software/create_cisTarget_databases&#39;</span>
+<span class="c1">#### Score the motifs</span>
+<span class="si">${</span><span class="nv">create_cistarget_databases_dir</span><span class="si">}</span>/create_cistarget_motif_databases.py <span class="se">\</span>
+-f <span class="si">${</span><span class="nv">region_fasta</span><span class="si">}</span> <span class="se">\</span>
+-M <span class="si">${</span><span class="nv">path_to_motif_collection</span><span class="si">}</span> <span class="se">\</span>
+-m <span class="si">${</span><span class="nv">motif_list</span><span class="si">}</span> <span class="se">\</span>
+-o <span class="si">${</span><span class="nv">database_suffix</span><span class="si">}</span> <span class="se">\</span>
+-t <span class="si">${</span><span class="nv">n_cpu</span><span class="si">}</span> <span class="se">\</span>
+-l <span class="se">\</span>
+-s <span class="m">555</span>
+<span class="k">done</span>
+<span class="c1">#### Create rankings</span>
+<span class="nv">motifs_vs_regions_scores_feather</span> <span class="o">=</span> <span class="s1">&#39;PATH_TO_MOTIFS_VS_REGIONS_SCORES_DATABASE&#39;</span>
+<span class="si">${</span><span class="nv">create_cistarget_databases_dir</span><span class="si">}</span>/convert_motifs_or_tracks_vs_regions_or_genes_scores_to_rankings_cistarget_dbs.py -i <span class="si">${</span><span class="nv">database_suffix</span><span class="si">}</span>.motifs_vs_regions.scores.feather -s <span class="m">555</span>
+</pre></div>
+</div>
+</div>
+<p>For running cisTarget there are some relevant parameters:</p>
+<ul class="simple">
+<li><p><strong>ctx_db</strong>: Path to the cisTarget database to use, or a preloaded cisTargetDatabase object (using the same region sets to be analyzed)</p></li>
+<li><p><strong>region_sets</strong>: The input sets of regions</p></li>
+<li><p><strong>specie</strong>: Specie to which region coordinates and database belong to. To annotate motifs to TFs using cisTarget annotations, possible values are ‘mus_musculus’, ‘homo_sapiens’ or ‘drosophila_melanogaster’. If any other value, motifs will not be annotated to a TF unless providing a customized annotation.</p></li>
+<li><p><strong>fraction_overlap</strong>: Minimum overlap fraction (in any direction) to map input regions to regions in the database. Default: 0.4.</p></li>
+<li><p><strong>auc_threshold</strong>: Threshold to calculate the AUC. For human and mouse we recommend to set it to 0.005 (default), for fly to 0.01.</p></li>
+<li><p><strong>nes_threshold</strong>: NES threshold to calculate the motif significant. Default: 3.0</p></li>
+<li><p><strong>rank_threshold</strong>: Percentage of regions to use as maximum rank to take into account for the region enrichment recovery curve. By default, we use 5% of the total number of regions in the database.</p></li>
+<li><p><strong>annotation</strong>: Annotation to use to form the cistromes. Here we will only use the direct annotation as example. Default: [‘Direct_annot’, ‘Motif_similarity_annot’, ‘Orthology_annot’, ‘Motif_similarity_and_Orthology_annot’]</p></li>
+<li><p><strong>n_cpu</strong>: Number of cpus to use during calculations.</p></li>
+</ul>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load cistarget functions</span>
+<span class="kn">from</span> <span class="nn">pycistarget.motif_enrichment_cistarget</span> <span class="k">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Preload db, you can also just provide the path to the db. Preloading the database is useful if you want to test different parameters.</span>
+<span class="c1"># This will take some time depending on the size of your database</span>
+<span class="n">db</span> <span class="o">=</span> <span class="s1">&#39;/staging/leuven/stg_00002/lcb/cbravo/Multiomics_pipeline/analysis/10x_multiome_brain/output/atac/pycistarget/dbs/human_brain.regions_vs_motifs.rankings.feather&#39;</span>
+<span class="n">ctx_db</span> <span class="o">=</span> <span class="n">cisTargetDatabase</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">region_sets</span><span class="p">)</span>
+<span class="c1"># Remove dbcorr motifs (only if using cisTarget v9)</span>
+<span class="n">ctx_db</span><span class="o">.</span><span class="n">db_rankings</span> <span class="o">=</span> <span class="n">ctx_db</span><span class="o">.</span><span class="n">db_rankings</span><span class="p">[</span><span class="o">~</span><span class="n">ctx_db</span><span class="o">.</span><span class="n">db_rankings</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s2">&quot;dbcorr&quot;</span><span class="p">)]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2021-08-12 12:27:28,368 cisTarget    INFO     Reading cisTarget database
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run</span>
+<span class="n">cistarget_dict</span> <span class="o">=</span> <span class="n">run_cistarget</span><span class="p">(</span><span class="n">ctx_db</span> <span class="o">=</span> <span class="n">ctx_db</span><span class="p">,</span>
+                               <span class="n">region_sets</span> <span class="o">=</span> <span class="n">region_sets</span><span class="p">,</span>
+                               <span class="n">specie</span> <span class="o">=</span> <span class="s1">&#39;homo_sapiens&#39;</span><span class="p">,</span>
+                               <span class="n">annotation_version</span> <span class="o">=</span> <span class="s1">&#39;v9nr_clust&#39;</span><span class="p">,</span> <span class="c1">#Use v10nr_clust for the latest motif collection</span>
+                               <span class="n">auc_threshold</span> <span class="o">=</span> <span class="mf">0.005</span><span class="p">,</span>
+                               <span class="n">nes_threshold</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span>
+                               <span class="n">rank_threshold</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+                               <span class="n">annotation</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Direct_annot&#39;</span><span class="p">,</span> <span class="s1">&#39;Orthology_annot&#39;</span><span class="p">],</span>
+                               <span class="n">n_cpu</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+                               <span class="n">_temp_dir</span><span class="o">=</span><span class="s1">&#39;/scratch/leuven/313/vsc31305/ray_spill&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2021-08-12 12:40:36,427 cisTarget    INFO     Running cisTarget for Topic1 which has 12394 regions
+2021-08-12 12:40:45,803 cisTarget    INFO     Annotating motifs for Topic1
+2021-08-12 12:40:47,593 cisTarget    INFO     Getting cistromes for Topic1
+2021-08-12 12:40:47,807 cisTarget    INFO     Running cisTarget for Topic2 which has 8915 regions
+2021-08-12 12:40:53,352 cisTarget    INFO     Annotating motifs for Topic2
+2021-08-12 12:40:54,780 cisTarget    INFO     Getting cistromes for Topic2
+2021-08-12 12:40:54,970 cisTarget    INFO     Running cisTarget for Topic3 which has 3593 regions
+2021-08-12 12:40:59,393 cisTarget    INFO     Annotating motifs for Topic3
+2021-08-12 12:41:00,740 cisTarget    INFO     Getting cistromes for Topic3
+2021-08-12 12:41:00,926 cisTarget    INFO     Running cisTarget for Topic4 which has 6046 regions
+2021-08-12 12:41:05,573 cisTarget    INFO     Annotating motifs for Topic4
+2021-08-12 12:41:06,857 cisTarget    INFO     Getting cistromes for Topic4
+2021-08-12 12:41:06,941 cisTarget    INFO     Running cisTarget for Topic5 which has 3182 regions
+2021-08-12 12:41:11,564 cisTarget    INFO     Annotating motifs for Topic5
+2021-08-12 12:41:12,936 cisTarget    INFO     Getting cistromes for Topic5
+2021-08-12 12:41:13,105 cisTarget    INFO     Running cisTarget for Topic6 which has 11592 regions
+2021-08-12 12:41:19,003 cisTarget    INFO     Annotating motifs for Topic6
+2021-08-12 12:41:20,391 cisTarget    INFO     Getting cistromes for Topic6
+2021-08-12 12:41:20,547 cisTarget    INFO     Running cisTarget for Topic7 which has 1457 regions
+2021-08-12 12:41:25,347 cisTarget    INFO     Annotating motifs for Topic7
+2021-08-12 12:41:26,768 cisTarget    INFO     Getting cistromes for Topic7
+2021-08-12 12:41:27,124 cisTarget    INFO     Running cisTarget for Topic8 which has 4527 regions
+2021-08-12 12:41:31,627 cisTarget    INFO     Annotating motifs for Topic8
+2021-08-12 12:41:32,912 cisTarget    INFO     Getting cistromes for Topic8
+2021-08-12 12:41:33,047 cisTarget    INFO     Running cisTarget for Topic9 which has 4963 regions
+2021-08-12 12:41:37,546 cisTarget    INFO     Annotating motifs for Topic9
+2021-08-12 12:41:38,814 cisTarget    INFO     Getting cistromes for Topic9
+2021-08-12 12:41:38,916 cisTarget    INFO     Running cisTarget for Topic10 which has 1357 regions
+2021-08-12 12:41:43,849 cisTarget    INFO     Annotating motifs for Topic10
+2021-08-12 12:41:45,246 cisTarget    INFO     Getting cistromes for Topic10
+2021-08-12 12:41:45,635 cisTarget    INFO     Running cisTarget for Topic11 which has 1462 regions
+2021-08-12 12:41:50,439 cisTarget    INFO     Annotating motifs for Topic11
+2021-08-12 12:41:51,944 cisTarget    INFO     Getting cistromes for Topic11
+2021-08-12 12:41:52,338 cisTarget    INFO     Running cisTarget for Topic12 which has 1612 regions
+2021-08-12 12:41:57,153 cisTarget    INFO     Annotating motifs for Topic12
+2021-08-12 12:41:58,675 cisTarget    INFO     Getting cistromes for Topic12
+2021-08-12 12:41:59,004 cisTarget    INFO     Running cisTarget for Topic13 which has 3148 regions
+2021-08-12 12:42:04,100 cisTarget    INFO     Annotating motifs for Topic13
+2021-08-12 12:42:05,578 cisTarget    INFO     Getting cistromes for Topic13
+2021-08-12 12:42:06,046 cisTarget    INFO     Running cisTarget for Topic14 which has 3043 regions
+2021-08-12 12:42:10,967 cisTarget    INFO     Annotating motifs for Topic14
+2021-08-12 12:42:12,388 cisTarget    INFO     Getting cistromes for Topic14
+2021-08-12 12:42:12,673 cisTarget    INFO     Running cisTarget for Topic15 which has 11747 regions
+2021-08-12 12:42:18,721 cisTarget    INFO     Annotating motifs for Topic15
+2021-08-12 12:42:20,233 cisTarget    INFO     Getting cistromes for Topic15
+2021-08-12 12:42:20,392 cisTarget    INFO     Running cisTarget for Topic16 which has 8674 regions
+2021-08-12 12:42:26,128 cisTarget    INFO     Annotating motifs for Topic16
+2021-08-12 12:42:27,664 cisTarget    INFO     Getting cistromes for Topic16
+2021-08-12 12:42:27,850 cisTarget    INFO     Running cisTarget for Topic17 which has 4047 regions
+2021-08-12 12:42:32,849 cisTarget    INFO     Annotating motifs for Topic17
+2021-08-12 12:42:34,354 cisTarget    INFO     Getting cistromes for Topic17
+2021-08-12 12:42:34,693 cisTarget    INFO     Running cisTarget for Topic18 which has 6652 regions
+2021-08-12 12:42:40,401 cisTarget    INFO     Annotating motifs for Topic18
+2021-08-12 12:42:42,006 cisTarget    INFO     Getting cistromes for Topic18
+2021-08-12 12:42:42,242 cisTarget    INFO     Running cisTarget for Topic19 which has 7816 regions
+2021-08-12 12:42:47,268 cisTarget    INFO     Annotating motifs for Topic19
+2021-08-12 12:42:48,585 cisTarget    INFO     Getting cistromes for Topic19
+2021-08-12 12:42:48,702 cisTarget    INFO     Running cisTarget for Topic20 which has 12459 regions
+2021-08-12 12:42:54,914 cisTarget    INFO     Annotating motifs for Topic20
+2021-08-12 12:42:56,420 cisTarget    INFO     Getting cistromes for Topic20
+2021-08-12 12:42:56,588 cisTarget    INFO     Running cisTarget for Topic21 which has 13030 regions
+2021-08-12 12:43:03,214 cisTarget    INFO     Annotating motifs for Topic21
+2021-08-12 12:43:04,905 cisTarget    INFO     Getting cistromes for Topic21
+2021-08-12 12:43:05,172 cisTarget    INFO     Running cisTarget for Topic22 which has 7150 regions
+2021-08-12 12:43:11,397 cisTarget    INFO     Annotating motifs for Topic22
+2021-08-12 12:43:12,934 cisTarget    INFO     Getting cistromes for Topic22
+2021-08-12 12:43:13,376 cisTarget    INFO     Running cisTarget for Topic23 which has 14698 regions
+2021-08-12 12:43:20,701 cisTarget    INFO     Annotating motifs for Topic23
+2021-08-12 12:43:22,554 cisTarget    INFO     Getting cistromes for Topic23
+2021-08-12 12:43:22,805 cisTarget    INFO     Running cisTarget for Topic24 which has 3912 regions
+2021-08-12 12:43:27,950 cisTarget    INFO     Annotating motifs for Topic24
+2021-08-12 12:43:29,417 cisTarget    INFO     Getting cistromes for Topic24
+2021-08-12 12:43:29,845 cisTarget    INFO     Running cisTarget for Topic25 which has 3792 regions
+2021-08-12 12:43:35,227 cisTarget    INFO     Annotating motifs for Topic25
+2021-08-12 12:43:36,835 cisTarget    INFO     Getting cistromes for Topic25
+2021-08-12 12:43:37,351 cisTarget    INFO     Running cisTarget for Topic26 which has 4118 regions
+2021-08-12 12:43:42,794 cisTarget    INFO     Annotating motifs for Topic26
+2021-08-12 12:43:44,507 cisTarget    INFO     Getting cistromes for Topic26
+2021-08-12 12:43:45,032 cisTarget    INFO     Running cisTarget for Topic27 which has 3232 regions
+2021-08-12 12:43:50,509 cisTarget    INFO     Annotating motifs for Topic27
+2021-08-12 12:43:52,513 cisTarget    INFO     Getting cistromes for Topic27
+2021-08-12 12:43:53,033 cisTarget    INFO     Running cisTarget for Topic28 which has 7936 regions
+2021-08-12 12:43:59,641 cisTarget    INFO     Annotating motifs for Topic28
+2021-08-12 12:44:01,629 cisTarget    INFO     Getting cistromes for Topic28
+2021-08-12 12:44:02,034 cisTarget    INFO     Running cisTarget for Topic29 which has 11535 regions
+2021-08-12 12:44:09,884 cisTarget    INFO     Annotating motifs for Topic29
+2021-08-12 12:44:12,487 cisTarget    INFO     Getting cistromes for Topic29
+2021-08-12 12:44:12,985 cisTarget    INFO     Running cisTarget for Topic30 which has 7097 regions
+2021-08-12 12:44:19,152 cisTarget    INFO     Annotating motifs for Topic30
+2021-08-12 12:44:20,935 cisTarget    INFO     Getting cistromes for Topic30
+2021-08-12 12:44:21,406 cisTarget    INFO     Running cisTarget for Topic31 which has 2627 regions
+2021-08-12 12:44:26,554 cisTarget    INFO     Annotating motifs for Topic31
+2021-08-12 12:44:28,399 cisTarget    INFO     Getting cistromes for Topic31
+2021-08-12 12:44:28,824 cisTarget    INFO     Running cisTarget for Topic32 which has 6702 regions
+2021-08-12 12:44:34,276 cisTarget    INFO     Annotating motifs for Topic32
+2021-08-12 12:44:35,654 cisTarget    INFO     Getting cistromes for Topic32
+2021-08-12 12:44:35,747 cisTarget    INFO     Running cisTarget for Topic33 which has 5992 regions
+2021-08-12 12:44:40,865 cisTarget    INFO     Annotating motifs for Topic33
+2021-08-12 12:44:42,261 cisTarget    INFO     Getting cistromes for Topic33
+2021-08-12 12:44:42,384 cisTarget    INFO     Running cisTarget for Topic34 which has 10585 regions
+2021-08-12 12:44:48,746 cisTarget    INFO     Annotating motifs for Topic34
+2021-08-12 12:44:50,320 cisTarget    INFO     Getting cistromes for Topic34
+2021-08-12 12:44:50,614 cisTarget    INFO     Running cisTarget for Topic35 which has 1856 regions
+2021-08-12 12:44:55,440 cisTarget    INFO     Annotating motifs for Topic35
+2021-08-12 12:44:57,035 cisTarget    INFO     Getting cistromes for Topic35
+2021-08-12 12:44:57,476 cisTarget    INFO     Running cisTarget for Topic36 which has 7101 regions
+2021-08-12 12:45:03,528 cisTarget    INFO     Annotating motifs for Topic36
+2021-08-12 12:45:05,193 cisTarget    INFO     Getting cistromes for Topic36
+2021-08-12 12:45:05,533 cisTarget    INFO     Running cisTarget for Topic37 which has 4040 regions
+2021-08-12 12:45:10,509 cisTarget    INFO     Annotating motifs for Topic37
+2021-08-12 12:45:11,830 cisTarget    INFO     Getting cistromes for Topic37
+2021-08-12 12:45:12,168 cisTarget    INFO     Running cisTarget for Topic38 which has 13567 regions
+2021-08-12 12:45:19,228 cisTarget    INFO     Annotating motifs for Topic38
+2021-08-12 12:45:20,942 cisTarget    INFO     Getting cistromes for Topic38
+2021-08-12 12:45:21,170 cisTarget    INFO     Running cisTarget for Topic39 which has 3935 regions
+2021-08-12 12:45:26,459 cisTarget    INFO     Annotating motifs for Topic39
+2021-08-12 12:45:28,126 cisTarget    INFO     Getting cistromes for Topic39
+2021-08-12 12:45:28,426 cisTarget    INFO     Running cisTarget for Topic40 which has 10102 regions
+2021-08-12 12:45:35,528 cisTarget    INFO     Annotating motifs for Topic40
+2021-08-12 12:45:37,568 cisTarget    INFO     Getting cistromes for Topic40
+2021-08-12 12:45:38,005 cisTarget    INFO     Done!
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Save</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/staging/leuven/stg_00002/lcb/cbravo/Multiomics_pipeline/analysis/10x_multiome_brain/output/atac/pycistarget/topics/topic_cistarget_dict.pkl&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+  <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">cistarget_dict</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>We can load the results for exploration.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="n">infile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/staging/leuven/stg_00002/lcb/cbravo/Multiomics_pipeline/analysis/10x_multiome_brain/output/atac/pycistarget/topics/topic_cistarget_dict.pkl&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+<span class="n">cistarget_dict</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span>
+<span class="n">infile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<p>To visualize motif enrichment results, we can use the <code class="docutils literal notranslate"><span class="pre">cisTarget_results()</span></code> function:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[57]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cistarget_results</span><span class="p">(</span><span class="n">cistarget_dict</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Topic21&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[57]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th style="min-width: 80px;"></th>
+      <th style="min-width: 80px;">Logo</th>
+      <th style="min-width: 80px;">Region_set</th>
+      <th style="min-width: 80px;">Direct_annot</th>
+      <th style="min-width: 80px;">Orthology_annot</th>
+      <th style="min-width: 80px;">NES</th>
+      <th style="min-width: 80px;">AUC</th>
+      <th style="min-width: 80px;">Rank_at_max</th>
+      <th style="min-width: 80px;">Motif_hits</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>cisbp__M0416</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M0416.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>EGR2</td>
+      <td>7.788373</td>
+      <td>0.006863</td>
+      <td>21780.0</td>
+      <td>1177</td>
+    </tr>
+    <tr>
+      <th>jaspar__MA0491.1</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/jaspar__MA0491.1.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>JUND</td>
+      <td>NaN</td>
+      <td>7.322481</td>
+      <td>0.006596</td>
+      <td>21692.0</td>
+      <td>1247</td>
+    </tr>
+    <tr>
+      <th>cisbp__M4526</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M4526.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>SMARCC1</td>
+      <td>NaN</td>
+      <td>7.137253</td>
+      <td>0.006489</td>
+      <td>21786.0</td>
+      <td>1174</td>
+    </tr>
+    <tr>
+      <th>taipale_cyt_meth__JUN_NATGACTCATN_FL_meth</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/taipale_cyt_meth__JUN_NATGACTCATN_FL_meth.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>JUN</td>
+      <td>NaN</td>
+      <td>6.721687</td>
+      <td>0.006251</td>
+      <td>21787.0</td>
+      <td>1211</td>
+    </tr>
+    <tr>
+      <th>cisbp__M6230</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M6230.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>FOSL2</td>
+      <td>NaN</td>
+      <td>6.647670</td>
+      <td>0.006208</td>
+      <td>21672.0</td>
+      <td>1193</td>
+    </tr>
+    <tr>
+      <th>hocomoco__FOSL2_MOUSE.H11MO.0.A</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/hocomoco__FOSL2_MOUSE.H11MO.0.A.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>FOSL2</td>
+      <td>6.621156</td>
+      <td>0.006193</td>
+      <td>21743.0</td>
+      <td>1197</td>
+    </tr>
+    <tr>
+      <th>taipale_tf_pairs__BACH1_ATGACTCAT_HT</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/taipale_tf_pairs__BACH1_ATGACTCAT_HT.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>BACH1</td>
+      <td>NaN</td>
+      <td>6.607470</td>
+      <td>0.006185</td>
+      <td>21790.0</td>
+      <td>1224</td>
+    </tr>
+    <tr>
+      <th>metacluster_35.5</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_35.5.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>MEF2A, SMARCC1, JUNB, FOSB, FOS, ATF3, SMARCA4, MEF2C, FOSL2, JUN, STAT3, GATA2, MYC, FOSL1, BACH2, JUND, NFE2, RCOR1, BACH1, JDP2</td>
+      <td>FOSL1, JUNB, JUND, FOSB, FOS, FOSL2, JUN, JDP2, BATF</td>
+      <td>6.499758</td>
+      <td>0.006124</td>
+      <td>21776.0</td>
+      <td>1279</td>
+    </tr>
+    <tr>
+      <th>jaspar__MA0303.1</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/jaspar__MA0303.1.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>6.415368</td>
+      <td>0.006075</td>
+      <td>21783.0</td>
+      <td>1209</td>
+    </tr>
+    <tr>
+      <th>flyfactorsurvey__kay_Jra_SANGER_5_FBgn0001291</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/flyfactorsurvey__kay_Jra_SANGER_5_FBgn0001291.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>JUN, JUND, JUNB</td>
+      <td>6.281511</td>
+      <td>0.005998</td>
+      <td>21764.0</td>
+      <td>1213</td>
+    </tr>
+    <tr>
+      <th>transfac_pro__M01267</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/transfac_pro__M01267.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>FOSL1</td>
+      <td>NaN</td>
+      <td>6.253953</td>
+      <td>0.005982</td>
+      <td>21790.0</td>
+      <td>1127</td>
+    </tr>
+    <tr>
+      <th>flyfactorsurvey__klu_SOLEXA_F2-4</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/flyfactorsurvey__klu_SOLEXA_F2-4.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>WT1</td>
+      <td>6.251560</td>
+      <td>0.005981</td>
+      <td>21704.0</td>
+      <td>1086</td>
+    </tr>
+    <tr>
+      <th>jaspar__MA0477.1</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/jaspar__MA0477.1.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>FOSL1</td>
+      <td>NaN</td>
+      <td>6.248737</td>
+      <td>0.005979</td>
+      <td>21521.0</td>
+      <td>1186</td>
+    </tr>
+    <tr>
+      <th>transfac_pro__M08946</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/transfac_pro__M08946.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>FOS</td>
+      <td>NaN</td>
+      <td>6.244931</td>
+      <td>0.005977</td>
+      <td>21771.0</td>
+      <td>1205</td>
+    </tr>
+    <tr>
+      <th>metacluster_35.6</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_35.6.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>JUNB, BCL3, CEBPB, JUND, EP300, NFIC, TRIM28, FOSB, FOS, FOSL2, JUN, FOSL1, BATF, STAT3</td>
+      <td>JUND, ATF3, FOSB, JUNB</td>
+      <td>6.210194</td>
+      <td>0.005957</td>
+      <td>21759.0</td>
+      <td>1221</td>
+    </tr>
+    <tr>
+      <th>yetfasco__YEL009C_1363</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/yetfasco__YEL009C_1363.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>6.113222</td>
+      <td>0.005902</td>
+      <td>21523.0</td>
+      <td>1208</td>
+    </tr>
+    <tr>
+      <th>yetfasco__YER064C_2094</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/yetfasco__YER064C_2094.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>6.074618</td>
+      <td>0.005880</td>
+      <td>21773.0</td>
+      <td>1195</td>
+    </tr>
+    <tr>
+      <th>hocomoco__JUNB_HUMAN.H11MO.0.A</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/hocomoco__JUNB_HUMAN.H11MO.0.A.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>JUNB</td>
+      <td>NaN</td>
+      <td>6.050068</td>
+      <td>0.005865</td>
+      <td>21731.0</td>
+      <td>1170</td>
+    </tr>
+    <tr>
+      <th>cisbp__M6467</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M6467.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>SMARCC1</td>
+      <td>NaN</td>
+      <td>6.029446</td>
+      <td>0.005854</td>
+      <td>21643.0</td>
+      <td>1068</td>
+    </tr>
+    <tr>
+      <th>cisbp__M5589</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M5589.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>JDP2</td>
+      <td>NaN</td>
+      <td>6.024720</td>
+      <td>0.005851</td>
+      <td>21646.0</td>
+      <td>1178</td>
+    </tr>
+    <tr>
+      <th>cisbp__M0414</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M0414.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>EGR3</td>
+      <td>5.815004</td>
+      <td>0.005731</td>
+      <td>21768.0</td>
+      <td>1124</td>
+    </tr>
+    <tr>
+      <th>taipale_cyt_meth__JUNB_NATGASTCAYN_eDBD_meth</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/taipale_cyt_meth__JUNB_NATGASTCAYN_eDBD_meth.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>JUNB</td>
+      <td>NaN</td>
+      <td>5.767378</td>
+      <td>0.005703</td>
+      <td>21632.0</td>
+      <td>1168</td>
+    </tr>
+    <tr>
+      <th>yetfasco__YIL056W_2091</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/yetfasco__YIL056W_2091.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>5.529245</td>
+      <td>0.005567</td>
+      <td>21628.0</td>
+      <td>1157</td>
+    </tr>
+    <tr>
+      <th>metacluster_35.2</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_35.2.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>JUN, BATF</td>
+      <td>NaN</td>
+      <td>5.458726</td>
+      <td>0.005526</td>
+      <td>21733.0</td>
+      <td>1096</td>
+    </tr>
+    <tr>
+      <th>cisbp__M5216</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M5216.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>EGR2, EGR3, EGR4</td>
+      <td>5.455289</td>
+      <td>0.005524</td>
+      <td>21734.0</td>
+      <td>1105</td>
+    </tr>
+    <tr>
+      <th>cisbp__M2308</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M2308.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>RFX1</td>
+      <td>5.341624</td>
+      <td>0.005459</td>
+      <td>7707.0</td>
+      <td>394</td>
+    </tr>
+    <tr>
+      <th>transfac_pro__M07410</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/transfac_pro__M07410.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>RFX2</td>
+      <td>NaN</td>
+      <td>5.314926</td>
+      <td>0.005444</td>
+      <td>14901.0</td>
+      <td>646</td>
+    </tr>
+    <tr>
+      <th>metacluster_53.6</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_53.6.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>SREBF1, TEAD1, RFX3, MXI1, TPPP, RFX4, NELFB, ZBTB7B, MAX, RFX1, RFX5, RFX2, RFXAP, RFXANK</td>
+      <td>RFX3, RFX7, RFX4, RFX6, RFX1, RFX5, RFX2, RFX8</td>
+      <td>5.131724</td>
+      <td>0.005338</td>
+      <td>7136.0</td>
+      <td>372</td>
+    </tr>
+    <tr>
+      <th>swissregulon__sacCer__RFX1</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/swissregulon__sacCer__RFX1.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>RFX3, RFX7, RFX4, RFX6, RFX1, RFX5, RFX2, RFX8</td>
+      <td>4.974421</td>
+      <td>0.005248</td>
+      <td>19294.0</td>
+      <td>768</td>
+    </tr>
+    <tr>
+      <th>flyfactorsurvey__klu_SOLEXA_5_FBgn0013469</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/flyfactorsurvey__klu_SOLEXA_5_FBgn0013469.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>WT1</td>
+      <td>4.790850</td>
+      <td>0.005143</td>
+      <td>21747.0</td>
+      <td>1068</td>
+    </tr>
+    <tr>
+      <th>cisbp__M3830</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M3830.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>RFX1</td>
+      <td>NaN</td>
+      <td>4.672766</td>
+      <td>0.005075</td>
+      <td>7654.0</td>
+      <td>339</td>
+    </tr>
+    <tr>
+      <th>elemento__ACGCCCAC</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/elemento__ACGCCCAC.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>4.667120</td>
+      <td>0.005072</td>
+      <td>10204.0</td>
+      <td>443</td>
+    </tr>
+    <tr>
+      <th>metacluster_63.1</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_63.1.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>ARID3A, JUNB, IRF4, FOXM1, TRIM28, FOSB, FOS, ATF3, MAFG, BCL11A, SMARCB1, SMARCA4, NRF1, MAFK, JUN, MAFB, STAT3, NFE2L2, EP300, MAFF, NFE2L1, TBL1XR1, FOSL1, BACH2, RELA, NFE2L3, MTA3, JUND, NFE2, MAF, RCOR1, TCF12, BACH1</td>
+      <td>FOS</td>
+      <td>4.605193</td>
+      <td>0.005036</td>
+      <td>21655.0</td>
+      <td>1009</td>
+    </tr>
+    <tr>
+      <th>taipale_cyt_meth__RFX4_NGTTRCCATGGYAACN_eDBD</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/taipale_cyt_meth__RFX4_NGTTRCCATGGYAACN_eDBD.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>RFX4</td>
+      <td>NaN</td>
+      <td>4.547501</td>
+      <td>0.005003</td>
+      <td>9394.0</td>
+      <td>426</td>
+    </tr>
+    <tr>
+      <th>metacluster_35.7</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_35.7.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>JUNB, JUND, FOSB, FOS, FOSL2, JUN, FOSL1</td>
+      <td>FOS</td>
+      <td>4.402596</td>
+      <td>0.004920</td>
+      <td>21766.0</td>
+      <td>1075</td>
+    </tr>
+    <tr>
+      <th>cisbp__M5368</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M5368.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>EGR2</td>
+      <td>NaN</td>
+      <td>4.309737</td>
+      <td>0.004867</td>
+      <td>21783.0</td>
+      <td>1142</td>
+    </tr>
+    <tr>
+      <th>cisbp__M6199</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M6199.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>EGR2</td>
+      <td>NaN</td>
+      <td>4.240445</td>
+      <td>0.004827</td>
+      <td>21739.0</td>
+      <td>1028</td>
+    </tr>
+    <tr>
+      <th>metacluster_54.22</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_54.22.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>EGR3, ZNF599</td>
+      <td>NaN</td>
+      <td>4.230810</td>
+      <td>0.004821</td>
+      <td>20952.0</td>
+      <td>878</td>
+    </tr>
+    <tr>
+      <th>taipale_cyt_meth__RFX2_NGTTRCCATGGYAACN_eDBD_meth</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/taipale_cyt_meth__RFX2_NGTTRCCATGGYAACN_eDBD_meth.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>RFX2</td>
+      <td>NaN</td>
+      <td>4.179501</td>
+      <td>0.004792</td>
+      <td>7737.0</td>
+      <td>365</td>
+    </tr>
+    <tr>
+      <th>hocomoco__RFX2_HUMAN.H11MO.1.A</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/hocomoco__RFX2_HUMAN.H11MO.1.A.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>RFX2</td>
+      <td>NaN</td>
+      <td>4.125307</td>
+      <td>0.004761</td>
+      <td>7140.0</td>
+      <td>332</td>
+    </tr>
+    <tr>
+      <th>cisbp__M3178</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M3178.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>EGR3</td>
+      <td>NaN</td>
+      <td>4.099898</td>
+      <td>0.004746</td>
+      <td>21735.0</td>
+      <td>1035</td>
+    </tr>
+    <tr>
+      <th>cisbp__M5215</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M5215.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>EGR2, EGR3, EGR4</td>
+      <td>4.075839</td>
+      <td>0.004733</td>
+      <td>21309.0</td>
+      <td>967</td>
+    </tr>
+    <tr>
+      <th>cisbp__M3167</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M3167.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>EGR1</td>
+      <td>NaN</td>
+      <td>3.840837</td>
+      <td>0.004598</td>
+      <td>21745.0</td>
+      <td>1046</td>
+    </tr>
+    <tr>
+      <th>metacluster_5.5</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_5.5.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>3.835866</td>
+      <td>0.004595</td>
+      <td>12431.0</td>
+      <td>519</td>
+    </tr>
+    <tr>
+      <th>metacluster_54.26</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_54.26.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>3.736623</td>
+      <td>0.004538</td>
+      <td>21606.0</td>
+      <td>889</td>
+    </tr>
+    <tr>
+      <th>cisbp__M5366</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M5366.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>EGR1</td>
+      <td>NaN</td>
+      <td>3.726742</td>
+      <td>0.004532</td>
+      <td>21782.0</td>
+      <td>1015</td>
+    </tr>
+    <tr>
+      <th>cisbp__M6003</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M6003.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>EGR3</td>
+      <td>3.672364</td>
+      <td>0.004501</td>
+      <td>21610.0</td>
+      <td>1000</td>
+    </tr>
+    <tr>
+      <th>metacluster_34.15</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_34.15.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>STAT5A, JUND, FOSL2, BATF, STAT3</td>
+      <td>BATF</td>
+      <td>3.661869</td>
+      <td>0.004495</td>
+      <td>21771.0</td>
+      <td>1016</td>
+    </tr>
+    <tr>
+      <th>swissregulon__hs__NFE2.p2</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/swissregulon__hs__NFE2.p2.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NFE2</td>
+      <td>NaN</td>
+      <td>3.611972</td>
+      <td>0.004466</td>
+      <td>21550.0</td>
+      <td>977</td>
+    </tr>
+    <tr>
+      <th>metacluster_54.9</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_54.9.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>EGR3</td>
+      <td>WT1</td>
+      <td>3.433373</td>
+      <td>0.004364</td>
+      <td>21732.0</td>
+      <td>1044</td>
+    </tr>
+    <tr>
+      <th>transfac_pro__M07374</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/transfac_pro__M07374.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>BACH1</td>
+      <td>NaN</td>
+      <td>3.373840</td>
+      <td>0.004330</td>
+      <td>21489.0</td>
+      <td>870</td>
+    </tr>
+    <tr>
+      <th>metacluster_74.17</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_74.17.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>3.359662</td>
+      <td>0.004322</td>
+      <td>10995.0</td>
+      <td>433</td>
+    </tr>
+    <tr>
+      <th>cisbp__M0434</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M0434.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>ZSCAN4</td>
+      <td>3.357514</td>
+      <td>0.004320</td>
+      <td>14516.0</td>
+      <td>564</td>
+    </tr>
+    <tr>
+      <th>cisbp__M6156</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M6156.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>BACH1</td>
+      <td>NaN</td>
+      <td>3.328116</td>
+      <td>0.004303</td>
+      <td>20265.0</td>
+      <td>776</td>
+    </tr>
+    <tr>
+      <th>hdpi__HES5</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/hdpi__HES5.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>HES5</td>
+      <td>NaN</td>
+      <td>3.319830</td>
+      <td>0.004299</td>
+      <td>1384.0</td>
+      <td>73</td>
+    </tr>
+    <tr>
+      <th>cisbp__M5370</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M5370.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>EGR4</td>
+      <td>NaN</td>
+      <td>3.293132</td>
+      <td>0.004283</td>
+      <td>21782.0</td>
+      <td>919</td>
+    </tr>
+    <tr>
+      <th>metacluster_54.12</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_54.12.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>EGR2, EGR3, EGR1, EGR4</td>
+      <td>EGR3, WT1, EGR1</td>
+      <td>3.278157</td>
+      <td>0.004275</td>
+      <td>21140.0</td>
+      <td>1005</td>
+    </tr>
+    <tr>
+      <th>hocomoco__EGR2_HUMAN.H11MO.0.A</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/hocomoco__EGR2_HUMAN.H11MO.0.A.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>EGR2</td>
+      <td>NaN</td>
+      <td>3.276561</td>
+      <td>0.004274</td>
+      <td>21721.0</td>
+      <td>912</td>
+    </tr>
+    <tr>
+      <th>cisbp__M0390</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M0390.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>3.239675</td>
+      <td>0.004253</td>
+      <td>21300.0</td>
+      <td>786</td>
+    </tr>
+    <tr>
+      <th>metacluster_53.5</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_53.5.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>RFX3, RFX4, RFX1, RFX2, RFXAP</td>
+      <td>RFX1, RFX2, RFX6, RFX3</td>
+      <td>3.197327</td>
+      <td>0.004228</td>
+      <td>9404.0</td>
+      <td>422</td>
+    </tr>
+    <tr>
+      <th>metacluster_34.44</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_34.44.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>3.147000</td>
+      <td>0.004200</td>
+      <td>3744.0</td>
+      <td>167</td>
+    </tr>
+    <tr>
+      <th>transfac_pro__M08800</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/transfac_pro__M08800.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>ARNT</td>
+      <td>NaN</td>
+      <td>3.143747</td>
+      <td>0.004198</td>
+      <td>6568.0</td>
+      <td>280</td>
+    </tr>
+    <tr>
+      <th>cisbp__M4575</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M4575.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>RFX5</td>
+      <td>NaN</td>
+      <td>3.139205</td>
+      <td>0.004195</td>
+      <td>15159.0</td>
+      <td>601</td>
+    </tr>
+    <tr>
+      <th>metacluster_13.6</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_13.6.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>HEY2, TFEB, ARNTL2, MNT, ENO1, CREB3L4, HEY1, USF1, MAX, USF2, ID1, MITF, ARNT2, BHLHE40, BHLHE41, TFE3, MXI1, OLIG2, MXD4, HEYL, CLOCK, MYCN, ARNTL, HES6, OLIG1, CREB3L1, MXD3, CREB3, MYC, ARNT, ATF6B, MLXIPL, NPAS2</td>
+      <td>MYCN, NPAS2, HES6, MXI1, CLOCK, MYCL, CREB3L1, MAX, MYC, ARNT, CREB3L2, ID2</td>
+      <td>3.122819</td>
+      <td>0.004186</td>
+      <td>1754.0</td>
+      <td>89</td>
+    </tr>
+    <tr>
+      <th>metacluster_54.13</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_54.13.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>EGR2</td>
+      <td>EGR1</td>
+      <td>3.119382</td>
+      <td>0.004184</td>
+      <td>21111.0</td>
+      <td>964</td>
+    </tr>
+    <tr>
+      <th>metacluster_54.10</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_54.10.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>EGR4, EGR2, KLF11, EGR3, PURA, WT1, EGR1</td>
+      <td>EGR4, EGR2, EGR3, WT1, EGR1</td>
+      <td>3.115331</td>
+      <td>0.004181</td>
+      <td>21779.0</td>
+      <td>991</td>
+    </tr>
+    <tr>
+      <th>metacluster_5.22</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_5.22.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>3.107782</td>
+      <td>0.004177</td>
+      <td>1256.0</td>
+      <td>73</td>
+    </tr>
+    <tr>
+      <th>cisbp__M0170</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M0170.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>3.106002</td>
+      <td>0.004176</td>
+      <td>9391.0</td>
+      <td>372</td>
+    </tr>
+    <tr>
+      <th>taipale_tf_pairs__GCM2_MAX_NTRNGGGNNNCACGTG_CAP_repr</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/taipale_tf_pairs__GCM2_MAX_NTRNGGGNNNCACGTG_CAP_repr.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>GCM2, MAX</td>
+      <td>NaN</td>
+      <td>3.092745</td>
+      <td>0.004168</td>
+      <td>18423.0</td>
+      <td>699</td>
+    </tr>
+    <tr>
+      <th>hocomoco__BATF_MOUSE.H11MO.0.A</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/hocomoco__BATF_MOUSE.H11MO.0.A.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>BATF</td>
+      <td>3.089124</td>
+      <td>0.004166</td>
+      <td>16898.0</td>
+      <td>730</td>
+    </tr>
+    <tr>
+      <th>transfac_pro__M07911</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/transfac_pro__M07911.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>SP4, SP3, SP2, SP1</td>
+      <td>3.052729</td>
+      <td>0.004145</td>
+      <td>21449.0</td>
+      <td>900</td>
+    </tr>
+    <tr>
+      <th>metacluster_45.11</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_45.11.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>3.050765</td>
+      <td>0.004144</td>
+      <td>18621.0</td>
+      <td>770</td>
+    </tr>
+    <tr>
+      <th>metacluster_34.14</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_34.14.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>BCL3, CEBPB, EP300, JUND, SETDB1, SMARCA4, TRIM28, CBX3, ATF2, JUN, RFX5</td>
+      <td>ZNF691</td>
+      <td>3.048371</td>
+      <td>0.004143</td>
+      <td>21285.0</td>
+      <td>959</td>
+    </tr>
+    <tr>
+      <th>metacluster_35.8</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_35.8.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>3.048187</td>
+      <td>0.004143</td>
+      <td>21669.0</td>
+      <td>945</td>
+    </tr>
+    <tr>
+      <th>cisbp__M4086</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M4086.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>USF1</td>
+      <td>NaN</td>
+      <td>3.045978</td>
+      <td>0.004142</td>
+      <td>1685.0</td>
+      <td>85</td>
+    </tr>
+    <tr>
+      <th>hocomoco__RFX1_HUMAN.H11MO.0.B</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/hocomoco__RFX1_HUMAN.H11MO.0.B.png" width="200" ></td>
+      <td>Topic21</td>
+      <td>RFX1</td>
+      <td>NaN</td>
+      <td>3.013388</td>
+      <td>0.004123</td>
+      <td>10521.0</td>
+      <td>450</td>
+    </tr>
+  </tbody>
+</table></div>
+</div>
+<p>This table can also be easily exported to a html file:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[58]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">cistarget_dict</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">out_file</span> <span class="o">=</span> <span class="s1">&#39;/staging/leuven/stg_00002/lcb/cbravo/Multiomics_pipeline/analysis/10x_multiome_brain/output/atac/pycistarget/topics/Topic&#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.html&#39;</span>
+    <span class="n">cistarget_dict</span><span class="p">[</span><span class="s1">&#39;Topic&#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span><span class="o">.</span><span class="n">motif_enrichment</span><span class="o">.</span><span class="n">to_html</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">),</span> <span class="n">escape</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">col_space</span><span class="o">=</span><span class="mi">80</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>In addition, we can also access cistromes directly. Cistromes with the ‘_extended’ annotation include regions that contain a motif annotated to the TF by orthology in this case.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[59]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cistarget_dict</span><span class="p">[</span><span class="s1">&#39;Topic21&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cistromes</span><span class="p">[</span><span class="s1">&#39;Region_set&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[59]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+dict_keys([&#39;ARID3A_(1009r)&#39;, &#39;HEY1_(89r)&#39;, &#39;FOS_(2206r)&#39;, &#39;MITF_(89r)&#39;, &#39;ARNT2_(89r)&#39;, &#39;EGR3_(2957r)&#39;, &#39;JUN_(2662r)&#39;, &#39;CLOCK_(89r)&#39;, &#39;MAFF_(1009r)&#39;, &#39;CREB3L1_(89r)&#39;, &#39;CREB3_(89r)&#39;, &#39;FOSL1_(2261r)&#39;, &#39;SREBF1_(372r)&#39;, &#39;NPAS2_(89r)&#39;, &#39;MTA3_(1009r)&#39;, &#39;RFXAP_(616r)&#39;, &#39;HEY2_(89r)&#39;, &#39;MEF2A_(1279r)&#39;, &#39;STAT5A_(1016r)&#39;, &#39;IRF4_(1009r)&#39;, &#39;ENO1_(89r)&#39;, &#39;TRIM28_(1941r)&#39;, &#39;ID1_(89r)&#39;, &#39;BCL11A_(1009r)&#39;, &#39;BATF_(1914r)&#39;, &#39;BHLHE40_(89r)&#39;, &#39;RFX3_(616r)&#39;, &#39;EGR4_(1882r)&#39;, &#39;ZBTB7B_(372r)&#39;, &#39;FOSL2_(2102r)&#39;, &#39;STAT3_(2023r)&#39;, &#39;NFE2L2_(1009r)&#39;, &#39;HES6_(89r)&#39;, &#39;OLIG1_(89r)&#39;, &#39;GATA2_(1279r)&#39;, &#39;MYC_(1358r)&#39;, &#39;ATF6B_(89r)&#39;, &#39;BACH2_(1661r)&#39;, &#39;KLF11_(991r)&#39;, &#39;BACH1_(2508r)&#39;, &#39;TFEB_(89r)&#39;, &#39;MNT_(89r)&#39;, &#39;NFIC_(1221r)&#39;, &#39;ATF3_(1661r)&#39;, &#39;MAX_(1123r)&#39;, &#39;SMARCB1_(1009r)&#39;, &#39;EGR1_(2291r)&#39;, &#39;TFE3_(89r)&#39;, &#39;TPPP_(372r)&#39;, &#39;RFX1_(877r)&#39;, &#39;MYCN_(89r)&#39;, &#39;ARNTL_(89r)&#39;, &#39;CEBPB_(1680r)&#39;, &#39;EP300_(1941r)&#39;, &#39;NFE2L1_(1009r)&#39;, &#39;MLXIPL_(89r)&#39;, &#39;RELA_(1009r)&#39;, &#39;GCM2_(699r)&#39;, &#39;NFE2L3_(1009r)&#39;, &#39;NFE2_(2023r)&#39;, &#39;MAF_(1009r)&#39;, &#39;SETDB1_(959r)&#39;, &#39;SMARCC1_(1809r)&#39;, &#39;ARNTL2_(89r)&#39;, &#39;JUNB_(2270r)&#39;, &#39;BCL3_(1680r)&#39;, &#39;FOXM1_(1009r)&#39;, &#39;CREB3L4_(89r)&#39;, &#39;FOSB_(2010r)&#39;, &#39;USF1_(132r)&#39;, &#39;NELFB_(372r)&#39;, &#39;MAFG_(1009r)&#39;, &#39;USF2_(89r)&#39;, &#39;RFX5_(1709r)&#39;, &#39;RFX2_(992r)&#39;, &#39;BHLHE41_(89r)&#39;, &#39;MXI1_(456r)&#39;, &#39;SMARCA4_(2012r)&#39;, &#39;ZNF599_(878r)&#39;, &#39;NRF1_(1009r)&#39;, &#39;CBX3_(959r)&#39;, &#39;MAFK_(1009r)&#39;, &#39;HES5_(73r)&#39;, &#39;OLIG2_(89r)&#39;, &#39;MEF2C_(1279r)&#39;, &#39;MXD4_(89r)&#39;, &#39;HEYL_(89r)&#39;, &#39;MAFB_(1009r)&#39;, &#39;PURA_(991r)&#39;, &#39;WT1_(991r)&#39;, &#39;TEAD1_(372r)&#39;, &#39;EGR2_(2719r)&#39;, &#39;ATF2_(959r)&#39;, &#39;MXD3_(89r)&#39;, &#39;ARNT_(310r)&#39;, &#39;TBL1XR1_(1009r)&#39;, &#39;JUND_(2598r)&#39;, &#39;RCOR1_(1661r)&#39;, &#39;TCF12_(1009r)&#39;, &#39;RFX4_(771r)&#39;, &#39;JDP2_(1552r)&#39;, &#39;RFXANK_(372r)&#39;, &#39;ARID3A_extended_(1009r)&#39;, &#39;HEY1_extended_(89r)&#39;, &#39;FOS_extended_(2206r)&#39;, &#39;MITF_extended_(89r)&#39;, &#39;ARNT2_extended_(89r)&#39;, &#39;ZNF691_extended_(959r)&#39;, &#39;MYCL_extended_(89r)&#39;, &#39;EGR3_extended_(3668r)&#39;, &#39;SP2_extended_(900r)&#39;, &#39;JUN_extended_(2782r)&#39;, &#39;CLOCK_extended_(89r)&#39;, &#39;MAFF_extended_(1009r)&#39;, &#39;CREB3L1_extended_(89r)&#39;, &#39;CREB3_extended_(89r)&#39;, &#39;FOSL1_extended_(2261r)&#39;, &#39;SREBF1_extended_(372r)&#39;, &#39;NPAS2_extended_(89r)&#39;, &#39;MTA3_extended_(1009r)&#39;, &#39;RFXAP_extended_(616r)&#39;, &#39;HEY2_extended_(89r)&#39;, &#39;MEF2A_extended_(1279r)&#39;, &#39;STAT5A_extended_(1016r)&#39;, &#39;IRF4_extended_(1009r)&#39;, &#39;ENO1_extended_(89r)&#39;, &#39;TRIM28_extended_(1941r)&#39;, &#39;ID1_extended_(89r)&#39;, &#39;BCL11A_extended_(1009r)&#39;, &#39;BATF_extended_(2216r)&#39;, &#39;BHLHE40_extended_(89r)&#39;, &#39;RFX3_extended_(1050r)&#39;, &#39;EGR4_extended_(2329r)&#39;, &#39;ZBTB7B_extended_(372r)&#39;, &#39;FOSL2_extended_(2158r)&#39;, &#39;ID2_extended_(89r)&#39;, &#39;STAT3_extended_(2023r)&#39;, &#39;NFE2L2_extended_(1009r)&#39;, &#39;HES6_extended_(89r)&#39;, &#39;OLIG1_extended_(89r)&#39;, &#39;GATA2_extended_(1279r)&#39;, &#39;MYC_extended_(1358r)&#39;, &#39;ATF6B_extended_(89r)&#39;, &#39;SP4_extended_(900r)&#39;, &#39;BACH2_extended_(1661r)&#39;, &#39;KLF11_extended_(991r)&#39;, &#39;CREB3L2_extended_(89r)&#39;, &#39;BACH1_extended_(2508r)&#39;, &#39;TFEB_extended_(89r)&#39;, &#39;MNT_extended_(89r)&#39;, &#39;RFX7_extended_(834r)&#39;, &#39;NFIC_extended_(1221r)&#39;, &#39;ATF3_extended_(1754r)&#39;, &#39;MAX_extended_(1123r)&#39;, &#39;SMARCB1_extended_(1009r)&#39;, &#39;EGR1_extended_(2637r)&#39;, &#39;TFE3_extended_(89r)&#39;, &#39;TPPP_extended_(372r)&#39;, &#39;RFX6_extended_(1050r)&#39;, &#39;RFX1_extended_(1277r)&#39;, &#39;MYCN_extended_(89r)&#39;, &#39;ARNTL_extended_(89r)&#39;, &#39;CEBPB_extended_(1680r)&#39;, &#39;EP300_extended_(1941r)&#39;, &#39;NFE2L1_extended_(1009r)&#39;, &#39;MLXIPL_extended_(89r)&#39;, &#39;RFX8_extended_(834r)&#39;, &#39;RELA_extended_(1009r)&#39;, &#39;GCM2_extended_(699r)&#39;, &#39;NFE2L3_extended_(1009r)&#39;, &#39;NFE2_extended_(2023r)&#39;, &#39;MAF_extended_(1009r)&#39;, &#39;SETDB1_extended_(959r)&#39;, &#39;SMARCC1_extended_(1809r)&#39;, &#39;ARNTL2_extended_(89r)&#39;, &#39;JUNB_extended_(2403r)&#39;, &#39;BCL3_extended_(1680r)&#39;, &#39;FOXM1_extended_(1009r)&#39;, &#39;CREB3L4_extended_(89r)&#39;, &#39;FOSB_extended_(2010r)&#39;, &#39;USF1_extended_(132r)&#39;, &#39;NELFB_extended_(372r)&#39;, &#39;MAFG_extended_(1009r)&#39;, &#39;USF2_extended_(89r)&#39;, &#39;RFX5_extended_(2083r)&#39;, &#39;RFX2_extended_(1337r)&#39;, &#39;BHLHE41_extended_(89r)&#39;, &#39;MXI1_extended_(456r)&#39;, &#39;SMARCA4_extended_(2012r)&#39;, &#39;ZNF599_extended_(878r)&#39;, &#39;NRF1_extended_(1009r)&#39;, &#39;CBX3_extended_(959r)&#39;, &#39;MAFK_extended_(1009r)&#39;, &#39;HES5_extended_(73r)&#39;, &#39;OLIG2_extended_(89r)&#39;, &#39;MEF2C_extended_(1279r)&#39;, &#39;MXD4_extended_(89r)&#39;, &#39;HEYL_extended_(89r)&#39;, &#39;MAFB_extended_(1009r)&#39;, &#39;PURA_extended_(991r)&#39;, &#39;WT1_extended_(2378r)&#39;, &#39;TEAD1_extended_(372r)&#39;, &#39;EGR2_extended_(3244r)&#39;, &#39;ZSCAN4_extended_(564r)&#39;, &#39;ATF2_extended_(959r)&#39;, &#39;MXD3_extended_(89r)&#39;, &#39;ARNT_extended_(310r)&#39;, &#39;TBL1XR1_extended_(1009r)&#39;, &#39;SP3_extended_(900r)&#39;, &#39;SP1_extended_(900r)&#39;, &#39;JUND_extended_(2718r)&#39;, &#39;RCOR1_extended_(1661r)&#39;, &#39;TCF12_extended_(1009r)&#39;, &#39;RFX4_extended_(1168r)&#39;, &#39;JDP2_extended_(1552r)&#39;, &#39;RFXANK_extended_(372r)&#39;])
+</pre></div></div>
+</div>
+</div>
+</div>
+<div class="section" id="2.-Deriving-cistromes-using-DARs">
+<h2>2. Deriving cistromes using DARs<a class="headerlink" href="#2.-Deriving-cistromes-using-DARs" title="Permalink to this heading"></a></h2>
+<div class="section" id="id1">
+<h3>A. Loading your region sets<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<p><strong>pycisTarget</strong> uses as input a dictionary containing the region set name as label and regions (as pyranges) as values. We will start by loading the binarized topics (see pycisTopic - Single sample workfllow tutorial).</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[68]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load region DARs topics</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="n">infile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/staging/leuven/stg_00002/lcb/cbravo/Multiomics_pipeline/analysis/10x_multiome_brain/output/atac/pycistopic/DARs/DARs.pkl&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+<span class="n">DARs_dict</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span>
+<span class="n">infile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[69]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pyranges</span> <span class="k">as</span> <span class="nn">pr</span>
+<span class="kn">from</span> <span class="nn">pycistarget.utils</span> <span class="k">import</span> <span class="o">*</span>
+<span class="n">region_sets</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">pr</span><span class="o">.</span><span class="n">PyRanges</span><span class="p">(</span><span class="n">region_names_to_coordinates</span><span class="p">(</span><span class="n">DARs_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">DARs_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="B.-cisTarget">
+<h3>B. cisTarget<a class="headerlink" href="#B.-cisTarget" title="Permalink to this heading"></a></h3>
+<p>We run cisTarget with same settings as before, and using the previously created database.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[70]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load cistarget functions</span>
+<span class="kn">from</span> <span class="nn">pycistarget.motif_enrichment_cistarget</span> <span class="k">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[71]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Preload db, you can also just provide the path to the db. Preloading the database is useful if you want to test different parameters.</span>
+<span class="c1"># This will take some time depending on the size of your database</span>
+<span class="n">db</span> <span class="o">=</span> <span class="s1">&#39;/staging/leuven/stg_00002/lcb/cbravo/Multiomics_pipeline/analysis/10x_multiome_brain/output/atac/pycistarget/dbs/human_brain.regions_vs_motifs.rankings.feather&#39;</span>
+<span class="n">ctx_db</span> <span class="o">=</span> <span class="n">cisTargetDatabase</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">region_sets</span><span class="p">)</span>
+<span class="c1"># Remove dbcorr motifs</span>
+<span class="n">ctx_db</span><span class="o">.</span><span class="n">db_rankings</span> <span class="o">=</span> <span class="n">ctx_db</span><span class="o">.</span><span class="n">db_rankings</span><span class="p">[</span><span class="o">~</span><span class="n">ctx_db</span><span class="o">.</span><span class="n">db_rankings</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s2">&quot;dbcorr&quot;</span><span class="p">)]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2021-08-12 16:51:03,626 cisTarget    INFO     Reading cisTarget database
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[72]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run</span>
+<span class="n">cistarget_dict</span> <span class="o">=</span> <span class="n">run_cistarget</span><span class="p">(</span><span class="n">ctx_db</span> <span class="o">=</span> <span class="n">ctx_db</span><span class="p">,</span>
+                               <span class="n">region_sets</span> <span class="o">=</span> <span class="n">region_sets</span><span class="p">,</span>
+                               <span class="n">specie</span> <span class="o">=</span> <span class="s1">&#39;homo_sapiens&#39;</span><span class="p">,</span>
+                               <span class="n">annotation_version</span> <span class="o">=</span> <span class="s1">&#39;v9nr_clust&#39;</span><span class="p">,</span>
+                               <span class="n">path_to_motif_annotations</span> <span class="o">=</span> <span class="s1">&#39;/staging/leuven/stg_00002/lcb/cbravo/motif_clustering/RNA_harmony_snn_res_5_clusters/motif_collection_combined_motifs_stamp_and_singlets/hs_annotation.tsv&#39;</span><span class="p">,</span>
+                               <span class="n">auc_threshold</span> <span class="o">=</span> <span class="mf">0.005</span><span class="p">,</span>
+                               <span class="n">nes_threshold</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span>
+                               <span class="n">rank_threshold</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+                               <span class="n">annotation</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Direct_annot&#39;</span><span class="p">,</span> <span class="s1">&#39;Orthology_annot&#39;</span><span class="p">],</span>
+                               <span class="n">n_cpu</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+                               <span class="n">_temp_dir</span><span class="o">=</span><span class="s1">&#39;/scratch/leuven/313/vsc31305/ray_spill&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2021-08-12 17:25:05,575 cisTarget    INFO     Running cisTarget for AST which has 32163 regions
+2021-08-12 17:25:24,243 cisTarget    INFO     Annotating motifs for AST
+2021-08-12 17:25:28,992 cisTarget    INFO     Getting cistromes for AST
+2021-08-12 17:25:29,750 cisTarget    INFO     Running cisTarget for BG which has 32515 regions
+2021-08-12 17:25:49,379 cisTarget    INFO     Annotating motifs for BG
+2021-08-12 17:25:54,103 cisTarget    INFO     Getting cistromes for BG
+2021-08-12 17:25:54,859 cisTarget    INFO     Running cisTarget for COP which has 23169 regions
+2021-08-12 17:26:06,990 cisTarget    INFO     Annotating motifs for COP
+2021-08-12 17:26:09,445 cisTarget    INFO     Getting cistromes for COP
+2021-08-12 17:26:09,715 cisTarget    INFO     Running cisTarget for ENDO which has 15280 regions
+2021-08-12 17:26:18,714 cisTarget    INFO     Annotating motifs for ENDO
+2021-08-12 17:26:20,518 cisTarget    INFO     Getting cistromes for ENDO
+2021-08-12 17:26:20,807 cisTarget    INFO     Running cisTarget for GC which has 15962 regions
+2021-08-12 17:26:29,586 cisTarget    INFO     Annotating motifs for GC
+2021-08-12 17:26:31,662 cisTarget    INFO     Getting cistromes for GC
+2021-08-12 17:26:31,901 cisTarget    INFO     Running cisTarget for GP which has 16659 regions
+2021-08-12 17:26:41,414 cisTarget    INFO     Annotating motifs for GP
+2021-08-12 17:26:43,545 cisTarget    INFO     Getting cistromes for GP
+2021-08-12 17:26:43,807 cisTarget    INFO     Running cisTarget for INH_PVALB which has 17017 regions
+2021-08-12 17:26:53,256 cisTarget    INFO     Annotating motifs for INH_PVALB
+2021-08-12 17:26:55,436 cisTarget    INFO     Getting cistromes for INH_PVALB
+2021-08-12 17:26:55,701 cisTarget    INFO     Running cisTarget for INH_SNCG which has 18492 regions
+2021-08-12 17:27:05,715 cisTarget    INFO     Annotating motifs for INH_SNCG
+2021-08-12 17:27:07,783 cisTarget    INFO     Getting cistromes for INH_SNCG
+2021-08-12 17:27:08,039 cisTarget    INFO     Running cisTarget for INH_SST which has 17845 regions
+2021-08-12 17:27:17,272 cisTarget    INFO     Annotating motifs for INH_SST
+2021-08-12 17:27:19,371 cisTarget    INFO     Getting cistromes for INH_SST
+2021-08-12 17:27:19,622 cisTarget    INFO     Running cisTarget for INH_VIP which has 19186 regions
+2021-08-12 17:27:29,471 cisTarget    INFO     Annotating motifs for INH_VIP
+2021-08-12 17:27:31,710 cisTarget    INFO     Getting cistromes for INH_VIP
+2021-08-12 17:27:31,954 cisTarget    INFO     Running cisTarget for MG which has 31580 regions
+2021-08-12 17:27:49,720 cisTarget    INFO     Annotating motifs for MG
+2021-08-12 17:27:54,202 cisTarget    INFO     Getting cistromes for MG
+2021-08-12 17:27:54,935 cisTarget    INFO     Running cisTarget for MGL which has 10216 regions
+2021-08-12 17:28:02,292 cisTarget    INFO     Annotating motifs for MGL
+2021-08-12 17:28:04,269 cisTarget    INFO     Getting cistromes for MGL
+2021-08-12 17:28:04,581 cisTarget    INFO     Running cisTarget for MOL which has 29830 regions
+2021-08-12 17:28:19,019 cisTarget    INFO     Annotating motifs for MOL
+2021-08-12 17:28:21,794 cisTarget    INFO     Getting cistromes for MOL
+2021-08-12 17:28:22,167 cisTarget    INFO     Running cisTarget for NFOL which has 25974 regions
+2021-08-12 17:28:34,660 cisTarget    INFO     Annotating motifs for NFOL
+2021-08-12 17:28:37,189 cisTarget    INFO     Getting cistromes for NFOL
+2021-08-12 17:28:37,472 cisTarget    INFO     Running cisTarget for OPC which has 14704 regions
+2021-08-12 17:28:46,374 cisTarget    INFO     Annotating motifs for OPC
+2021-08-12 17:28:48,512 cisTarget    INFO     Getting cistromes for OPC
+2021-08-12 17:28:49,049 cisTarget    INFO     Running cisTarget for PURK which has 19586 regions
+2021-08-12 17:28:59,727 cisTarget    INFO     Annotating motifs for PURK
+2021-08-12 17:29:01,966 cisTarget    INFO     Getting cistromes for PURK
+2021-08-12 17:29:02,225 cisTarget    INFO     Done!
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[73]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Save</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/staging/leuven/stg_00002/lcb/cbravo/Multiomics_pipeline/analysis/10x_multiome_brain/output/atac/pycistarget/DARs/DARs_cistarget_dict.pkl&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+  <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">cistarget_dict</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>We can load the results for exploration.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[74]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="n">infile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/staging/leuven/stg_00002/lcb/cbravo/Multiomics_pipeline/analysis/10x_multiome_brain/output/atac/pycistarget/DARs/DARs_cistarget_dict.pkl&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+<span class="n">cistarget_dict</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span>
+<span class="n">infile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<p>To visualize motif enrichment results, we can use the <code class="docutils literal notranslate"><span class="pre">cisTarget_results()</span></code> function:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[96]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cistarget_results</span><span class="p">(</span><span class="n">cistarget_dict</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;COP&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[96]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th style="min-width: 80px;"></th>
+      <th style="min-width: 80px;">Logo</th>
+      <th style="min-width: 80px;">Region_set</th>
+      <th style="min-width: 80px;">Direct_annot</th>
+      <th style="min-width: 80px;">Orthology_annot</th>
+      <th style="min-width: 80px;">NES</th>
+      <th style="min-width: 80px;">AUC</th>
+      <th style="min-width: 80px;">Rank_at_max</th>
+      <th style="min-width: 80px;">Motif_hits</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>metacluster_46.3</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_46.3.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX10, SOX8</td>
+      <td>NaN</td>
+      <td>18.620411</td>
+      <td>0.014769</td>
+      <td>21274.0</td>
+      <td>3051</td>
+    </tr>
+    <tr>
+      <th>hocomoco__SOX9_HUMAN.H11MO.0.B</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/hocomoco__SOX9_HUMAN.H11MO.0.B.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX9</td>
+      <td>NaN</td>
+      <td>16.817214</td>
+      <td>0.013573</td>
+      <td>21643.0</td>
+      <td>3073</td>
+    </tr>
+    <tr>
+      <th>metacluster_46.1</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_46.1.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX11, SOX3, SRY, SOX17, SOX13, SOX1, SOX9, SOX15, SOX18, SOX21, SOX2, SOX30, SOX6, SOX8, SOX10, SOX5, SOX7, SOX4, HBP1</td>
+      <td>SOX14, SOX21, SOX17</td>
+      <td>16.407962</td>
+      <td>0.013302</td>
+      <td>21771.0</td>
+      <td>3283</td>
+    </tr>
+    <tr>
+      <th>metacluster_2.93</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_2.93.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX9, SOX18, SOX4, SOX17</td>
+      <td>NaN</td>
+      <td>14.233799</td>
+      <td>0.011860</td>
+      <td>21777.0</td>
+      <td>2999</td>
+    </tr>
+    <tr>
+      <th>transfac_pro__M08972</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/transfac_pro__M08972.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX17</td>
+      <td>NaN</td>
+      <td>13.963742</td>
+      <td>0.011680</td>
+      <td>21789.0</td>
+      <td>2779</td>
+    </tr>
+    <tr>
+      <th>factorbook__SOX2</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/factorbook__SOX2.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX2</td>
+      <td>NaN</td>
+      <td>13.838165</td>
+      <td>0.011597</td>
+      <td>21708.0</td>
+      <td>2624</td>
+    </tr>
+    <tr>
+      <th>homer__CCATTGTTNY_Sox6</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/homer__CCATTGTTNY_Sox6.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>SOX6</td>
+      <td>13.176417</td>
+      <td>0.011158</td>
+      <td>21781.0</td>
+      <td>2932</td>
+    </tr>
+    <tr>
+      <th>cisbp__M5208</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M5208.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>SOX18, SOX7, SOX17</td>
+      <td>12.302875</td>
+      <td>0.010579</td>
+      <td>21673.0</td>
+      <td>2650</td>
+    </tr>
+    <tr>
+      <th>transfac_pro__M01308</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/transfac_pro__M01308.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX4</td>
+      <td>NaN</td>
+      <td>12.171386</td>
+      <td>0.010492</td>
+      <td>21786.0</td>
+      <td>2669</td>
+    </tr>
+    <tr>
+      <th>cisbp__M1904</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M1904.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX9</td>
+      <td>NaN</td>
+      <td>11.924563</td>
+      <td>0.010328</td>
+      <td>21790.0</td>
+      <td>2628</td>
+    </tr>
+    <tr>
+      <th>jaspar__MA0515.1</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/jaspar__MA0515.1.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>SOX6</td>
+      <td>11.782889</td>
+      <td>0.010234</td>
+      <td>21552.0</td>
+      <td>2466</td>
+    </tr>
+    <tr>
+      <th>swissregulon__hs__SOX_8_9_10_.p2</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/swissregulon__hs__SOX_8_9_10_.p2.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX9, SOX10, SOX8</td>
+      <td>NaN</td>
+      <td>11.319107</td>
+      <td>0.009926</td>
+      <td>21778.0</td>
+      <td>2482</td>
+    </tr>
+    <tr>
+      <th>swissregulon__hs__SOX2.p2</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/swissregulon__hs__SOX2.p2.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX2</td>
+      <td>NaN</td>
+      <td>11.239222</td>
+      <td>0.009873</td>
+      <td>21766.0</td>
+      <td>2446</td>
+    </tr>
+    <tr>
+      <th>taipale_cyt_meth__SOX14_NGAACAATGN_eDBD_meth</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/taipale_cyt_meth__SOX14_NGAACAATGN_eDBD_meth.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>11.160830</td>
+      <td>0.009821</td>
+      <td>21784.0</td>
+      <td>2535</td>
+    </tr>
+    <tr>
+      <th>transfac_public__M00410</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/transfac_public__M00410.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX9</td>
+      <td>NaN</td>
+      <td>10.730375</td>
+      <td>0.009536</td>
+      <td>21784.0</td>
+      <td>2490</td>
+    </tr>
+    <tr>
+      <th>metacluster_46.17</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_46.17.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX15, SOX11, SOX12, SOX14, SOX18, SOX5, SOX21, SOX3, SRY, SOX2, SOX6, SOX13, SMAD1, SOX8, SOX4, SOX9, SOX10</td>
+      <td>SOX3, SOX6, SOX2, SOX4, FOXJ3, SOX10</td>
+      <td>10.545041</td>
+      <td>0.009413</td>
+      <td>21780.0</td>
+      <td>2705</td>
+    </tr>
+    <tr>
+      <th>transfac_pro__M07338</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/transfac_pro__M07338.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX10</td>
+      <td>NaN</td>
+      <td>10.028370</td>
+      <td>0.009070</td>
+      <td>21788.0</td>
+      <td>2639</td>
+    </tr>
+    <tr>
+      <th>jaspar__MA0143.3</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/jaspar__MA0143.3.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>9.261083</td>
+      <td>0.008561</td>
+      <td>21776.0</td>
+      <td>2146</td>
+    </tr>
+    <tr>
+      <th>tfdimers__MD00293</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/tfdimers__MD00293.png" width="200" ></td>
+      <td>COP</td>
+      <td>SMAD1, SOX4</td>
+      <td>NaN</td>
+      <td>8.947037</td>
+      <td>0.008353</td>
+      <td>21760.0</td>
+      <td>2475</td>
+    </tr>
+    <tr>
+      <th>metacluster_46.18</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_46.18.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX15, NANOG, SOX5, SOX18, SOX14, SOX3, SRY, SOX17, SOX30, SOX13, SOX2, SOX6, SOX9, SOX8</td>
+      <td>SOX15, SOX12, SOX14, SOX7, SOX18, SOX21, NANOGP8, SRY, SOX17, SOX2, SOX30, SOX11</td>
+      <td>8.930642</td>
+      <td>0.008342</td>
+      <td>21756.0</td>
+      <td>2736</td>
+    </tr>
+    <tr>
+      <th>metacluster_46.2</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_46.2.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX7, SOX17, SOX10, SRY</td>
+      <td>NaN</td>
+      <td>8.520196</td>
+      <td>0.008070</td>
+      <td>21648.0</td>
+      <td>2148</td>
+    </tr>
+    <tr>
+      <th>metacluster_46.19</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_46.19.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>SOX5</td>
+      <td>8.200207</td>
+      <td>0.007858</td>
+      <td>21784.0</td>
+      <td>2127</td>
+    </tr>
+    <tr>
+      <th>cisbp__M5207</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M5207.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>SOX11, SOX12, SOX4</td>
+      <td>7.987817</td>
+      <td>0.007717</td>
+      <td>21783.0</td>
+      <td>2204</td>
+    </tr>
+    <tr>
+      <th>metacluster_46.8</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_46.8.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX15, SOX9, HNF4G</td>
+      <td>SOX11, SOX12, SOX4</td>
+      <td>7.562618</td>
+      <td>0.007435</td>
+      <td>21786.0</td>
+      <td>2232</td>
+    </tr>
+    <tr>
+      <th>metacluster_1.73</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_1.73.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX5, SOX6</td>
+      <td>NaN</td>
+      <td>6.966808</td>
+      <td>0.007040</td>
+      <td>21763.0</td>
+      <td>2277</td>
+    </tr>
+    <tr>
+      <th>transfac_public__M00042</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/transfac_public__M00042.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX5</td>
+      <td>NaN</td>
+      <td>6.406148</td>
+      <td>0.006668</td>
+      <td>21787.0</td>
+      <td>2097</td>
+    </tr>
+    <tr>
+      <th>metacluster_49.30</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_49.30.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX5</td>
+      <td>SOX13, SOX5</td>
+      <td>6.171868</td>
+      <td>0.006512</td>
+      <td>21776.0</td>
+      <td>2033</td>
+    </tr>
+    <tr>
+      <th>hocomoco__SOX9_MOUSE.H11MO.1.A</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/hocomoco__SOX9_MOUSE.H11MO.1.A.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>SOX9</td>
+      <td>5.876397</td>
+      <td>0.006316</td>
+      <td>21779.0</td>
+      <td>2204</td>
+    </tr>
+    <tr>
+      <th>taipale_cyt_meth__SOX14_CCGAACAATN_FL_meth</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/taipale_cyt_meth__SOX14_CCGAACAATN_FL_meth.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX14</td>
+      <td>NaN</td>
+      <td>5.845309</td>
+      <td>0.006296</td>
+      <td>21787.0</td>
+      <td>2064</td>
+    </tr>
+    <tr>
+      <th>taipale_cyt_meth__SOX12_ACCGAACAATN_eDBD_meth</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/taipale_cyt_meth__SOX12_ACCGAACAATN_eDBD_meth.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>5.776563</td>
+      <td>0.006250</td>
+      <td>21610.0</td>
+      <td>1971</td>
+    </tr>
+    <tr>
+      <th>metacluster_61.1</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_61.1.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX3, POLR2A</td>
+      <td>SOX14</td>
+      <td>5.293787</td>
+      <td>0.005930</td>
+      <td>21693.0</td>
+      <td>1996</td>
+    </tr>
+    <tr>
+      <th>hocomoco__SOX2_HUMAN.H11MO.0.A</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/hocomoco__SOX2_HUMAN.H11MO.0.A.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX2</td>
+      <td>NaN</td>
+      <td>5.268134</td>
+      <td>0.005913</td>
+      <td>21686.0</td>
+      <td>2122</td>
+    </tr>
+    <tr>
+      <th>metacluster_46.35</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_46.35.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>5.251500</td>
+      <td>0.005902</td>
+      <td>21785.0</td>
+      <td>1827</td>
+    </tr>
+    <tr>
+      <th>hocomoco__SOX4_HUMAN.H11MO.0.B</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/hocomoco__SOX4_HUMAN.H11MO.0.B.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX4</td>
+      <td>NaN</td>
+      <td>4.909293</td>
+      <td>0.005675</td>
+      <td>21789.0</td>
+      <td>2109</td>
+    </tr>
+    <tr>
+      <th>metacluster_46.21</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_46.21.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX14, SOX12</td>
+      <td>NaN</td>
+      <td>4.889821</td>
+      <td>0.005662</td>
+      <td>21786.0</td>
+      <td>2008</td>
+    </tr>
+    <tr>
+      <th>tfdimers__MD00291</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/tfdimers__MD00291.png" width="200" ></td>
+      <td>COP</td>
+      <td>YY2, FOXO1</td>
+      <td>NaN</td>
+      <td>4.842816</td>
+      <td>0.005631</td>
+      <td>21761.0</td>
+      <td>1852</td>
+    </tr>
+    <tr>
+      <th>taipale_cyt_meth__BHLHA15_NMCAGCTGKN_eDBD_meth</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/taipale_cyt_meth__BHLHA15_NMCAGCTGKN_eDBD_meth.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>4.569952</td>
+      <td>0.005450</td>
+      <td>20076.0</td>
+      <td>1656</td>
+    </tr>
+    <tr>
+      <th>swissregulon__hs__SRY.p2</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/swissregulon__hs__SRY.p2.png" width="200" ></td>
+      <td>COP</td>
+      <td>SRY</td>
+      <td>NaN</td>
+      <td>4.539013</td>
+      <td>0.005429</td>
+      <td>21761.0</td>
+      <td>1911</td>
+    </tr>
+    <tr>
+      <th>metacluster_46.22</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_46.22.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX17</td>
+      <td>SOX12, SOX5, SRY, SOX30, SOX4, SOX8</td>
+      <td>4.494009</td>
+      <td>0.005399</td>
+      <td>21749.0</td>
+      <td>2332</td>
+    </tr>
+    <tr>
+      <th>metacluster_46.26</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_46.26.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>4.469520</td>
+      <td>0.005383</td>
+      <td>21777.0</td>
+      <td>1809</td>
+    </tr>
+    <tr>
+      <th>transfac_pro__M02101</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/transfac_pro__M02101.png" width="200" ></td>
+      <td>COP</td>
+      <td>MYOG</td>
+      <td>NaN</td>
+      <td>4.402984</td>
+      <td>0.005339</td>
+      <td>21312.0</td>
+      <td>1726</td>
+    </tr>
+    <tr>
+      <th>transfac_pro__M01288</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/transfac_pro__M01288.png" width="200" ></td>
+      <td>COP</td>
+      <td>NEUROD1</td>
+      <td>NaN</td>
+      <td>4.179903</td>
+      <td>0.005191</td>
+      <td>21737.0</td>
+      <td>1767</td>
+    </tr>
+    <tr>
+      <th>taipale_tf_pairs__SOX6_CACCGAACAAT_HT</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/taipale_tf_pairs__SOX6_CACCGAACAAT_HT.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX6</td>
+      <td>NaN</td>
+      <td>4.156788</td>
+      <td>0.005176</td>
+      <td>21774.0</td>
+      <td>1766</td>
+    </tr>
+    <tr>
+      <th>cisbp__M1601</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M1601.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>SOX11</td>
+      <td>4.154369</td>
+      <td>0.005174</td>
+      <td>21757.0</td>
+      <td>2195</td>
+    </tr>
+    <tr>
+      <th>elemento__CAGCTGCA</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/elemento__CAGCTGCA.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>4.110022</td>
+      <td>0.005145</td>
+      <td>21644.0</td>
+      <td>1689</td>
+    </tr>
+    <tr>
+      <th>taipale_cyt_meth__MSC_NNACAGCTGTNN_FL_repr</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/taipale_cyt_meth__MSC_NNACAGCTGTNN_FL_repr.png" width="200" ></td>
+      <td>COP</td>
+      <td>MSC</td>
+      <td>NaN</td>
+      <td>4.021894</td>
+      <td>0.005086</td>
+      <td>21786.0</td>
+      <td>1706</td>
+    </tr>
+    <tr>
+      <th>tfdimers__MD00591</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/tfdimers__MD00591.png" width="200" ></td>
+      <td>COP</td>
+      <td>SRY, TFAP2C</td>
+      <td>NaN</td>
+      <td>4.009351</td>
+      <td>0.005078</td>
+      <td>20834.0</td>
+      <td>1710</td>
+    </tr>
+    <tr>
+      <th>metacluster_14.21</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_14.21.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX18</td>
+      <td>NaN</td>
+      <td>3.916416</td>
+      <td>0.005016</td>
+      <td>21789.0</td>
+      <td>1736</td>
+    </tr>
+    <tr>
+      <th>metacluster_27.27</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_27.27.png" width="200" ></td>
+      <td>COP</td>
+      <td>TCF12, MYOD1, TFAP4, TCF3</td>
+      <td>ASCL1, MYOD1, HES4, ASCL2, TCF12, MYF5, TCF3, TCF4, HES1</td>
+      <td>3.885895</td>
+      <td>0.004996</td>
+      <td>21407.0</td>
+      <td>1696</td>
+    </tr>
+    <tr>
+      <th>homer__AACAGCTGTTHN_E-box</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/homer__AACAGCTGTTHN_E-box.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>3.863079</td>
+      <td>0.004981</td>
+      <td>21672.0</td>
+      <td>1648</td>
+    </tr>
+    <tr>
+      <th>metacluster_27.23</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_27.23.png" width="200" ></td>
+      <td>COP</td>
+      <td>TCF12</td>
+      <td>NaN</td>
+      <td>3.763574</td>
+      <td>0.004915</td>
+      <td>18001.0</td>
+      <td>1431</td>
+    </tr>
+    <tr>
+      <th>metacluster_27.25</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_27.25.png" width="200" ></td>
+      <td>COP</td>
+      <td>OLIG3, MYOG, MYF6, ZBTB18, PTF1A, OLIG2, TCF21, ASCL1, MYOD1, TFAP4, ASCL2, MSC, TCF3, TCF4, FERD3L, SIN3A, ATOH1, BHLHA15, TCF12, MYF5, NEUROG2</td>
+      <td>MYOD1, MYOG, TFAP4, MYF6, TAL1, ATOH1, ASCL2, PTF1A, TCF12, MYF5, TCF3, TCF21, TCF4</td>
+      <td>3.672758</td>
+      <td>0.004855</td>
+      <td>21645.0</td>
+      <td>1814</td>
+    </tr>
+    <tr>
+      <th>transfac_pro__M02907</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/transfac_pro__M02907.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>SOX21</td>
+      <td>3.663889</td>
+      <td>0.004849</td>
+      <td>21773.0</td>
+      <td>1998</td>
+    </tr>
+    <tr>
+      <th>cisbp__M5671</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M5671.png" width="200" ></td>
+      <td>COP</td>
+      <td>NHLH1</td>
+      <td>NaN</td>
+      <td>3.649435</td>
+      <td>0.004839</td>
+      <td>17631.0</td>
+      <td>1366</td>
+    </tr>
+    <tr>
+      <th>flyfactorsurvey__Hth_Cell_FBgn0001235</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/flyfactorsurvey__Hth_Cell_FBgn0001235.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>MEIS2</td>
+      <td>3.592783</td>
+      <td>0.004802</td>
+      <td>21537.0</td>
+      <td>1588</td>
+    </tr>
+    <tr>
+      <th>taipale__NHLH1_full_CGCAGCTGCG</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/taipale__NHLH1_full_CGCAGCTGCG.png" width="200" ></td>
+      <td>COP</td>
+      <td>NHLH1</td>
+      <td>NaN</td>
+      <td>3.572237</td>
+      <td>0.004788</td>
+      <td>21307.0</td>
+      <td>1591</td>
+    </tr>
+    <tr>
+      <th>metacluster_1.72</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_1.72.png" width="200" ></td>
+      <td>COP</td>
+      <td>SRY</td>
+      <td>IRX5, IRX2, IRX6, IRX4, IRX1, IRX3</td>
+      <td>3.555633</td>
+      <td>0.004777</td>
+      <td>21715.0</td>
+      <td>1830</td>
+    </tr>
+    <tr>
+      <th>taipale_tf_pairs__SOX17_ACCGAACAAT_HT</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/taipale_tf_pairs__SOX17_ACCGAACAAT_HT.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX17</td>
+      <td>NaN</td>
+      <td>3.543180</td>
+      <td>0.004769</td>
+      <td>21038.0</td>
+      <td>1686</td>
+    </tr>
+    <tr>
+      <th>hocomoco__ANDR_HUMAN.H11MO.2.A</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/hocomoco__ANDR_HUMAN.H11MO.2.A.png" width="200" ></td>
+      <td>COP</td>
+      <td>AR</td>
+      <td>NaN</td>
+      <td>3.527233</td>
+      <td>0.004758</td>
+      <td>19064.0</td>
+      <td>1449</td>
+    </tr>
+    <tr>
+      <th>jaspar__MA0499.1</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/jaspar__MA0499.1.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>MYOD1</td>
+      <td>3.524336</td>
+      <td>0.004756</td>
+      <td>21725.0</td>
+      <td>1602</td>
+    </tr>
+    <tr>
+      <th>tfdimers__MD00167</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/tfdimers__MD00167.png" width="200" ></td>
+      <td>COP</td>
+      <td>HIC1, MAFA</td>
+      <td>NaN</td>
+      <td>3.523739</td>
+      <td>0.004756</td>
+      <td>20108.0</td>
+      <td>1558</td>
+    </tr>
+    <tr>
+      <th>cisbp__M5869</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M5869.png" width="200" ></td>
+      <td>COP</td>
+      <td>SRY</td>
+      <td>NaN</td>
+      <td>3.503222</td>
+      <td>0.004742</td>
+      <td>14487.0</td>
+      <td>1130</td>
+    </tr>
+    <tr>
+      <th>hdpi__ZNF238</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/hdpi__ZNF238.png" width="200" ></td>
+      <td>COP</td>
+      <td>ZBTB18</td>
+      <td>NaN</td>
+      <td>3.488589</td>
+      <td>0.004733</td>
+      <td>21418.0</td>
+      <td>1667</td>
+    </tr>
+    <tr>
+      <th>taipale_cyt_meth__MSC_NRACAGCTGTYN_eDBD</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/taipale_cyt_meth__MSC_NRACAGCTGTYN_eDBD.png" width="200" ></td>
+      <td>COP</td>
+      <td>MSC</td>
+      <td>NaN</td>
+      <td>3.436298</td>
+      <td>0.004698</td>
+      <td>21279.0</td>
+      <td>1617</td>
+    </tr>
+    <tr>
+      <th>metacluster_77.9</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_77.9.png" width="200" ></td>
+      <td>COP</td>
+      <td>NHLH2, NHLH1, TFAP4</td>
+      <td>NHLH2, NHLH1, ASCL1</td>
+      <td>3.417036</td>
+      <td>0.004685</td>
+      <td>15403.0</td>
+      <td>1200</td>
+    </tr>
+    <tr>
+      <th>factorbook__TCF12</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/factorbook__TCF12.png" width="200" ></td>
+      <td>COP</td>
+      <td>TCF12</td>
+      <td>NaN</td>
+      <td>3.398700</td>
+      <td>0.004673</td>
+      <td>21241.0</td>
+      <td>1618</td>
+    </tr>
+    <tr>
+      <th>metacluster_49.23</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_49.23.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>3.255832</td>
+      <td>0.004578</td>
+      <td>11712.0</td>
+      <td>924</td>
+    </tr>
+    <tr>
+      <th>taipale__SOX2_full_NAACAATANCATTGTTN</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/taipale__SOX2_full_NAACAATANCATTGTTN.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX2</td>
+      <td>NaN</td>
+      <td>3.232031</td>
+      <td>0.004562</td>
+      <td>7821.0</td>
+      <td>628</td>
+    </tr>
+    <tr>
+      <th>metacluster_45.15</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_45.15.png" width="200" ></td>
+      <td>COP</td>
+      <td>TAL1</td>
+      <td>ATOH1</td>
+      <td>3.207841</td>
+      <td>0.004546</td>
+      <td>13342.0</td>
+      <td>1003</td>
+    </tr>
+    <tr>
+      <th>transfac_pro__M02807</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/transfac_pro__M02807.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>3.178186</td>
+      <td>0.004527</td>
+      <td>21735.0</td>
+      <td>1973</td>
+    </tr>
+    <tr>
+      <th>cisbp__M2944</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/cisbp__M2944.png" width="200" ></td>
+      <td>COP</td>
+      <td>TFAP4</td>
+      <td>NaN</td>
+      <td>3.159313</td>
+      <td>0.004514</td>
+      <td>18290.0</td>
+      <td>1476</td>
+    </tr>
+    <tr>
+      <th>metacluster_45.5</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_45.5.png" width="200" ></td>
+      <td>COP</td>
+      <td>OLIG2</td>
+      <td>NaN</td>
+      <td>3.157103</td>
+      <td>0.004513</td>
+      <td>21286.0</td>
+      <td>1528</td>
+    </tr>
+    <tr>
+      <th>taipale__SOX18_full_AACAATNNCATTGTT</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/taipale__SOX18_full_AACAATNNCATTGTT.png" width="200" ></td>
+      <td>COP</td>
+      <td>SOX18</td>
+      <td>NaN</td>
+      <td>3.124880</td>
+      <td>0.004491</td>
+      <td>5618.0</td>
+      <td>459</td>
+    </tr>
+    <tr>
+      <th>metacluster_9.78</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_9.78.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>3.109888</td>
+      <td>0.004481</td>
+      <td>17751.0</td>
+      <td>1308</td>
+    </tr>
+    <tr>
+      <th>taipale_cyt_meth__ZBTB18_NWTCCAGATGTKN_eDBD_meth_repr</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/taipale_cyt_meth__ZBTB18_NWTCCAGATGTKN_eDBD_meth_repr.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>3.079756</td>
+      <td>0.004461</td>
+      <td>21790.0</td>
+      <td>1608</td>
+    </tr>
+    <tr>
+      <th>metacluster_46.6</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_46.6.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>3.044427</td>
+      <td>0.004438</td>
+      <td>17137.0</td>
+      <td>1334</td>
+    </tr>
+    <tr>
+      <th>metacluster_2.195</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_2.195.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>3.014952</td>
+      <td>0.004418</td>
+      <td>6532.0</td>
+      <td>519</td>
+    </tr>
+    <tr>
+      <th>metacluster_27.26</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_27.26.png" width="200" ></td>
+      <td>COP</td>
+      <td>MYF6</td>
+      <td>ASCL1, ASCL2</td>
+      <td>3.012921</td>
+      <td>0.004417</td>
+      <td>21028.0</td>
+      <td>1573</td>
+    </tr>
+    <tr>
+      <th>metacluster_42.41</th>
+      <td><img src="https://motifcollections.aertslab.org/v9nr_clust/logos/metacluster_42.41.png" width="200" ></td>
+      <td>COP</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>3.007247</td>
+      <td>0.004413</td>
+      <td>21264.0</td>
+      <td>1505</td>
+    </tr>
+  </tbody>
+</table></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[94]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cistarget_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="n">out_file</span> <span class="o">=</span> <span class="s1">&#39;/staging/leuven/stg_00002/lcb/cbravo/Multiomics_pipeline/analysis/10x_multiome_brain/output/atac/pycistarget/DARs/cistarget/&#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.html&#39;</span>
+    <span class="n">cistarget_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">motif_enrichment</span><span class="o">.</span><span class="n">to_html</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">),</span> <span class="n">escape</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">col_space</span><span class="o">=</span><span class="mi">80</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="pycistarget_scenic%2B_wrapper.html" class="btn btn-neutral float-left" title="Using pycisTarget within the SCENIC+ workflow" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api.html" class="btn btn-neutral float-right" title="API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Carmen Bravo Gonzalez Blas, Seppe de Winter.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

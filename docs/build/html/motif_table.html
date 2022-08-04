@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SCENIC+ motif collection &mdash; pycistarget 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorials" href="tutorials.html" />
+    <link rel="prev" title="pycisTarget methods" href="tools.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> pycistarget
+          </a>
+              <div class="version">
+                1.0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">pycisTarget methods</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SCENIC+ motif collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pycistarget</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>SCENIC+ motif collection</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/motif_table.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="scenic-motif-collection">
+<h1>SCENIC+ motif collection<a class="headerlink" href="#scenic-motif-collection" title="Permalink to this heading"></a></h1>
+<p>The SCENIC+ motif collection includes more than 49,504 motifs from 29 motif collections, with curated TF motif annotations based on
+direct evidence and orthology between species for human, mouse and fly. In order to account for motif redundancy (i.e. the same or a
+very similar version of the same motif can be found in more than one of these collections), we have implemented a new approach to create
+non-redundant (or clustered) motif collections using a two-step clustering strategy.</p>
+<p>First, identical PWMs across collection (after rescaling) were merged, resulting in 34,524 motifs. A matrix with motif-to-motif similarity
+values was computed using Tomtom (MEME v5.4.1), and motifs with equal length and q-value &lt; 10-40 were merged, resulting in 32,766 motifs
+(unclustered motif collection). For clustering, we used motifs that are similar to at least another motif with q-value &lt; 10-5 (11,526),
+while the remaining were kept as unique motifs, or singlets (9,685). Dimer motifs (1,265) were excluded from the clustering, as well as
+motifs from factorbook and desso, as they do not have direct annotations since they are derived from AI models, as well as motifs with
+an Information Content below 5. With the -log10(Tomtom similiarity)+10-45 matrix as input, we used Seurat (v4.0.3) to normalize,
+scale and perform PCA. Using 100 PCs, we performed Leiden clustering with resolution 25, resulting in 199 clusters. Clusters were
+refined by running STAMP (v1.3; using the -cc -sd –chp option) 119 resulting in 1,985 clusters. For each cluster, we used STAMP’s
+consensus motif to generate the motif logo. The TF annotation of a cluster is inferred by merging the TF annotations (direct and orthology) of
+all its members. Overall, the clustered motif collection contains 9,685 singlets, 1,265 dimers and 1,985 clusters (with a mean of 5.8
+motifs per cluster).</p>
+<p>The SCENIC+ motif collection contains 8,384, 8,045, 958 annotated clusters for 1,553, 1,357 and 467 TFs (with an average of 5, 6, 2
+motifs per TF) for human, mouse, and fly; respectively. Importantly, motifs are not only annotated based on direct TF-motif experimental
+evidence; but also based on orthology (by downloading gene orthologs for the selected species from Ensembl Biomart 105), which permits
+the incorporation of annotations based on experiments in different species. In fact, 433 mouse TFs are only found via orthology,
+augmenting TF-annotations by 47%, as more experiments have been performed in human systems than in mouse.</p>
+<p>The non-redundant motif collection (logos and annotations) can be explored in the table below.</p>
+<iframe src="_static/Motif_collection_collapsed.html" height="500px" width="100%" frameborder="0" "transform": scale(0.25)></iframe></div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tools.html" class="btn btn-neutral float-left" title="pycisTarget methods" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorials.html" class="btn btn-neutral float-right" title="Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Carmen Bravo Gonzalez Blas, Seppe de Winter.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

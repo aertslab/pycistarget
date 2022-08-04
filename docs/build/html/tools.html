@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Methods &mdash; pycistarget 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="SCENIC+ motif collection" href="motif_table.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> pycistarget
+          </a>
+              <div class="version">
+                1.0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Methods</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#homer">Homer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generation-of-cistarget-databases">Generation of cisTarget databases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cistarget">cisTarget</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dem">DEM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scenic">SCENIC+</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="motif_table.html">SCENIC+ motif collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pycistarget</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Methods</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tools.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="methods">
+<h1>Methods<a class="headerlink" href="#methods" title="Permalink to this heading"></a></h1>
+<p>pycisTarget is a motif enrichment suite that combines different motif enrichment approaches such as cisTarget and Homer; and a novel
+approach to compute Differentially Enriched Motifs between sets of regions called DEM. Pycistarget is available at <a class="reference external" href="https://github.com/aertslab/pycistarget">https://github.com/aertslab/pycistarget</a>.</p>
+<div class="section" id="homer">
+<h2>Homer<a class="headerlink" href="#homer" title="Permalink to this heading"></a></h2>
+<p>PycisTarget includes a wrapper to run Homer’s findMotifsGenome.pl, allowing the identification of known and de novo motifs (by default using default Homer parameters). For identifying cistromes for each motif, found motifs are used as input for homer2 find. Known motifs are annotated according to the motifs annotation in the SCENIC+ motif collection. To annotate de novo motifs, tomtom is run with the SCENIC+ motif collection to identify the closest match, allowing to transfer its annotation to the de novo motif when specified. To form TF cistromes, motif-based cistromes are combined based on the TF annotations.</p>
+</div>
+<div class="section" id="generation-of-cistarget-databases">
+<h2>Generation of cisTarget databases<a class="headerlink" href="#generation-of-cistarget-databases" title="Permalink to this heading"></a></h2>
+<p>cisTarget and DEM require ranking and score-based databases, respectively, with regions as rows, motifs (or motif clusters) as columns, and motif enrichment scores, or ranking values of these scores, as values. For this, we have developed an adapted Cluster-Buster115, which is now 2 times faster. Cluster-Buster uses Hidden Markov Models (HMMs) to score clusters of motifs (i.e., Cis-Regulatory Modules (CRM)) given a set of regions. This implementation is available at <a class="reference external" href="https://resources.aertslab.org/cistarget/programs/cbust">https://resources.aertslab.org/cistarget/programs/cbust</a>. Briefly, given a motif collection (in cb format) and a set of regions, we run Cluster-Buster using each motif across all regions. When dealing with motif clusters, Cluster-Buster uses all motif variations by implanting each motif as a hidden state in a HMM, and each candidate sequence receives a log-likelihood ratio (LLR) score per motif cluster (i.e. CRM score). A scores database is first generated by taking the highest CRM score per sequence. A ranking database is then generated by ranking, for each motif, all the regions by decreasing motif score. The code and documentation to generate these databases is available at <a class="reference external" href="https://github.com/aertslab/create_cisTarget_databases">https://github.com/aertslab/create_cisTarget_databases</a>. In addition, we provide precomputed databases using predefined sets of regulatory regions for hg38, mm10 (using SCREEN regions) and dm6 (using cisTarget regions, defined by partitioning the entire non-coding Drosophila genome based on cross-species conservation) at:  <a class="reference external" href="https://resources.aertslab.org/cistarget/databases/https://resources.aertslab.org/cistarget/databases/">https://resources.aertslab.org/cistarget/databases/https://resources.aertslab.org/cistarget/databases/</a> .</p>
+</div>
+<div class="section" id="cistarget">
+<h2>cisTarget<a class="headerlink" href="#cistarget" title="Permalink to this heading"></a></h2>
+<p>pycisTarget implements our ranking based motif enrichment method cisTarget. Briefly, we first score genomic regions (i.e. consensus peaks, or predefined regions from SCREEN) using a motif collection with Cluster-Buster, as previously described. These regions will be ranked based on their motif score for each motif. The input regions are intersected with regions in the database (with at least 40% overlap). cisTarget uses a recovery curve approach (for each motif), in which a step is taken in the y-axis when as region in the motif ranking (x-axis) is found in the region set. The Area Under the Curve for each motif is normalized based on the average AUC for all motifs and their standard deviation, resulting in a Normalized Enrichment Score (NES) that is used to quantify the enrichment of a motif in a set of regions. By default, motif that obtain a NES above 3.0 are kept. To obtain the target regions for each TF, the motif-based cistromes of motifs annotated to that TF are combined.</p>
+</div>
+<div class="section" id="dem">
+<h2>DEM<a class="headerlink" href="#dem" title="Permalink to this heading"></a></h2>
+<p>DEM performs a Wilcoxon test between scores in foreground and background region sets to assess motif enrichment. Briefly, we first score genomic regions (i.e. consensus peaks, or predefined regions from SCREEN) using a motif collection with Cluster-Buster, as previously described. Regions in the input region sets are intersected with regions in the database (with at least 40% overlap), and the Wilcoxon test is performed between CRM score distributions in the two groups. By default, motifs with adjusted p-val &lt; 0.05 (Bonferroni) and Log2FC &gt; 0.5 are kept. A cistrome for each motif is generated by simultaneously optimizing precision and recall to separate foreground from background regions or using a predefined CRM threshold. To obtain the target regions for each TF, the motif-based cistromes of motifs annotated to that TF are combined.</p>
+</div>
+<div class="section" id="scenic">
+<h2>SCENIC+<a class="headerlink" href="#scenic" title="Permalink to this heading"></a></h2>
+<p>Within the SCENIC+ workflow, motif enrichment is performed by default in binarized topics and DARs calculated by pycisTopic, using
+cisTarget and DEM (including and excluding promoters from the region sets). By default, DEM is run using topics or DARs as foreground
+and 500 regions in other topics/DARs as background (with the same proportion of promoters as in the foreground).
+Additional region sets (e.g. DARs derived from specific contrasts instead of using all populations as background) can be easily added.
+Cistromes derived from all the motif enrichment analysis are merged by TF to generate a final set of TF-region cistromes.</p>
+<div class="figure align-default">
+<img alt="_images/Fig1.png" src="_images/Fig1.png" />
+</div>
+<p>The SCENIC+ motif collection includes 34,524 unique motifs gathered from 29 motif collections, which were clustered with a two-step strategy in which motifs are first clustered using Leiden clustering on the -log10 Tomtom q-value matrix, and these clusters are then refined using STAMP. Region scoring is performed using Hidden Markov Models (HMMs) models with an updated version of Cluster-Buster, in which clusters are scored using all the motifs as states instead of using a consensus motif. Ranked scores are used as input for pycisTarget, in which a recovery curve is built for each motif and region set. The Normalized Enrichment Score (NES) indicates how enriched a motif is in the region set. Scores are used for Differentially Enriched Motifs (DEM) analysis, in which a Wilcox test is performed between foreground and background region sets to assess enrichment.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="motif_table.html" class="btn btn-neutral float-right" title="SCENIC+ motif collection" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Carmen Bravo Gonzalez Blas, Seppe de Winter.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
