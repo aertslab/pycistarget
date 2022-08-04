@@ -461,6 +461,9 @@ class DEM():
         
     def DEM_results(self,
                     name: Optional[str] = None):
+        """
+        Print motif enrichment table as HTML
+        """
         motif_enrichment_dict = self.motif_enrichment
         if name is None:
             motif_enrichment_table=pd.concat([motif_enrichment_dict[key] for key in motif_enrichment_dict.keys()], axis=0, sort=False)
