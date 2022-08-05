@@ -29,7 +29,7 @@ The non-redundant motif collection (logos and annotations) can be explored in th
 
 .. raw:: html
 
-    <iframe src="_static/Motif_collection_collapsed.html" height="500px" width="100%" frameborder="0" "transform": scale(0.25)></iframe>
+    <iframe src="../../source/Motif_collection_collapsed.html" height="500px" width="100%" frameborder="0" "transform": scale(0.25)></iframe>
 
 
 
