@@ -5,9 +5,6 @@ pycistarget is a python module to perform motif enrichment analysis in sets of r
 
 .. warning::
 	pycistarget is still under development. It is currently a beta version. Functions in this package may change in a future release.
-	
-.. warning::
-	Detailed tutorials will be posted in the coming days. Stay tuned!
 
 .. toctree::
    :hidden:
