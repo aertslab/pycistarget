@@ -179,3 +179,6 @@ epub_exclude_files = ['search.html']
 
 # Increase recursion limit
 import sys; sys.setrecursionlimit(10000000)
+
+# Add extra html
+html_extra_path=['Motif_collection_collapsed.html']
