@@ -28,4 +28,4 @@ To check your pycistarget version::
 Tutorials & documentation
 **********************
 
-Tutorial and documentation are available at [read the docs](https://pycistarget.readthedocs.io/).
+Tutorial and documentation are available at https://pycistarget.readthedocs.io/.
