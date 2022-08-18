@@ -25,6 +25,8 @@ evidence; but also based on orthology (by downloading gene orthologs for the sel
 the incorporation of annotations based on experiments in different species. In fact, 433 mouse TFs are only found via orthology, 
 augmenting TF-annotations by 47%, as more experiments have been performed in human systems than in mouse. 
 
+You can access motif annotations and precomputed databases at https://resources.aertslab.org/cistarget/ .
+
 The non-redundant motif collection (logos and annotations) can be explored in the table below.
 
 .. raw:: html
