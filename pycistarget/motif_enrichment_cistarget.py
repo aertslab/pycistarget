@@ -324,6 +324,23 @@ class cisTarget:
         ness = (aucs - aucs.mean()) / aucs.std()
         # Keep only features that are enriched, i.e. NES sufficiently high.
         enriched_features_idx = ness >= self.nes_threshold
+        #terminate if no features are enriched
+        if sum(enriched_features_idx) == 0:
+            log.info("No enriched motifs found for {}".format(self.name))
+            self.motif_enrichment = pd.DataFrame(
+                data = {
+                    'Logo': [], 
+                    'Region_set': [], 
+                    'Direct_annot': [], 
+                    'Motif_similarity_annot': [], 
+                    'Orthology_annot': [], 
+                    'Motif_similarity_and_Orthology_annot': [], 
+                    'NES': [], 
+                    'AUC': [],
+                    'Rank_at_max': []})
+            self.motif_hits = {'Database': {}, 'Region_set': {}}
+            self.cistromes = {'Database': {}, 'Region_set': {}}
+            return
         # Make dataframe
         enriched_features = pd.DataFrame(index=pd.Index(features[enriched_features_idx], name = COLUMN_NAME_MOTIF_ID),
                                     data={COLUMN_NAME_NES: ness[enriched_features_idx],
