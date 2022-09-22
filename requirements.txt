@@ -9,6 +9,7 @@ ray[default]
 scipy
 scikit-learn
 typing
+mudata
 sphinx_rtd_theme
 nbsphinx
 nbsphinx_link
