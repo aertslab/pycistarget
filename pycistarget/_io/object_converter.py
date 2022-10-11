@@ -1,4 +1,3 @@
-from multiprocessing.sharedctypes import Value
 from mudata import AnnData, MuData
 from scipy.sparse import csr_matrix
 from typing import Tuple, Iterator, Mapping, Union
@@ -150,4 +149,3 @@ def dict_motif_enrichment_results_to_mudata(menr: Mapping[str, Union[cisTarget, 
         else:
             raise ValueError(f'unknown datatype for {key}: {type(menr[key])}')
     return MuData(mudata_constructor)
-
