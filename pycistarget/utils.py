@@ -14,6 +14,9 @@ def coord_to_region_names(coord: pr.PyRanges):
     Convert coordinates to region names (UCSC format)
     """
     if isinstance(coord, pr.PyRanges):
+        #in case of an empty pyranges, return an empty list
+        if len(coord) == 0:
+            return []
         coord = coord.as_df()
         return list(coord['Chromosome'].astype(str) + ':' + coord['Start'].astype(str) + '-' + coord['End'].astype(str))
 
