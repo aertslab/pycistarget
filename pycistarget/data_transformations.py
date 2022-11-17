@@ -2,7 +2,10 @@ from mudata import MuData, AnnData
 import pandas as pd
 import numpy as np
 from scipy.sparse import csr_matrix
-from typing import List
+from typing import List, Mapping
+from pycistarget.motif_enrichment_cistarget import cisTargetDatabase
+from pycistarget.utils import region_names_to_coordinates
+import pyranges as pr
 
 _flatten_list = lambda l: [item for sublist in l for item in sublist]
 
@@ -26,7 +29,30 @@ def _merge_columns_across_samples_if_possible(df, split_pattern = ':'):
             #drop the old duplicate columns
             df.drop(column_names_across_samples[column_name], axis = 1, inplace = True)
 
-def merge(mdata: MuData, split_pattern = ':') -> AnnData:
+def merge(mdata: MuData, split_pattern:str = ':') -> AnnData:
+    """
+    Merge `MuData` containing multiple motif enrichment results into a single `AnnData`
+
+    Parameters
+    ----------
+    mdata: MuData
+        A `MuData` containing multiple motif enrichment results
+    split_patter: str
+        Pattern used to seperate motif enrichment result name and column names in `.var` if merging the columns is not possible.
+    
+    Returns
+    -------
+    A single AnnData containing all motif enrichment results.
+
+    Examples
+    --------
+    >>> mdata_motifs = dict_motif_enrichment_results_to_mudata(scplus_obj.menr)
+    >>> adata_motifs = merge(mdata_motifs)
+    >>> adata_motifs
+        AnnData object with n_obs x n_vars = 139020 x 1337
+            obs: 'Query', 'Target'
+            var: 'DARs_cellLine_All_CTX_MM001:Region_set', 'DARs_cellLine_All_CTX_MM001:NES', 'DARs_cellLine_All_CTX_MM001:AUC', ...
+    """
     var = pd.concat(
         objs = [mdata[k].var.add_prefix(f'{k}{split_pattern}') for k in mdata.mod.keys()],
         axis = 1)
@@ -39,11 +65,80 @@ def merge(mdata: MuData, split_pattern = ':') -> AnnData:
         var = var.loc[x.columns],
         obs = obs.loc[x.index])
 
+def _get_TF_to_motif_mapping(adata: AnnData, annotations_to_use = ['Direct_annot']) -> Mapping[str, List[str]]:
+    annotations_not_found = list(set(annotations_to_use) - set(adata.var.columns))
+    if len(annotations_not_found) > 0:
+        raise ValueError(f"The following annotations were not found in adata.var: {', '.join(annotations_not_found)}")
+    annotations_to_list = lambda x: sorted(x.split(', ')) if not pd.isnull(x) else []
+    return adata.var[annotations_to_use].applymap(annotations_to_list).sum(1).map(set).map(list) \
+         .explode().reset_index().rename({'index': 'motif', 0: 'TF'}, axis = 1) \
+         .dropna().groupby('TF').agg(list).to_dict()['motif']
+
+def get_max_rank_for_TF_to_region(
+    adata_motifs: AnnData,
+    ctx_db_fname: str,
+    annotations_to_use: List[str] = ['Orthology_annot', 'Direct_annot']) -> AnnData:
+    """
+    Create an `AnnData` object containing the max rank for each region across motifs of each TF
+
+    Parameters
+    ----------
+    adata_motifs: AnnData,
+        An AnnData containing motif enrichment results.
+    ctx_db_fname: str,
+        File path to a cistarget database (has to be the same database as used to generate the motif enrichment results).
+    annotations_to_use: List[str] = ['Orthology_annot', 'Direct_annot']
+        Which evidence of motif-to-TF annotations to use
+
+    Returns
+    -------
+        An `AnnData` object containing the max rank for each region across motifs of each TF.
+
+    Examples
+    --------
+    >>> mdata_motifs = dict_motif_enrichment_results_to_mudata(scplus_obj.menr)
+    >>> adata_motifs = merge(mdata_motifs)
+    >>> db_fname = 'cluster_SCREEN.regions_vs_motifs.rankings.v2.feather'
+    >>> adata_max_rank = get_max_rank_for_TF_to_region(adata_motifs, db_fname)
+    >>> adata_max_rank
+        AnnData object with n_obs × n_vars = 139020 × 902
+    
+    """
+    ctx_db = cisTargetDatabase(
+        fname=ctx_db_fname, region_sets = pr.PyRanges(region_names_to_coordinates(adata_motifs.obs_names)))
+    TF_to_motifs = _get_TF_to_motif_mapping(adata_motifs, annotations_to_use = annotations_to_use)
+    l_motifs = list(TF_to_motifs.values())
+    #convert motif names to numerical indices to allow indexing on the numpy array
+    #this is 10x faster compared to indexing on the dataframe itself
+    l_motifs_idx = [[ctx_db.db_rankings.index.get_loc(x) for x in m] for m in l_motifs]
+    rankings = ctx_db.db_rankings.to_numpy()
+    max_rank = np.array([rankings[x].min(0) for x in l_motifs_idx])
+    #convert region names from database regions names in adata_motifs
+    #this is important in case the database was not generated in the consensus peaks
+    #can be skipped in case the databse is generated on consensus peaks
+    if not all(ctx_db.regions_to_db['Target'] == ctx_db.regions_to_db['Query']):
+        df_max_rank = pd.DataFrame(max_rank.T, index = ctx_db.db_rankings.columns, columns = list(TF_to_motifs.keys()))
+        df_max_rank = ctx_db.regions_to_db \
+            .merge(right = df_max_rank, how = 'left', left_on = 'Query', right_on = 'regions') \
+            .drop('Query', axis = 1).set_index('Target')
+        X = csr_matrix(df_max_rank.to_numpy())
+        obs = pd.DataFrame(index = df_max_rank.index)
+        var = pd.DataFrame(index = df_max_rank.columns)
+    else:
+        X = csr_matrix(max_rank.T)
+        obs = pd.DataFrame(index = ctx_db.db_rankings.columns)
+        var = pd.DataFrame(index = pd.Index(list(TF_to_motifs.keys())))
+    #create and return AnnData
+    return AnnData(X = X, dtype = np.uint32, obs = obs, var = var)
+
 def motif_adata_to_TF_mudata(
     adata: AnnData,
     annotations_to_use_as_direct: List[str] = ['Direct_annot'],
     annotations_to_use_as_exteded: List[str] = ['Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
     split_pattern = ':') -> MuData:
+    """
+    !THIS FUNCTION IS STILL EXPERIMENTAL!
+    """
     column_names_across_samples = _group_colnames_by_sample(adata.var.columns, split_pattern)
     annotations_not_found = [x for x in [*annotations_to_use_as_direct, *annotations_to_use_as_exteded] if x not in column_names_across_samples.keys()]
     if len(annotations_not_found) > 0:

@@ -5,7 +5,6 @@ import pandas as pd
 import numpy as np
 from pycistarget.motif_enrichment_cistarget import cisTarget
 from pycistarget.motif_enrichment_dem import DEM
-from pycistarget.utils import coord_to_region_names
 
 def _motif_hits_to_matrix(motif_hits: dict, features: list) -> Tuple[csr_matrix, list, list]:
     motif_hit_matrix = pd.DataFrame(index = features, columns = motif_hits.keys()).fillna(0)
@@ -33,7 +32,7 @@ def cisTarget_to_AnnData(cistarget_obj: cisTarget) -> AnnData:
     if not isinstance(cistarget_obj, cisTarget):
         raise ValueError("cistarget_obj should be an instance of the class cisTarget")
     #convert motif hits from dict of lists to sparse matrix, will become X in AnnData
-    region_names = coord_to_region_names(cistarget_obj.region_set)
+    region_names = cistarget_obj.regions_to_db['Target'].tolist()
     motif_hit_matrix, region_names, motif_names = _motif_hits_to_matrix(cistarget_obj.motif_hits['Region_set'], region_names)
     #extract AnnData obs field, which is the mapping between region_set regions and cistarget database regions
     obs = cistarget_obj.regions_to_db.copy()
@@ -84,7 +83,7 @@ def DEM_to_AnnData(dem_obj: DEM) -> Iterator[Tuple[str, AnnData]]:
         raise ValueError("dem_obj should be an instance of the class DEM")
     for contrast in dem_obj.region_sets.keys():
         #convert motif hits from dict of lists to sparse matrix, will become X in AnnData
-        region_names = coord_to_region_names(dem_obj.region_sets[contrast])
+        region_names = dem_obj.regions_to_db[contrast]['Target'].tolist()
         motif_hit_matrix, region_names, motif_names = _motif_hits_to_matrix(dem_obj.motif_hits['Region_set'][contrast], region_names)
         #extract AnnData obs field, which is the mapping between region_set regions and cistarget database regions
         obs = dem_obj.regions_to_db[contrast].copy()
