@@ -1,3 +1,7 @@
+
+.. image:: https://zenodo.org/badge/351019583.svg
+   :target: https://zenodo.org/badge/latestdoi/351019583
+
 pycistarget
 ==========
 
