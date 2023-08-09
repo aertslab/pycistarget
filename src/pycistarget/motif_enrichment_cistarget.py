@@ -1,5 +1,4 @@
-from typing_extensions import final
-from ctxcore.genesig import Regulon, GeneSignature
+from ctxcore.genesig import GeneSignature
 from ctxcore.recovery import recovery, aucs as calc_aucs
 from ctxcore.recovery import leading_edge4row
 from ctxcore.rnkdb import FeatherRankingDatabase
@@ -13,10 +12,13 @@ import pyranges as pr
 import ray
 import ssl
 import sys
-from typing import Union, Dict, Sequence, Optional
-import h5py
-from collections.abc import Mapping
-from .utils import is_iterable_not_string
+from typing import Union, Dict, Optional, Tuple
+from utils import (
+    target_to_query,
+    region_sets_to_signature,
+    get_cistromes_per_region_set,
+    load_motif_annotations,
+    coord_to_region_names)
 
 from IPython.display import HTML
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -25,9 +27,6 @@ pd.set_option('display.max_colwidth', None)
 # Set stderr to null when using ray.init to avoid ray printing Broken pipe million times
 _stderr = sys.stderr
 null = open(os.devnull,'wb') 
-
-
-from .utils import *
 
 class cisTargetDatabase: 
     """
@@ -48,7 +47,7 @@ class cisTargetDatabase:
     def __init__(self, 
                 fname: str,
                 region_sets: Union[Dict[str, pr.PyRanges], pr.PyRanges] = None,
-                name: str = None,
+                name: Optional[str] = None,
                 fraction_overlap: float = 0.4):
         """
         Initialize cisTargetDatabase
@@ -71,8 +70,9 @@ class cisTargetDatabase:
     def load_db(self,
                 fname: str,
                 region_sets: Union[Dict[str, pr.PyRanges], pr.PyRanges] = None,
-                name: str = None,
-                fraction_overlap: float = 0.4):
+                name: Optional[str] = None,
+                fraction_overlap: float = 0.4
+) -> Tuple[Union[Dict[str, pd.DataFrame], pd.DataFrame, None], pd.DataFrame, int]:
         """
         Load cisTargetDatabase
         
@@ -201,12 +201,12 @@ class cisTarget:
                  auc_threshold: float = 0.005,
                  nes_threshold: float = 3.0,
                  rank_threshold: float = 0.05,
-                 path_to_motif_annotations: str = None,
+                 path_to_motif_annotations: Optional[str] = None,
                  annotation_version: str = 'v9',
                  annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
                  motif_similarity_fdr: float = 0.001,
                  orthologous_identity_threshold: float = 0.0,
-                 motifs_to_use: list = None):
+                 motifs_to_use: Optional[list] = None):
         """
         Initialize cisTarget class.
 
@@ -294,7 +294,6 @@ class cisTarget:
         COLUMN_NAME_MOTIF_ID = "MotifID"
         COLUMN_NAME_TARGET_GENES = "TargetRegions"
         COLUMN_NAME_RANK_AT_MAX = "RankAtMax"
-        COLUMN_NAME_TYPE = "Type"
 
         self.regions_to_db = ctx_db.regions_to_db[self.name] if type(ctx_db.regions_to_db) == dict else ctx_db.regions_to_db.loc[set(coord_to_region_names(self.region_set)) & set(ctx_db.regions_to_db['Target'])]
 
@@ -338,8 +337,8 @@ class cisTarget:
                     'NES': [], 
                     'AUC': [],
                     'Rank_at_max': []})
-            self.motif_hits = {'Database': {}, 'Region_set': {}}
-            self.cistromes = {'Database': {}, 'Region_set': {}}
+            self.motif_hits: dict = {'Database': {}, 'Region_set': {}}
+            self.cistromes: dict = {'Database': {}, 'Region_set': {}}
             return
         # Make dataframe
         enriched_features = pd.DataFrame(index=pd.Index(features[enriched_features_idx], name = COLUMN_NAME_MOTIF_ID),
@@ -444,14 +443,14 @@ def run_cistarget(ctx_db: cisTargetDatabase,
                                auc_threshold: float = 0.005,
                                nes_threshold: float = 3.0,
                                rank_threshold: float = 0.05,
-                               path_to_motif_annotations: str = None,
+                               path_to_motif_annotations: Optional[str] = None,
                                annotation_version: str = 'v9',
                                annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
                                motif_similarity_fdr: float = 0.001,
                                orthologous_identity_threshold: float = 0.0,
                                n_cpu : int = 1,
-                               motifs_to_use: list = None,
-                               **kwargs):
+                               motifs_to_use: Optional[list] = None,
+                               **kwargs) -> Dict[str, cisTarget]:
     """
     Run cisTarget.
 
@@ -523,8 +522,7 @@ def run_cistarget(ctx_db: cisTargetDatabase,
     # Run cistarget analysis in parallel
     if n_cpu > 1:
         ray.init(num_cpus=n_cpu, **kwargs)
-        sys.stderr = null
-        ctx_dict = ray.get([ctx_internal_ray.remote(ctx_db = ctx_db, 
+        ctx_list = ray.get([ctx_internal_ray.remote(ctx_db = ctx_db, 
                                             region_set = region_sets[key], 
                                             name = key,  
                                             specie = specie,
@@ -538,9 +536,8 @@ def run_cistarget(ctx_db: cisTargetDatabase,
                                             orthologous_identity_threshold = orthologous_identity_threshold,
                                             motifs_to_use = motifs_to_use) for key in list(region_sets.keys())])
         ray.shutdown()
-        sys.stderr = sys.__stderr__
     else:
-        ctx_dict = [ctx_internal(ctx_db = ctx_db, 
+        ctx_list = [ctx_internal(ctx_db = ctx_db, 
                                             region_set = region_sets[key], 
                                             name = key,  
                                             specie = specie,
@@ -553,7 +550,7 @@ def run_cistarget(ctx_db: cisTargetDatabase,
                                             motif_similarity_fdr = motif_similarity_fdr,
                                             orthologous_identity_threshold = orthologous_identity_threshold,
                                             motifs_to_use = motifs_to_use) for key in list(region_sets.keys())]
-    ctx_dict = {key: ctx_result for key, ctx_result in zip(list(region_sets.keys()), ctx_dict)}
+    ctx_dict = {key: ctx_result for key, ctx_result in zip(list(region_sets.keys()), ctx_list)}
     log.info('Done!')
     return ctx_dict
         
@@ -565,12 +562,12 @@ def ctx_internal_ray(ctx_db: cisTargetDatabase,
             auc_threshold: float = 0.005,
             nes_threshold: float = 3.0,
             rank_threshold: float = 0.05,
-            path_to_motif_annotations: str = None,
+            path_to_motif_annotations: Optional[str] = None,
             annotation_version: str = 'v9',
             annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
             motif_similarity_fdr: float = 0.001,
             orthologous_identity_threshold: float = 0.0,
-            motifs_to_use: list = None) -> pd.DataFrame:
+            motifs_to_use: Optional[list] = None) -> pd.DataFrame:
             
     """
     Internal function to run cistarget in parallel with Ray.
@@ -640,12 +637,13 @@ def ctx_internal(ctx_db: cisTargetDatabase,
             auc_threshold: float = 0.005,
             nes_threshold: float = 3.0,
             rank_threshold: float = 0.05,
-            path_to_motif_annotations: str = None,
+            path_to_motif_annotations: Optional[str] = None,
             annotation_version: str = 'v9',
             annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
             motif_similarity_fdr: float = 0.001,
             orthologous_identity_threshold: float = 0.0,
-            motifs_to_use: list = None ):
+            motifs_to_use: Optional[list] = None
+) -> cisTarget:
     """
     Internal function to run cistarget.
     
@@ -709,7 +707,8 @@ def ctx_internal(ctx_db: cisTargetDatabase,
     
 ## Show results 
 def cistarget_results(cistarget_dict,
-                    name: Optional[str] = None):
+                    name: Optional[str] = None
+) -> HTML:
     """
     A function to show cistarget results in jupyter notebooks.
     
