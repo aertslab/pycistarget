@@ -1,6 +1,5 @@
 from ctxcore.rnkdb import FeatherRankingDatabase
 from ctxcore.genesig import GeneSignature
-import io
 import logging
 import numpy as np
 import os
@@ -8,14 +7,20 @@ import pandas as pd
 import pyranges as pr
 import random
 import ray
-import re
 from scipy.stats import ranksums
 import scipy.sparse as sparse
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import roc_curve
 import ssl
-import subprocess
 import sys
-from typing import Union, Dict, Sequence, Optional
+from typing import Union, Dict, Optional, Tuple, List
+from utils import (
+    target_to_query,
+    get_cistromes_per_region_set,
+    load_motif_annotations,
+    coord_to_region_names,
+    region_names_to_coordinates,
+    get_position_index)
+from cluster_buster import cluster_buster
 
 from IPython.display import HTML
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -24,9 +29,6 @@ pd.set_option('display.max_colwidth', None)
 # Set stderr to null when using ray.init to avoid ray printing Broken pipe million times
 _stderr = sys.stderr                                                         
 null = open(os.devnull,'wb') 
-
-from .cluster_buster import *
-from .utils import *
 
 # DEM database
 class DEMDatabase: 
@@ -47,9 +49,8 @@ class DEMDatabase:
     """
     def __init__(self, 
                 fname: str,
-                region_sets: Dict[str, pr.PyRanges] = None,
-                name: str = None,
-                fraction_overlap: float = 0.4):
+                region_sets: Optional[Dict[str, pr.PyRanges]] = None,
+                name: Optional[str] = None):
         """
         Initialize DEMDatabase
         
@@ -66,14 +67,13 @@ class DEMDatabase:
         """
         self.regions_to_db, self.db_scores = self.load_db(fname,
                                                           region_sets,
-                                                          name,
-                                                          fraction_overlap)
+                                                          name)
     
     def load_db(self,
                 fname: str,
-                region_sets: Dict[str, pr.PyRanges] = None,
-                name: str = None,
-                fraction_overlap: float = 0.4):
+                region_sets: Optional[Dict[str, pr.PyRanges]] = None,
+                name: Optional[str] = None,
+) -> Tuple[Union[Dict[str, pd.DataFrame], None], pd.DataFrame]:
         """
         Load DEMDatabase
         
@@ -120,7 +120,7 @@ class DEMDatabase:
             db_scores = db.load_full()
         return target_to_db_dict, db_scores
 
-class DEM():
+class DEM:
     """
     DEM class.
     :class:`DEM` contains DEM method for motif enrichment analysis on sets of regions. 
@@ -195,24 +195,24 @@ class DEM():
                  subset_motifs: Optional[List[str]] = None,
                  contrasts: Optional[Union[str,List]] = 'Other',
                  name: Optional[str] = 'DEM',
-                 max_bg_regions: int = None,
+                 max_bg_regions: Optional[int] = None,
                  adjpval_thr: Optional[float] = 0.05,
                  log2fc_thr: Optional[float] = 1,
                  mean_fg_thr: Optional[float] = 0,
                  motif_hit_thr : Optional[float] = None,
                  n_cpu: Optional[int] = 1,
                  fraction_overlap: float = 0.4,
-                 cluster_buster_path: str = None,
-                 path_to_genome_fasta: str = None,
-                 path_to_motifs: str = None,
-                 genome_annotation: pr.PyRanges = None,
+                 cluster_buster_path: Optional[str] = None,
+                 path_to_genome_fasta: Optional[str] = None,
+                 path_to_motifs: Optional[str] = None,
+                 genome_annotation: Optional[pr.PyRanges] = None,
                  promoter_space: int = 1000,
-                 path_to_motif_annotations: str = None,
+                 path_to_motif_annotations: Optional[str] = None,
                  annotation_version: str = 'v9',
                  motif_annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
                  motif_similarity_fdr: float = 0.001,
                  orthologous_identity_threshold: float = 0.0,
-                 tmp_dir: int = None,
+                 tmp_dir: Optional[str] = None,
                  **kwargs):
         """
         Initialize DEM 
@@ -270,7 +270,7 @@ class DEM():
         motifs_to_use: List, optional
             A subset of motifs to use for the analysis. Default: None (All)
         tmp_dir: str, optional
-            Temp directory to use if running cluster_buster. Default: None (\tmp)
+            Temp directory to use if running cluster_buster. Default: None (/tmp)
         **kwargs:
             Additional parameters to pass to `ray.init()`
         """
@@ -279,8 +279,7 @@ class DEM():
             if isinstance(dem_db, str):
                 dem_db = DEMDatabase(dem_db,
                                      region_sets,
-                                     name = name,
-                                     fraction_overlap = fraction_overlap)
+                                     name = name)
             self.regions_to_db = dem_db.regions_to_db
             if subset_motifs is not None:
                 dem_db.db_scores = dem_db.db_scores.loc[subset_motifs,:]
@@ -490,9 +489,9 @@ def create_groups(contrast: list,
                   path_to_regions_fasta: str,
                   cbust_path: str,
                   path_to_motifs: str,
-                  annotation: pr.PyRanges = None,
+                  annotation: Optional[pr.PyRanges] = None,
                   promoter_space: int = 1000,
-                  motifs: list = None,
+                  motifs: Optional[list] = None,
                   n_cpu: int = 1,
                   **kwargs):
     """"
