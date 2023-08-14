@@ -13,7 +13,7 @@ import ray
 import ssl
 import sys
 from typing import Union, Dict, Optional, Tuple
-from utils import (
+from pycistarget.utils import (
     target_to_query,
     region_sets_to_signature,
     get_cistromes_per_region_set,
@@ -295,7 +295,9 @@ class cisTarget:
         COLUMN_NAME_TARGET_GENES = "TargetRegions"
         COLUMN_NAME_RANK_AT_MAX = "RankAtMax"
 
-        self.regions_to_db = ctx_db.regions_to_db[self.name] if type(ctx_db.regions_to_db) == dict else ctx_db.regions_to_db.loc[set(coord_to_region_names(self.region_set)) & set(ctx_db.regions_to_db['Target'])]
+        self.regions_to_db = ctx_db.regions_to_db[self.name] if type(ctx_db.regions_to_db) == dict \
+            else ctx_db.regions_to_db.loc[
+                list(set(coord_to_region_names(self.region_set)) & set(ctx_db.regions_to_db['Target']))]
 
         # Log
         log.info("Running cisTarget for {} which has {} regions".format(self.name, len(self.regions_to_db['Query'].tolist())))
