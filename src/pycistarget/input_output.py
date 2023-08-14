@@ -2,9 +2,12 @@
 
 import h5py
 import numpy as np
-from typing import Literal
+from typing import Literal, Dict, List
+
+import pyranges as pr
 from pycistarget.motif_enrichment_cistarget import cisTarget
 import pycistarget
+import pandas as pd
 
 _CISTARGET_METADATA_FIELD = [
     "specie",
@@ -57,16 +60,14 @@ def write_cistarget(
     h5 = h5py.File(path, mode)
     # Set root to name of cistarget run
     h5_root = h5.create_group(cistarget.name)
-    
+
     # Save metadata
     h5_metadata_grp = h5_root.create_group("metadata")
     for metadata_field in _CISTARGET_METADATA_FIELD:
         data = getattr(cistarget, metadata_field)
         if data is not None:
             h5_metadata_grp.create_dataset(name=metadata_field, data=data)
-    h5_metadata_grp.create_dataset(
-        name="version",
-        data=pycistarget.__version__)
+    h5_metadata_grp.create_dataset(name="version", data=pycistarget.__version__)
 
     # Save cistromes
     h5_cistromes_grp = h5_root.create_group("cistromes")
@@ -118,7 +119,6 @@ def write_cistarget(
 
     # Close file handle.
     h5.close()
-    
 
     # Write motif enrichment to disk
     motif_enrichment.to_hdf(
@@ -142,5 +142,66 @@ def write_cistarget(
         path, key=f"{cistarget.name}/regions_to_db", append=True, mode="r+"
     )
 
-def read_cistarget_hdf5():
-    pass
+
+def read_cistarget_hdf5(path=str) -> Dict[str, cisTarget]:
+    # Open hdf5 file
+    h5 = h5py.File(path, mode="r")
+
+    dict_cistarget: Dict[str, cisTarget] = {}
+
+    # Loop over root keys of hdf5 file.
+    # In case multiple cisTarget results are saved in a single file.
+    for name in h5.keys():
+        # Read cistromes
+        cistromes: Dict[str, Dict[str, List[str]]] = {}
+        for database_or_regionset in h5[name]["cistromes"].keys():
+            cistromes[database_or_regionset] = {}
+            for cistrome_name in h5[name]["cistromes"][database_or_regionset].keys():
+                cistromes[database_or_regionset][cistrome_name] = list(map(
+                    bytes.decode,
+                    h5[name]["cistromes"][database_or_regionset][cistrome_name][:]))
+    
+        # Read motif_hits
+        motif_hits: Dict[str, Dict[str, List[str]]] = {}
+        for database_or_regionset in h5[name]["motif_hits"].keys():
+            motif_hits[database_or_regionset] = {}
+            for motif_name in h5[name]["motif_hits"][database_or_regionset].keys():
+                motif_hits[database_or_regionset][motif_name] = list(map(
+                            bytes.decode,
+                            h5[name]["motif_hits"][database_or_regionset][motif_name][:]))
+
+        # Read metadata
+        metadata_kwargs = dict(
+            annotation = map(bytes.decode, h5[name]["metadata"]["annotation"][()]),
+            annotation_version = h5[name]["metadata"]["annotation_version"][()].decode(),
+            auc_threshold = h5[name]["metadata"]["auc_threshold"][()],
+            motif_similarity_fdr = h5[name]["metadata"]["motif_similarity_fdr"][()],
+            nes_threshold = h5[name]["metadata"]["nes_threshold"][()],
+            orthologous_identity_threshold =  h5[name]["metadata"]["orthologous_identity_threshold"][()],
+            rank_threshold = h5[name]["metadata"]["rank_threshold"][()],
+            specie = h5[name]["metadata"]["specie"][()],
+        )
+
+        # Read motif enrichment and regions_to_db
+        motif_enrichment = pd.read_hdf(
+            path, key = f"{name}/motif_enrichment"
+        )
+
+        regions_to_db = pd.read_hdf(
+            path, key = f"{name}/regions_to_db"
+        )
+
+        dict_cistarget[name] = cisTarget(
+            region_set=pr.PyRanges(), # Empty pyranges
+            name = name,
+            **metadata_kwargs)
+        dict_cistarget[name].cistromes = cistromes
+        dict_cistarget[name].motif_hits = motif_hits
+        dict_cistarget[name].motif_enrichment = motif_enrichment
+        dict_cistarget[name].regions_to_db = regions_to_db
+
+    h5.close()
+
+
+
+    return dict_cistarget
