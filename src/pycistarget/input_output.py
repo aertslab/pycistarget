@@ -2,8 +2,9 @@
 
 import h5py
 import numpy as np
-from typing import Literal, Union
+from typing import Literal
 from pycistarget.motif_enrichment_cistarget import cisTarget
+import pycistarget
 
 _CISTARGET_METADATA_FIELD = [
     "specie",
@@ -56,13 +57,16 @@ def write_cistarget(
     h5 = h5py.File(path, mode)
     # Set root to name of cistarget run
     h5_root = h5.create_group(cistarget.name)
-
+    
     # Save metadata
     h5_metadata_grp = h5_root.create_group("metadata")
     for metadata_field in _CISTARGET_METADATA_FIELD:
         data = getattr(cistarget, metadata_field)
         if data is not None:
             h5_metadata_grp.create_dataset(name=metadata_field, data=data)
+    h5_metadata_grp.create_dataset(
+        name="version",
+        data=pycistarget.__version__)
 
     # Save cistromes
     h5_cistromes_grp = h5_root.create_group("cistromes")
@@ -137,3 +141,6 @@ def write_cistarget(
     regions_to_db.to_hdf(
         path, key=f"{cistarget.name}/regions_to_db", append=True, mode="r+"
     )
+
+def read_cistarget_hdf5():
+    pass
