@@ -36,7 +36,7 @@ _DTYPE_MAPPING = {
 
 def write_cistarget(
     cistarget: cisTarget,
-    path_or_buf: Union[str, h5py.File],
+    path: str,
     mode: Literal["w", "a"] = "w",
 ):
     """
@@ -53,10 +53,7 @@ def write_cistarget(
         Mode used to open file.
         Defaults to 'w'
     """
-    if isinstance(path_or_buf, str):
-        h5 = h5py.File(path_or_buf, mode)
-    else:
-        h5 = path_or_buf
+    h5 = h5py.File(path, mode)
     # Set root to name of cistarget run
     h5_root = h5.create_group(cistarget.name)
 
@@ -115,15 +112,13 @@ def write_cistarget(
         }
     )
 
-    # Close file handle in case we opened it at the start.
-    # It's the responsibility of the caller of this function to close it
-    # in case a file handle was passed.
-    if isinstance(path_or_buf, str):
-        h5.close()
+    # Close file handle.
+    h5.close()
     
+
     # Write motif enrichment to disk
     motif_enrichment.to_hdf(
-        path_or_buf, key=f"{cistarget.name}/motif_enrichment", append=True, mode="r+"
+        path, key=f"{cistarget.name}/motif_enrichment", append=True, mode="r+"
     )
 
     # Make a copy of regions_to_db dataframe
@@ -140,5 +135,5 @@ def write_cistarget(
     )
     # Write regions_to_db to disk
     regions_to_db.to_hdf(
-        path_or_buf, key=f"{cistarget.name}/regions_to_db", append=True, mode="r+"
+        path, key=f"{cistarget.name}/regions_to_db", append=True, mode="r+"
     )
