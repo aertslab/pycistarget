@@ -128,7 +128,7 @@ def run_cistarget_command(
     elif output_mode == "hdf5":
         write_cistarget(
             cistarget=cistarget_result,
-            path_or_buf=os.path.join(
+            path=os.path.join(
                 output_folder, f"motif_enrichment_cistarget_{name}.hdf5"
             ),
             mode="w",
@@ -136,7 +136,7 @@ def run_cistarget_command(
     elif output_mode == "hdf5+":
         write_cistarget(
             cistarget=cistarget_result,
-            path_or_buf=os.path.join(
+            path=os.path.join(
                 output_folder, f"motif_enrichment_cistarget_{name}.hdf5"
             ),
             mode="a",
