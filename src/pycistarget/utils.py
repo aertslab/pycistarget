@@ -6,19 +6,21 @@ import pyranges as pr
 import re
 import subprocess
 import ssl
-from typing import Dict, List, Sequence, Union
+from typing import List, Union, Optional
 from collections.abc import Iterable
 
-def coord_to_region_names(coord: pr.PyRanges):
+def coord_to_region_names(coord: Union[pr.PyRanges, pd.DataFrame]):
     """
     Convert coordinates to region names (UCSC format)
     """
     if isinstance(coord, pr.PyRanges):
-        #in case of an empty pyranges, return an empty list
-        if len(coord) == 0:
-            return []
         coord = coord.as_df()
-        return list(coord['Chromosome'].astype(str) + ':' + coord['Start'].astype(str) + '-' + coord['End'].astype(str))
+    elif isinstance(coord, pd.DataFrame):
+        coord = coord
+        #in case of an empty pyranges, return an empty list
+    if len(coord) == 0:
+        return []
+    return list(coord['Chromosome'].astype(str) + ':' + coord['Start'].astype(str) + '-' + coord['End'].astype(str))
 
 def region_names_to_coordinates(region_names: List):
     """
@@ -64,7 +66,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 def load_motif_annotations(specie: str,
                            version: str = 'v9',
-                           fname: str = None,
+                           fname: Optional[str] = None,
                            column_names=('#motif_id', 'gene_name',
                                          'motif_similarity_qvalue', 'orthologous_identity', 'description'),
                            motif_similarity_fdr: float = 0.001,
