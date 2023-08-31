@@ -15,6 +15,7 @@ from pycistarget.utils import (
     region_names_to_coordinates)
 from pycistarget.motif_enrichment_result import MotifEnrichmentResult
 import math
+from pycisTopic.diff_features import get_log2_fc, mean_axis1
 
 @numba.jit(nopython=True)
 def rankdata_average_numba(arr: np.ndarray):
@@ -69,7 +70,6 @@ def ranksums_numba_multiple(X: np.ndarray, Y: np.ndarray):
         ranksums_p[i] = p
     return ranksums_z, ranksums_p
 
-numba.jit(nopython = True)
 def p_adjust_bh(p: np.ndarray):
     """
     Benjamini-Hochberg p-value correction for multiple hypothesis testing.
@@ -180,12 +180,10 @@ class DEM(MotifEnrichmentResult):
             Y = background_scores_arr)
         
         # Calculate log2FC
-        mean_foreground = foreground_scores_arr.mean(1)
-        mean_background = background_scores_arr.mean(1)
-        logFC = np.log2(
-            (mean_foreground + 10**-12) / (mean_background + 10**-12)
+        logFC = get_log2_fc(
+            fg_mat = foreground_scores_arr,
+            bg_mat = background_scores_arr
         )
-        
         # pvalue correction
         pvalues_adj = p_adjust_bh(pvalues)
 
@@ -194,8 +192,8 @@ class DEM(MotifEnrichmentResult):
             data = {
                 "Log2FC": logFC,
                 "Adjusted_pval": pvalues_adj,
-                "Mean_fg": mean_foreground,
-                "Mean_bg": mean_background},
+                "Mean_fg": mean_axis1(foreground_scores_arr),
+                "Mean_bg": mean_axis1(background_scores_arr)},
             index = motif_names)
         
         # Threshold dataframe
