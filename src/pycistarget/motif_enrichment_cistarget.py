@@ -10,23 +10,13 @@ import numpy as np
 import pandas as pd
 import pyranges as pr
 import ray
-import ssl
 import sys
-from typing import Union, Dict, Optional, Tuple
+from typing import Union, Dict, Optional, Tuple, Literal
 from pycistarget.utils import (
     target_to_query,
     region_sets_to_signature,
-    get_cistromes_per_region_set,
-    load_motif_annotations,
     coord_to_region_names)
-
-from IPython.display import HTML
-ssl._create_default_https_context = ssl._create_unverified_context
-pd.set_option('display.max_colwidth', None)
-
-# Set stderr to null when using ray.init to avoid ray printing Broken pipe million times
-_stderr = sys.stderr
-null = open(os.devnull,'wb') 
+from pycistarget.motif_enrichment_result import MotifEnrichmentResult
 
 class cisTargetDatabase: 
     """
@@ -140,7 +130,7 @@ class cisTargetDatabase:
 
 
 # cisTarget class
-class cisTarget:
+class cisTarget(MotifEnrichmentResult):
     """
     cisTarget class.
     :class:`cisTarget` contains method for motif enrichment analysis on sets of regions. 
@@ -153,8 +143,8 @@ class cisTarget:
         A PyRanges containing region coordinates for the regions to be analyzed.
     name: str
         Analysis name
-    specie: str
-        Specie from which genomic coordinates come from
+    species: str
+        Species from which genomic coordinates come from
     auc_threshold: float, optional
         The fraction of the ranked genome to take into account for the calculation of the
         Area Under the recovery Curve. Default: 0.005
@@ -165,7 +155,7 @@ class cisTarget:
         Default: 0.05
     path_to_motif_annotations: str, optional
         Path to motif annotations. If not provided, they will be downloaded from 
-        https://resources.aertslab.org based on the specie name provided (only possible for mus_musculus,
+        https://resources.aertslab.org based on the species name provided (only possible for mus_musculus,
         homo_sapiens and drosophila_melanogaster). Default: None
     annotation_version: str, optional
         Motif collection version. Default: v9
@@ -197,13 +187,14 @@ class cisTarget:
     def __init__(self, 
                  region_set: pr.PyRanges,
                  name: str,
-                 specie: str,
+                 species: Literal[
+                    "homo_sapiens", "mus_musculus", "drosophila_melanogaster"],
                  auc_threshold: float = 0.005,
                  nes_threshold: float = 3.0,
                  rank_threshold: float = 0.05,
                  path_to_motif_annotations: Optional[str] = None,
                  annotation_version: str = 'v9',
-                 annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
+                 annotation_to_use: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
                  motif_similarity_fdr: float = 0.001,
                  orthologous_identity_threshold: float = 0.0,
                  motifs_to_use: Optional[list] = None):
@@ -218,8 +209,8 @@ class cisTarget:
             A PyRanges containing region coordinates for the regions to be analyzed.
         name: str
             Analysis name
-        specie: str
-            Specie from which genomic coordinates come from
+        species: str
+            Species from which genomic coordinates come from
         auc_threshold: float, optional
             The fraction of the ranked genome to take into account for the calculation of the
             Area Under the recovery Curve. Default: 0.005
@@ -252,20 +243,22 @@ class cisTarget:
         Nat Protoc. June 2020:1-30. doi:10.1038/s41596-020-0336-2
         """
         self.region_set = region_set
-        self.name = name
-        self.specie = specie
         self.auc_threshold = auc_threshold
         self.nes_threshold = nes_threshold
         self.rank_threshold = rank_threshold
-        self.annotation_version = annotation_version
-        self.annotation = annotation
-        self.path_to_motif_annotations = path_to_motif_annotations
-        self.motif_similarity_fdr = motif_similarity_fdr
-        self.orthologous_identity_threshold = orthologous_identity_threshold
-        self.motifs_to_use = motifs_to_use
+        super().__init__(
+            name=name,
+            species = species,
+            path_to_motif_annotations = path_to_motif_annotations,
+            annotation_version = annotation_version,
+            annotation_to_use = annotation_to_use,
+            motif_similarity_fdr = motif_similarity_fdr,
+            orthologous_identity_threshold = orthologous_identity_threshold,
+            motifs_to_use = motifs_to_use
+        )
         
     def run_ctx(self,
-            ctx_db: cisTargetDatabase) -> pd.DataFrame:
+            ctx_db: cisTargetDatabase):
         """
         Run cisTarget
 
@@ -375,7 +368,7 @@ class cisTarget:
         self.motif_enrichment = enriched_features[['Region_set', 'NES', 'AUC', 'Rank_at_max']]
         # Annotation
         log.info("Annotating motifs for " + self.name)
-        self.add_motif_annotation_cistarget()
+        self.add_motif_annotation()
         # Motif hits
         db_motif_hits = {key: [enriched_features.loc[key, 'Motif_hits'][i][0] for i in range(len(enriched_features.loc[key, 'Motif_hits']))] for key in enriched_features.index}
         rs_motif_hits = {key: list(set(self.regions_to_db.loc[self.regions_to_db['Query'].isin(db_motif_hits[key]), 'Target'].tolist())) for key in db_motif_hits.keys()}
@@ -383,63 +376,12 @@ class cisTarget:
         self.motif_enrichment['Motif_hits'] = [len(db_motif_hits[i]) for i in db_motif_hits.keys()]
         # Cistromes
         log.info("Getting cistromes for " + self.name)
-        cistromes_db = get_cistromes_per_region_set(self.motif_enrichment, self.motif_hits['Database'], self.annotation)
-        cistromes_rs = get_cistromes_per_region_set(self.motif_enrichment, self.motif_hits['Region_set'], self.annotation)
-        self.cistromes = {'Database': cistromes_db, 'Region_set': cistromes_rs}
+        self.get_cistromes()
         
-    def add_motif_annotation_cistarget(self,
-                       add_logo: Optional[bool] = True):
-        """
-        Add motif annotation
-
-        Parameters
-        ---------
-        add_logo: boolean, optional
-            Whether to add the motif logo to the motif enrichment dataframe
-    
-        References
-        ---------
-        Van de Sande B., Flerin C., et al. A scalable SCENIC workflow for single-cell gene regulatory network analysis.
-        Nat Protoc. June 2020:1-30. doi:10.1038/s41596-020-0336-2
-        """
-        # Create cisTarget logger
-        level = logging.INFO
-        format = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
-        handlers = [logging.StreamHandler(stream=sys.stdout)]
-        logging.basicConfig(level=level, format=format, handlers=handlers)
-        log = logging.getLogger('cisTarget')
-
-        # Read motif annotation. 
-        try:
-            annot_df = load_motif_annotations(self.specie,
-                                          version = self.annotation_version,
-                                          fname=self.path_to_motif_annotations,
-                                          motif_similarity_fdr = self.motif_similarity_fdr,
-                                          orthologous_identity_threshold = self.orthologous_identity_threshold)
-            motif_enrichment_w_annot = pd.concat([self.motif_enrichment, annot_df], axis=1, sort=False).loc[self.motif_enrichment.index.tolist(),:]
-        except:
-            log.info('Unable to load annotation for ' + self.specie)
-            annot_df = None
-            motif_enrichment_w_annot = self.motif_enrichment
-        # Add info to elements in dict
-        if add_logo == True:
-            motif_enrichment_w_annot['Logo']=['<img src="' +'https://motifcollections.aertslab.org/' + self.annotation_version + '/logos/'+ motif_enrichment_w_annot.index.tolist()[i] + '.png' + '" width="200" >' for i in range(motif_enrichment_w_annot.shape[0])]
-            if annot_df is not None:
-                motif_enrichment_w_annot = motif_enrichment_w_annot[sum([['Logo', 'Region_set'], self.annotation, ['NES', 'AUC', 'Rank_at_max']], [])]
-            else:
-                motif_enrichment_w_annot = motif_enrichment_w_annot[['Logo', 'Region_set', 'NES', 'AUC', 'Rank_at_max']]
-        else:
-            if annot_df is not None:
-                motif_enrichment_w_annot = motif_enrichment_w_annot[sum([['Region_set'], self.annotation, ['NES', 'AUC', 'Rank_at_max']], [])]
-            else:
-                motif_enrichment_w_annot = motif_enrichment_w_annot[['Region_set', 'NES', 'AUC', 'Rank_at_max']]
-        self.motif_enrichment = motif_enrichment_w_annot 
-
-
 # Run cisTarget            
 def run_cistarget(ctx_db: cisTargetDatabase,
                                region_sets: dict,
-                               specie: str,
+                               species: str,
                                name: str = 'cisTarget',
                                fraction_overlap: float = 0.4,
                                auc_threshold: float = 0.005,
@@ -462,8 +404,8 @@ def run_cistarget(ctx_db: cisTargetDatabase,
         A cistarget database object.
     region_sets: Dict
         A dictionary of PyRanges containing region coordinates for the region sets to be analyzed.
-    specie: str
-        Specie from which genomic coordinates come from
+    species: str
+        Species from which genomic coordinates come from
     name: str, optional
         Analysis name. Default: cisTarget
     fraction_overlap: float, optional
@@ -478,7 +420,7 @@ def run_cistarget(ctx_db: cisTargetDatabase,
         Default: 0.05
     path_to_motif_annotations: str, optional
         Path to motif annotations. If not provided, they will be downloaded from 
-        https://resources.aertslab.org based on the specie name provided (only possible for mus_musculus,
+        https://resources.aertslab.org based on the species name provided (only possible for mus_musculus,
         homo_sapiens and drosophila_melanogaster). Default: None
     annotation_version: str, optional
         Motif collection version. Default: v9
@@ -527,7 +469,7 @@ def run_cistarget(ctx_db: cisTargetDatabase,
         ctx_list = ray.get([ctx_internal_ray.remote(ctx_db = ctx_db, 
                                             region_set = region_sets[key], 
                                             name = key,  
-                                            specie = specie,
+                                            species = species,
                                             auc_threshold = auc_threshold, 
                                             nes_threshold = nes_threshold, 
                                             rank_threshold = rank_threshold,
@@ -542,7 +484,7 @@ def run_cistarget(ctx_db: cisTargetDatabase,
         ctx_list = [ctx_internal(ctx_db = ctx_db, 
                                             region_set = region_sets[key], 
                                             name = key,  
-                                            specie = specie,
+                                            species = species,
                                             auc_threshold = auc_threshold, 
                                             nes_threshold = nes_threshold, 
                                             rank_threshold = rank_threshold,
@@ -560,7 +502,7 @@ def run_cistarget(ctx_db: cisTargetDatabase,
 def ctx_internal_ray(ctx_db: cisTargetDatabase,
             region_set: pr.PyRanges,
             name: str,
-            specie: str,
+            species: str,
             auc_threshold: float = 0.005,
             nes_threshold: float = 3.0,
             rank_threshold: float = 0.05,
@@ -569,7 +511,7 @@ def ctx_internal_ray(ctx_db: cisTargetDatabase,
             annotation: list = ['Direct_annot', 'Motif_similarity_annot', 'Orthology_annot', 'Motif_similarity_and_Orthology_annot'],
             motif_similarity_fdr: float = 0.001,
             orthologous_identity_threshold: float = 0.0,
-            motifs_to_use: Optional[list] = None) -> pd.DataFrame:
+            motifs_to_use: Optional[list] = None) -> cisTarget:
             
     """
     Internal function to run cistarget in parallel with Ray.
@@ -694,7 +636,7 @@ def ctx_internal(ctx_db: cisTargetDatabase,
     """
     ctx_result = cisTarget(region_set, 
                            name, 
-                           specie,
+                           species,
                            auc_threshold,
                            nes_threshold,
                            rank_threshold,
@@ -706,26 +648,3 @@ def ctx_internal(ctx_db: cisTargetDatabase,
                            motifs_to_use)
     ctx_result.run_ctx(ctx_db)
     return ctx_result
-    
-## Show results 
-def cistarget_results(cistarget_dict,
-                    name: Optional[str] = None
-) -> HTML:
-    """
-    A function to show cistarget results in jupyter notebooks.
-    
-    Parameters
-    ---------
-    cistarget_dict: Dict
-        A dictionary with one :class:`cisTarget` object per slot.
-    name: str
-        Dictionary key of the analysis result to show. Default: None (All)
-    """
-    motif_enrichment_dict = {key: cistarget_dict[key].motif_enrichment for key in cistarget_dict.keys()}
-    if name is None:
-        motif_enrichment_table=pd.concat([motif_enrichment_dict[key] for key in motif_enrichment_dict.keys()], axis=0, sort=False)
-    else:
-        motif_enrichment_table=motif_enrichment_dict[name]
-    return HTML(motif_enrichment_table.to_html(escape=False, col_space=80))
-
-

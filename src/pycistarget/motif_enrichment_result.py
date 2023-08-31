@@ -26,7 +26,7 @@ class MotifEnrichmentResult:
         self.annotation_to_use = annotation_to_use
         self.motif_similarity_fdr = motif_similarity_fdr
         self.orthologous_identity_threshold = orthologous_identity_threshold
-        self.motif_to_use = motifs_to_use
+        self.motifs_to_use = motifs_to_use
         self.logo_url = f"https://motifcollections.aertslab.org/{self.annotation_version}/logos/"
         self.motif_enrichment = pd.DataFrame()
         self.motif_hits: Dict[str, Dict[str, List[str]]] = {
