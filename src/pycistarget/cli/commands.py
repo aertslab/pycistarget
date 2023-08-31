@@ -2,7 +2,6 @@ from pycistarget.motif_enrichment_cistarget import (
     cisTarget,
     cisTargetDatabase,
 )
-from pycistarget.input_output import write_cistarget
 import pyranges as pr
 from typing import List, Optional, Literal
 import os
@@ -91,13 +90,13 @@ def run_cistarget_command(
     cistarget_result = cisTarget(
         region_set=regions,
         name=name,
-        specie=species,
+        species=species,
         auc_threshold=auc_threshold,
         nes_threshold=nes_threshold,
         rank_threshold=rank_threshold,
         path_to_motif_annotations=path_to_motif_annotations,
         annotation_version=annotation_version,
-        annotation=annotations_to_use,
+        annotation_to_use=annotations_to_use,
         motif_similarity_fdr=motif_similarity_fdr,
         orthologous_identity_threshold=orthologous_identity_threshold,
     )
@@ -126,20 +125,16 @@ def run_cistarget_command(
             index=True,
         )
     elif output_mode == "hdf5":
-        write_cistarget(
-            cistarget=cistarget_result,
+        cistarget_result.write_hdf5(
             path=os.path.join(
                 output_folder, f"motif_enrichment_cistarget_{name}.hdf5"
             ),
-            mode="w",
-        )
+            mode="w")
     elif output_mode == "hdf5+":
-        write_cistarget(
-            cistarget=cistarget_result,
+        cistarget_result.write_hdf5(
             path=os.path.join(
                 output_folder, f"motif_enrichment_cistarget_{name}.hdf5"
             ),
-            mode="a",
-        )
+            mode="a")
     else:
         raise ValueError(f"Output mode: {output_mode} is not supported!")
