@@ -8,7 +8,7 @@ import random
 from sklearn.metrics import roc_curve
 import numba
 import sys
-from typing import Optional, Tuple, Literal, Dict
+from typing import Optional, Tuple, Literal, List
 from pycistarget.utils import (
     target_to_query,
     coord_to_region_names,
@@ -242,8 +242,8 @@ class DEM(MotifEnrichmentResult):
         self.get_cistromes()
 
 def get_foreground_and_background_regions(
-        foreground_region_sets: Dict[str, pr.PyRanges],
-        background_region_sets: Dict[str, pr.PyRanges],
+        foreground_region_sets: List[pr.PyRanges],
+        background_region_sets: List[pr.PyRanges],
         max_bg_regions: Optional[int] = None,
         genome_annotation: Optional[pd.DataFrame] = None,
         balance_number_of_promoters: bool = True,
@@ -252,9 +252,9 @@ def get_foreground_and_background_regions(
 ) -> Tuple[pr.PyRanges, pr.PyRanges]:
     # Aggregate foreground and background regions into single dataframe and convert to region names
     foreground_region_names = list(set(coord_to_region_names(
-        pd.concat(map(lambda ranges: ranges.df, foreground_region_sets.values())))))
+        pd.concat(map(lambda ranges: ranges.df, foreground_region_sets)))))
     background_region_names = list(set(coord_to_region_names(
-        pd.concat(map(lambda ranges: ranges.df, background_region_sets.values())))))
+        pd.concat(map(lambda ranges: ranges.df, background_region_sets)))))
     
     background_region_names = list(
         set(background_region_names) - set(foreground_region_names))

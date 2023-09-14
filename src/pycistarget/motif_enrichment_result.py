@@ -1,7 +1,5 @@
 import pycistarget
 from pycistarget.utils import load_motif_annotations, get_cistromes_per_region_set
-from pycistarget.motif_enrichment_cistarget import cisTarget
-from pycistarget.motif_enrichment_dem import DEM
 from typing import Optional, List, Dict, Literal
 import h5py
 import numpy as np
@@ -134,6 +132,8 @@ class MotifEnrichmentResult:
             self,
             path: str,
             mode: Literal["w", "a"] = "w"):
+        from pycistarget.motif_enrichment_cistarget import cisTarget
+        from pycistarget.motif_enrichment_dem import DEM
         # Get analysis type
         if isinstance(self, DEM):
             analysis_type = "DEM"
