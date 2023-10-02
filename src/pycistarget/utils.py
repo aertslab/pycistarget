@@ -282,6 +282,14 @@ def target_to_query(target: Union[pr.PyRanges, List[str]],
         query_pr=query
     
     join_pr = target_pr.join(query_pr, report_overlap = True)
+    if len(join_pr) == 0:
+        raise ValueError(
+            """
+            None of the regions in the bed file overlap with the cistarget database. 
+            Check wether the chromosome names of the input regions are correctly 
+            formatted and that you are using the correct database.
+            """
+        )
     join_pr.Overlap_query =  join_pr.Overlap/(join_pr.End_b - join_pr.Start_b)
     join_pr.Overlap_target =  join_pr.Overlap/(join_pr.End - join_pr.Start)
     join_pr = join_pr[(join_pr.Overlap_query > fraction_overlap) | (join_pr.Overlap_target > fraction_overlap)]
