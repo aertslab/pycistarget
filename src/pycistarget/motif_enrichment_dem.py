@@ -15,7 +15,51 @@ from pycistarget.utils import (
     region_names_to_coordinates)
 from pycistarget.motif_enrichment_result import MotifEnrichmentResult
 import math
-from pycisTopic.diff_features import get_log2_fc, mean_axis1
+
+# TODO: Add these generic functions to another package
+@numba.njit(parallel=True)
+def mean_axis1(arr):
+    """
+    Calculate column wise mean of 2D-numpy matrix with numba, mimicking `np.mean(x, axis=1)`.
+
+    Parameters
+    ----------
+    arr
+        2D-numpy array to calculate the mean per column for.
+    """
+
+    mean_axis1_array = np.empty(arr.shape[0], dtype=np.float64)
+    for i in numba.prange(arr.shape[0]):
+        mean_axis1_array[i] = np.mean(arr[i, :])
+    return mean_axis1_array
+
+@numba.njit
+def get_log2_fc(fg_mat, bg_mat):
+    """
+    Calculate log2 fold change between foreground and background matrix.
+
+    Parameters
+    ----------
+    fg_mat
+        2D-numpy foreground matrix.
+    bg_mat
+        2D-numpy background matrix.
+    """
+
+    if fg_mat.shape[0] != bg_mat.shape[0]:
+        raise ValueError(
+            "Foreground matrix and background matrix have a different first dimension:"
+            f" {fg_mat.shape[0]} vs {bg_mat.shape[0]}"
+        )
+
+    # Calculate log2 fold change between foreground and background matrix with numba in
+    # a similar way as the following numpy code:
+    #    np.log2(
+    #        (np.mean(fg_mat, axis=1) + 10**-12) / (np.mean(bg_mat, axis=1) + 10**-12)
+    #    )
+    return np.log2(
+        (mean_axis1(fg_mat) + 10**-12) / (mean_axis1(bg_mat) + 10**-12)
+    )
 
 @numba.jit(nopython=True)
 def rankdata_average_numba(arr: np.ndarray):
