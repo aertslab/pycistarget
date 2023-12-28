@@ -53,7 +53,6 @@ def read_hdf5(path: str) -> Dict[str, Union[cisTarget, DEM]]:
                 annotation_version = h5[name]["metadata"]["annotation_version"][()].decode(),
                 log2fc_thr = h5[name]["metadata"]["log2fc_thr"][()],
                 adjpval_thr = h5[name]["metadata"]["adjpval_thr"][()],
-                motif_hit_thr = h5[name]["metadata"]["motif_hit_thr"][()],
                 motif_similarity_fdr = h5[name]["metadata"]["motif_similarity_fdr"][()],
                 mean_fg_thr = h5[name]["metadata"]["mean_fg_thr"][()],
                 orthologous_identity_threshold =  h5[name]["metadata"]["orthologous_identity_threshold"][()],
@@ -67,6 +66,8 @@ def read_hdf5(path: str) -> Dict[str, Union[cisTarget, DEM]]:
             metadata_kwargs["motifs_to_use"] = map(bytes.decode, h5[name]["metadata"]["motifs_to_use"][()])
         if "path_to_motif_annotations" in h5[name]["metadata"].keys():
             metadata_kwargs["path_to_motif_annotations"] = h5[name]["metadata"]["path_to_motif_annotations"][()].decode()
+        if "motif_hit_thr" in h5[name]["metadata"].keys():
+            metadata_kwargs["motif_hit_thr"] = h5[name]["metadata"]["motif_hit_thr"][()]
 
         # Read motif enrichment and regions_to_db
         motif_enrichment = pd.read_hdf(
