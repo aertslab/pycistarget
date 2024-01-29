@@ -251,6 +251,8 @@ class cisTarget:
         Van de Sande B., Flerin C., et al. A scalable SCENIC workflow for single-cell gene regulatory network analysis.
         Nat Protoc. June 2020:1-30. doi:10.1038/s41596-020-0336-2
         """
+        if type(name) != str:
+            raise ValueError('name should be a string, not {}'.format(type(name)))
         self.region_set = region_set
         self.name = name
         self.specie = specie
