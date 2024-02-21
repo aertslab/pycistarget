@@ -106,8 +106,8 @@ def ranksums_numba_multiple(X: np.ndarray, Y: np.ndarray):
     n = X.shape[0]
     if Y.shape[0] != n:
         raise ValueError("X and Y should have the same shape on dimension 0")
-    ranksums_z = np.zeros(n, dtype=float)
-    ranksums_p = np.zeros(n, dtype=float)
+    ranksums_z = np.zeros((n), dtype=np.float64)
+    ranksums_p = np.zeros((n), dtype=np.float64)
     for i in numba.prange(n):
         z, p = ranksums_numba(X[i], Y[i])
         ranksums_z[i] = z
