@@ -47,8 +47,7 @@ def get_log2_fc(fg_mat, bg_mat):
     """
 
     if fg_mat.shape[0] != bg_mat.shape[0]:
-        _ERROR_MESSAGE =  "Foreground matrix and background matrix have a different first dimension:"
-        _ERROR_MESSAGE += "\n" + str(fg_mat.shape[0]) + " vs " + str(bg_mat.shape[0])
+        _ERROR_MESSAGE =  "Foreground matrix and background matrix have a different first dimensions!"
         raise ValueError(_ERROR_MESSAGE)
 
     # Calculate log2 fold change between foreground and background matrix with numba in
