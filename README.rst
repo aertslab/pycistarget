@@ -3,20 +3,20 @@
    :target: https://zenodo.org/badge/latestdoi/351019583
 
 pycistarget
-==========
+============
 
 pycistarget is a python module to perform motif enrichment analysis in sets of regions with different tools and identify high confidence TF cistromes.
 
 Installation
-**********************
+************
 
 To install pycistarget::
 
-	git clone https://github.com/aertslab/pycistarget.git
-	cd pycistarget
-	pip install -e .
-	#or
-	pip install . --use-feature=in-tree-build 
+	$ conda create --name scenicplus python=3.11 -y
+	$ conda activate scenicplus
+	$ git clone https://github.com/aertslab/scenicplus
+	$ cd scenicplus
+	$ pip install .
 
 
 Check version
@@ -27,10 +27,6 @@ To check your pycistarget version::
 	import pycistarget
 	pycistarget.__version__
 
-Tutorials & documentation
-**********************
-
-Tutorial and documentation are available at https://pycistarget.readthedocs.io/.
 
 Questions?
 **********************
