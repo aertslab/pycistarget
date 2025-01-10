@@ -303,6 +303,15 @@ def get_foreground_and_background_regions(
     if max_bg_regions is not None:
         max_bg_regions = min(max_bg_regions, len(background_region_names))
 
+    # Later we will shuffle the background region names:
+    # to make this suffle deterministic (i.e. shuffles with the same seed produce the same regions)
+    # we have to make sure the regions are always in the same order. 
+    # Given that we made use of the set operation above, we can not be sure about this order.
+    # For this reason, we sort the regions below.
+
+    foreground_region_names = sorted(foreground_region_names)
+    background_region_names = sorted(background_region_names)
+
     if balance_number_of_promoters:
         if genome_annotation is None:
             raise ValueError("Please provide genome_annotation if you wish to balance the number of promoters")
@@ -339,6 +348,10 @@ def get_foreground_and_background_regions(
         background_region_names_promoter    = coord_to_region_names(
             tmp_background_promoter_overlap.query("NumberOverlaps > 0")
         )
+
+        # For the same reason as explained above (determinisit), sort regions:
+        background_region_names_no_promoter = sorted(background_region_names_no_promoter)
+        background_region_names_promoter = sorted(background_region_names_promoter)
         
         # Sample promoter regions from background
         nr_allowed_promoters_background = min(
