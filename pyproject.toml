@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pycistarget"
-version = "1.0a2"
+version = "1.1"
 description = "pycistarget is a python module to perform motif enrichment analysis in sets of regions with different tools and identify high confidence TF cistromes"
 authors = ["Seppe De Winter, Carmen Bravo"]
 license = "Academic Non-commercial"
