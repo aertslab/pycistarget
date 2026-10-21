@@ -4,10 +4,14 @@
 *.DS_Store
 .*
 
-# Do not ignore .gitignore
+# Do not ignore .gitignore and project configuration
 !/.gitignore
+!/.github/
+!/.readthedocs.yaml
 
 # Ignore the following dirs.
+# Large local test data (cisTarget databases), not part of the repository.
+/test_data/
 
 
 ### Python ###

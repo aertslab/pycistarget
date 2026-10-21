@@ -1,98 +1,114 @@
-"""Read/write cistarget and DEM results to/from hdf5 files."""
+"""Read cistarget and DEM results from hdf5 files."""
+
+from __future__ import annotations
+
+from os import PathLike
+from typing import Any
 
 import h5py
-from typing import  Dict, List, Union
-
+import numpy as np
+import pandas as pd
 import pyranges as pr
+
 from pycistarget.motif_enrichment_cistarget import cisTarget
 from pycistarget.motif_enrichment_dem import DEM
-import pandas as pd
 
-def read_hdf5(path: str) -> Dict[str, Union[cisTarget, DEM]]:
-    # Open hdf5 file
-    h5 = h5py.File(path, mode="r")
+_REQUIRED_METADATA = {
+    "cisTarget": [
+        "annotation_to_use",
+        "annotation_version",
+        "auc_threshold",
+        "motif_similarity_fdr",
+        "nes_threshold",
+        "orthologous_identity_threshold",
+        "rank_threshold",
+        "species",
+    ],
+    "DEM": [
+        "annotation_to_use",
+        "annotation_version",
+        "log2fc_thr",
+        "adjpval_thr",
+        "motif_similarity_fdr",
+        "mean_fg_thr",
+        "orthologous_identity_threshold",
+        "species",
+    ],
+}
+_OPTIONAL_METADATA = ["motifs_to_use", "path_to_motif_annotations", "motif_hit_thr"]
 
-    return_dict: Dict[str, Union[cisTarget, DEM]] = {}
 
-    # Loop over root keys of hdf5 file.
-    # In case multiple cisTarget results are saved in a single file.
-    for name in h5.keys():
-        analysis_type = h5[name]["metadata"]["type"][()].decode()
-        # Read cistromes
-        cistromes: Dict[str, Dict[str, List[str]]] = {}
-        for database_or_regionset in h5[name]["cistromes"].keys():
-            cistromes[database_or_regionset] = {}
-            for cistrome_name in h5[name]["cistromes"][database_or_regionset].keys():
-                cistromes[database_or_regionset][cistrome_name] = list(map(
-                    bytes.decode,
-                    h5[name]["cistromes"][database_or_regionset][cistrome_name][:]))
-    
-        # Read motif_hits
-        motif_hits: Dict[str, Dict[str, List[str]]] = {}
-        for database_or_regionset in h5[name]["motif_hits"].keys():
-            motif_hits[database_or_regionset] = {}
-            for motif_name in h5[name]["motif_hits"][database_or_regionset].keys():
-                motif_hits[database_or_regionset][motif_name] = list(map(
-                            bytes.decode,
-                            h5[name]["motif_hits"][database_or_regionset][motif_name][:]))
-        # Read metadata
-        if analysis_type == "cisTarget":
-            metadata_kwargs = dict(
-                annotation_to_use = map(bytes.decode, h5[name]["metadata"]["annotation_to_use"][()]),
-                annotation_version = h5[name]["metadata"]["annotation_version"][()].decode(),
-                auc_threshold = h5[name]["metadata"]["auc_threshold"][()],
-                motif_similarity_fdr = h5[name]["metadata"]["motif_similarity_fdr"][()],
-                nes_threshold = h5[name]["metadata"]["nes_threshold"][()],
-                orthologous_identity_threshold =  h5[name]["metadata"]["orthologous_identity_threshold"][()],
-                rank_threshold = h5[name]["metadata"]["rank_threshold"][()],
-                species = h5[name]["metadata"]["species"][()],
-            )
-        elif analysis_type == "DEM":
-            metadata_kwargs = dict(
-                annotation_to_use = map(bytes.decode, h5[name]["metadata"]["annotation_to_use"][()]),
-                annotation_version = h5[name]["metadata"]["annotation_version"][()].decode(),
-                log2fc_thr = h5[name]["metadata"]["log2fc_thr"][()],
-                adjpval_thr = h5[name]["metadata"]["adjpval_thr"][()],
-                motif_similarity_fdr = h5[name]["metadata"]["motif_similarity_fdr"][()],
-                mean_fg_thr = h5[name]["metadata"]["mean_fg_thr"][()],
-                orthologous_identity_threshold =  h5[name]["metadata"]["orthologous_identity_threshold"][()],
-                species = h5[name]["metadata"]["species"][()],
-            )
-        else:
-            raise ValueError(f"Unrecognized type {analysis_type}")
+def _decode(value: Any) -> Any:
+    """Convert values read from hdf5 to python types (bytes -> str, arrays -> lists)."""
+    if isinstance(value, bytes):
+        return value.decode()
+    if isinstance(value, np.ndarray):
+        return [_decode(v) for v in value.tolist()]
+    if isinstance(value, np.generic):
+        return value.item()
+    return value
 
-        #optional arguments
-        if "motifs_to_use" in h5[name]["metadata"].keys():
-            metadata_kwargs["motifs_to_use"] = map(bytes.decode, h5[name]["metadata"]["motifs_to_use"][()])
-        if "path_to_motif_annotations" in h5[name]["metadata"].keys():
-            metadata_kwargs["path_to_motif_annotations"] = h5[name]["metadata"]["path_to_motif_annotations"][()].decode()
-        if "motif_hit_thr" in h5[name]["metadata"].keys():
-            metadata_kwargs["motif_hit_thr"] = h5[name]["metadata"]["motif_hit_thr"][()]
 
-        # Read motif enrichment and regions_to_db
-        motif_enrichment = pd.read_hdf(
-            path, key = f"{name}/motif_enrichment"
-        )
+def _read_region_lists(group: h5py.Group) -> dict[str, dict[str, list[str]]]:
+    return {
+        database_or_regionset: {
+            name: [region.decode() for region in group[database_or_regionset][name][:]]
+            for name in group[database_or_regionset].keys()
+        }
+        for database_or_regionset in group.keys()
+    }
 
-        regions_to_db = pd.read_hdf(
-            path, key = f"{name}/regions_to_db"
-        )
 
-        if analysis_type == "cisTarget":
-            return_dict[name] = cisTarget(
-                region_set=pr.PyRanges(), # Empty pyranges
-                name = name,
-                **metadata_kwargs)
-        elif analysis_type == "DEM":
-            return_dict[name] = DEM(
-                foreground_regions=pr.PyRanges(), # Empty pyranges
-                background_regions=pr.PyRanges(), # Empty pyranges TODO: save foreground and background regions?
-                name = name,
-                **metadata_kwargs)
-        return_dict[name].cistromes = cistromes
-        return_dict[name].motif_hits = motif_hits
-        return_dict[name].motif_enrichment = motif_enrichment
-        return_dict[name].regions_to_db = regions_to_db
+def _decode_strings(df: Any) -> pd.DataFrame:
+    assert isinstance(df, pd.DataFrame)
+    for column in df.columns:
+        if df[column].dtype == object:
+            df[column] = df[column].map(lambda x: x.decode() if isinstance(x, bytes) else x)
+    return df
 
-    h5.close()
+
+def read_hdf5(path: str | PathLike) -> dict[str, cisTarget | DEM]:
+    """
+    Read motif enrichment results written with ``write_hdf5``.
+
+    Returns a dictionary with the analysis name as key and a :class:`cisTarget` or :class:`DEM`
+    object as value.
+    """
+    return_dict: dict[str, cisTarget | DEM] = {}
+    with h5py.File(path, mode="r") as h5:
+        for name in h5.keys():
+            metadata_grp = h5[name]["metadata"]
+            analysis_type = _decode(metadata_grp["type"][()])
+            if analysis_type not in _REQUIRED_METADATA:
+                raise ValueError(f"Unrecognized type {analysis_type}")
+            metadata_kwargs = {
+                field: _decode(metadata_grp[field][()])
+                for field in _REQUIRED_METADATA[analysis_type] + _OPTIONAL_METADATA
+                if field in metadata_grp and (analysis_type == "DEM" or field != "motif_hit_thr")
+            }
+            result: cisTarget | DEM
+            if analysis_type == "cisTarget":
+                result = cisTarget(region_set=pr.PyRanges(), name=name, **metadata_kwargs)
+            else:
+                result = DEM(
+                    foreground_regions=pr.PyRanges(),
+                    background_regions=pr.PyRanges(),
+                    name=name,
+                    **metadata_kwargs,
+                )
+            result.cistromes = _read_region_lists(h5[name]["cistromes"])
+            result.motif_hits = _read_region_lists(h5[name]["motif_hits"])
+            return_dict[name] = result
+
+    for name, result in return_dict.items():
+        result.motif_enrichment = _read_table(path, f"{name}/motif_enrichment")
+        result.regions_to_db = _read_table(path, f"{name}/regions_to_db")
     return return_dict
+
+
+def _read_table(path: str | PathLike, key: str) -> pd.DataFrame:
+    try:
+        return _decode_strings(pd.read_hdf(path, key=key))
+    except KeyError:
+        # Empty tables (e.g. no enriched motifs) are not written by pandas.
+        return pd.DataFrame()
