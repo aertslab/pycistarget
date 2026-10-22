@@ -9,8 +9,10 @@
 - `pyarrow` is capped below 25: pyarrow 25 and 26 use ~7x more memory when reading a subset of regions from a database.
 - `ipython` is optional (`pip install "pycistarget[notebook]"`), only needed for `show_result`.
 - Added tests (`uv run pytest`), ruff, mypy and a CI workflow.
+- The build backend is maturin: the motif scoring for `create_db` is a Rust extension (`rust/`). Wheels are abi3 (one per platform); installing from source needs a Rust toolchain.
 
 ### New features
+- `pycistarget create_db`: create cisTarget motif databases (scores and rankings), replacing `create_cistarget_motif_databases.py` from create_cisTarget_databases. Motifs are scored with a reimplementation of Cluster-Buster that gives the same scores as `cbust -f 4 -c 0.0 -r 10000 -b <padding> -t 1 [-l]` (it does the same floating point operations and libm calls, so it matches Cluster-Buster run on the same platform), and the rankings use the same seeded tie-breaking, so the databases are identical.
 - `pycistarget cistarget --bed_fname a.bed b.bed ...`: analyse several region sets in one call (one output file per bed file).
 - `pycistarget dem --one_vs_all_beds a.bed b.bed ...`: DEM of each bed file against all other bed files, reading the database only once. The result for `a.bed` is the same as `--foreground_beds a.bed --background_beds <all others> --name a_vs_all`.
 - `DEM.run` accepts scores loaded once with `DEMDatabase.load_scores`, to run several analyses on the same database regions.
@@ -23,6 +25,7 @@
   `--one_vs_all_beds` for 75 region sets: 14 minutes (one process).
 - cisTarget: ~1.9x faster (75 region sets, 8 in parallel: 3.2 instead of 6.1 minutes), lower peak memory.
 - numba functions are cached on disk, so they are compiled only once.
+- `create_db`: motif scoring needs ~2.2x less CPU time than Cluster-Buster (488k regions x 3,730 motifs: 51 CPU-hours instead of an estimated 115, 3.2 hours with 16 threads); ranking and writing the databases takes ~2 minutes.
 
 ### Bug fixes
 - `pycistarget dem` failed with a `NameError` when `--genome_annotation` was not given.

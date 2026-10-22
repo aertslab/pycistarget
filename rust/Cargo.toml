@@ -1,0 +1,20 @@
+[package]
+name = "pycistarget-cbust"
+version = "1.2.0"
+edition = "2021"
+description = "Cluster-Buster compatible motif scoring for pycistarget"
+publish = false
+
+[lib]
+name = "_cbust"
+crate-type = ["cdylib"]
+
+[dependencies]
+numpy = "0.30"
+pyo3 = { version = "0.30", features = ["abi3-py310"] }
+rayon = "1.12"
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
+

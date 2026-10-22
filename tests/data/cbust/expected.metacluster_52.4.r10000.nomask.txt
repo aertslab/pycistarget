@@ -1,0 +1,5 @@
+# Sequence name	Score	Sequence number	Rank
+with_n	3.15	36	1
+chr1:885187-885687	2.28	9	2
+chr1:1120134-1120634	2.22	22	3
+chr1:1175412-1175912	0.912	30	4

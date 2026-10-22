@@ -4,6 +4,8 @@ build:
   os: "ubuntu-24.04"
   tools:
     python: "3.12"
+    # pycistarget contains a Rust extension (motif scoring for creating databases).
+    rust: "latest"
 
 python:
   # Install our python package before building the docs

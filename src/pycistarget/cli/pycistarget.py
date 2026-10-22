@@ -27,6 +27,12 @@ DEM_CALL_COMMAND = "dem"
 DEM_COMMAND_DESCRIPTION = (
     "Run motif enrichment analysis using the Differentially Enriched Motif (DEM) algorithm."
 )
+CREATE_DB_CALL_COMMAND = "create_db"
+CREATE_DB_COMMAND_DESCRIPTION = (
+    "Create cisTarget motif databases (scores and rankings) from a FASTA file of regions and "
+    "Cluster-Buster motif files. Gives the same databases as create_cistarget_motif_databases.py "
+    "from create_cisTarget_databases, but faster."
+)
 
 CISTARGET_DEFAULTS = dict(
     fraction_overlap_w_cistarget_database=0.4,
@@ -394,12 +400,98 @@ def add_parser_for_motif_enrichment_dem(subparser: argparse._SubParsersAction):
     _add_common_arguments(parser, DEM_DEFAULTS, analysis="dem")
 
 
+def add_parser_for_create_db(subparser: argparse._SubParsersAction):
+    parser: argparse.ArgumentParser = subparser.add_parser(
+        name=CREATE_DB_CALL_COMMAND,
+        add_help=True,
+        description=CREATE_DB_COMMAND_DESCRIPTION,
+    )
+
+    def create_db(arg):
+        from pycistarget.create_database import create_cistarget_motif_databases
+
+        create_cistarget_motif_databases(
+            fasta=arg.fasta,
+            motifs_dir=arg.motifs_dir,
+            motifs_list=arg.motifs,
+            db_prefix=arg.output_prefix,
+            bg_padding=arg.bg_padding,
+            mask=arg.mask,
+            seed=arg.seed,
+            n_threads=arg.threads,
+        )
+
+    parser.set_defaults(func=create_db)
+    parser.add_argument(
+        "--fasta",
+        dest="fasta",
+        type=str,
+        required=True,
+        help="FASTA file with the regions to score (e.g. created with "
+        "create_fasta_with_padded_bg_from_bed.sh). The sequence names are the region IDs.",
+    )
+    parser.add_argument(
+        "--motifs_dir",
+        dest="motifs_dir",
+        type=str,
+        required=True,
+        help="Directory with Cluster-Buster motif files (<motif ID>.cb).",
+    )
+    parser.add_argument(
+        "--motifs",
+        dest="motifs",
+        type=str,
+        required=True,
+        help="File with the IDs of the motifs to score, one per line.",
+    )
+    parser.add_argument(
+        "--output_prefix",
+        dest="output_prefix",
+        type=str,
+        required=True,
+        help="Prefix of the database files: <prefix>.motifs_vs_regions.scores.feather, "
+        "<prefix>.regions_vs_motifs.scores.feather and "
+        "<prefix>.regions_vs_motifs.rankings.feather.",
+    )
+    parser.add_argument(
+        "--bg_padding",
+        dest="bg_padding",
+        type=int,
+        default=0,
+        help="Number of bases at the start and end of each sequence which are only used for "
+        "calculating the background nucleotide frequencies, not for scoring motifs. "
+        "Defaults to: %(default)s",
+    )
+    parser.add_argument(
+        "--mask",
+        dest="mask",
+        action="store_true",
+        help="Score masked (lowercase) bases as N.",
+    )
+    parser.add_argument(
+        "--seed",
+        dest="seed",
+        type=int,
+        default=None,
+        help="Random seed for breaking ties when creating the rankings. With the same seed and "
+        "input, the same rankings are created. By default a random seed is used.",
+    )
+    parser.add_argument(
+        "--threads",
+        dest="threads",
+        type=int,
+        default=0,
+        help="Number of threads. Defaults to all cores.",
+    )
+
+
 def create_argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument("--version", action="version", version=f"pycistarget {VERSION}")
     subparsers = parser.add_subparsers()
     add_parser_for_motif_enrichment_cistarget(subparsers)
     add_parser_for_motif_enrichment_dem(subparsers)
+    add_parser_for_create_db(subparsers)
     return parser
 
 

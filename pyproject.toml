@@ -40,8 +40,24 @@ dev = [
 ]
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["maturin>=1.9,<2"]
+build-backend = "maturin"
+
+[tool.maturin]
+# The motif scoring for creating databases is written in Rust (rust/).
+manifest-path = "rust/Cargo.toml"
+python-source = "src"
+module-name = "pycistarget._cbust"
+include = [{ path = "LICENSE.txt", format = "sdist" }]
+features = ["pyo3/extension-module"]
+
+[tool.uv]
+# Rebuild the Rust extension when its sources change.
+cache-keys = [
+    { file = "pyproject.toml" },
+    { file = "rust/Cargo.toml" },
+    { file = "rust/src/**/*.rs" },
+]
 
 [tool.ruff]
 line-length = 100
@@ -50,6 +66,9 @@ target-version = "py310"
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "NPY", "PD002", "RUF100"]
 ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["pycistarget"]
 
 [tool.mypy]
 python_version = "3.10"
