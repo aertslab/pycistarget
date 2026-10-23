@@ -148,12 +148,13 @@ class MotifEnrichmentResult:
         self.cistromes: dict[str, dict[str, list[str]]] = {"Database": {}, "Region_set": {}}
         self.regions_to_db = pd.DataFrame()
 
-    def add_motif_annotation(self, add_logo: bool = True):
+    def load_motif_annotation(self) -> pd.DataFrame:
         """
-        Add motif-to-TF annotation columns (and a motif logo column) to the motif enrichment table.
+        Load the motif-to-TF annotations (motifs x annotation columns) used for this result.
 
-        If the annotations can not be loaded, an error is raised, unless ``force`` is set: then the
-        annotation columns are left empty (and no cistromes are created), with a warning.
+        Annotations are loaded (downloaded) once per process for the same settings. If they can not
+        be loaded, an error is raised, unless ``force`` is set: then an empty table is returned, with
+        a warning (only the first time).
         """
         key = (
             self.species,
@@ -184,6 +185,16 @@ class MotifEnrichmentResult:
                 _failed_annotations[key] = e
                 log.warning(f"{message}. Continuing without motif-to-TF annotations and cistromes.")
             annot_df = pd.DataFrame(columns=self.annotation_to_use, dtype=object)
+        return annot_df
+
+    def add_motif_annotation(self, add_logo: bool = True):
+        """
+        Add motif-to-TF annotation columns (and a motif logo column) to the motif enrichment table.
+
+        If the annotations can not be loaded, an error is raised, unless ``force`` is set: then the
+        annotation columns are left empty (and no cistromes are created), with a warning.
+        """
+        annot_df = self.load_motif_annotation()
         motif_enrichment_w_annot = self.motif_enrichment.merge(
             annot_df[self.annotation_to_use], how="left", left_index=True, right_index=True
         )

@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import logging
+import os
 from collections.abc import Iterable
+from concurrent.futures import ThreadPoolExecutor
 from os import PathLike
 from pathlib import Path
 
-import numba
 import numpy as np
 import pandas as pd
 import pyarrow as pa
@@ -30,19 +31,20 @@ def _read_column_names(path: Path) -> list[str]:
         return pf.read_table(path, memory_map=True).column_names
 
 
-@numba.njit(parallel=True, cache=True)
-def _transpose_into(block, out, start):
-    """``out[:, start : start + block.shape[0]] = block.T``, in cache friendly tiles."""
-    tile = 64
-    n_regions, n_features = block.shape
-    for t in numba.prange((n_features + tile - 1) // tile):
-        f0 = t * tile
-        f1 = min(f0 + tile, n_features)
-        for r0 in range(0, n_regions, tile):
-            r1 = min(r0 + tile, n_regions)
-            for f in range(f0, f1):
-                for r in range(r0, r1):
-                    out[f, start + r] = block[r, f]
+def _transpose_into(block: np.ndarray, out: np.ndarray, start: int, pool: ThreadPoolExecutor):
+    """
+    ``out[:, start : start + block.shape[0]] = block.T``, in blocks of rows on a thread pool.
+
+    numpy releases the GIL while copying. Python threads (unlike numba's parallel code, whose
+    OpenMP threads are not fork safe) allow analysing region sets in forked processes afterwards.
+    """
+    rows = 64
+    end = start + block.shape[0]
+
+    def copy(f0: int):
+        out[f0 : f0 + rows, start:end] = block[:, f0 : f0 + rows].T
+
+    list(pool.map(copy, range(0, block.shape[1], rows)))
 
 
 class FeatherCisTargetDatabase:
@@ -117,15 +119,18 @@ class FeatherCisTargetDatabase:
             # Every read has a fixed cost (parsing the schema of all regions), so read large chunks.
             chunk_size = max(1, _CHUNK_BYTES // (4 * max(1, len(features))))
         values: np.ndarray | None = None
-        for start in range(0, len(found), chunk_size):
-            columns = found[start : start + chunk_size]
-            table = pf.read_table(self.fname, columns=columns, memory_map=False, use_threads=True)
-            # Regions x motifs, transposed into the motifs x regions array.
-            block = np.stack([table.column(column).to_numpy() for column in columns])
-            del table
-            if values is None:
-                values = np.empty((len(features), len(found)), dtype=block.dtype)
-            _transpose_into(block, values, start)
+        with ThreadPoolExecutor(max(1, min(16, os.cpu_count() or 1))) as pool:
+            for start in range(0, len(found), chunk_size):
+                columns = found[start : start + chunk_size]
+                table = pf.read_table(
+                    self.fname, columns=columns, memory_map=False, use_threads=True
+                )
+                # Regions x motifs, transposed into the motifs x regions array.
+                block = np.stack([table.column(column).to_numpy() for column in columns])
+                del table
+                if values is None:
+                    values = np.empty((len(features), len(found)), dtype=block.dtype)
+                _transpose_into(block, values, start, pool)
         if values is None:
             values = np.empty((len(features), 0), dtype=np.float32)
         return values, features, found

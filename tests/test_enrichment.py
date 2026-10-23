@@ -288,3 +288,44 @@ def test_species_in_help(capsys):
         main(["cistarget", "--help"])
     help_text = " ".join(capsys.readouterr().out.split())
     assert "Available: homo_sapiens, mus_musculus, drosophila_melanogaster" in help_text
+
+
+def test_cistarget_n_jobs(synthetic, tmp_path, caplog):
+    """Region sets analysed in parallel (forked processes) give the same results."""
+    import subprocess
+    import sys
+
+    beds = []
+    for i, regions in enumerate(
+        [synthetic.foreground, synthetic.background, synthetic.foreground[:50]]
+    ):
+        beds.append(tmp_path / f"set_{i}.bed")
+        beds[-1].write_text(
+            "".join(f"{r.replace(':', chr(9)).replace('-', chr(9))}\n" for r in regions)
+        )
+    ctx = [
+        "cistarget", "--cistarget_db_fname", str(synthetic.rankings_db),
+        "--bed_fname", *map(str, beds),
+        "--auc_threshold", "0.05", "--rank_threshold", "0.2",
+        "--species", "homo_sapiens", "--path_to_motif_annotations", str(synthetic.annotation),
+    ]  # fmt: skip
+    # A new process: numba must not have run parallel code before forking.
+    run = subprocess.run(
+        [sys.executable, "-m", "pycistarget.cli.pycistarget", *ctx,
+         "--output_folder", str(tmp_path / "parallel"), "--n_jobs", "2"],
+        capture_output=True, text=True,
+    )  # fmt: skip
+    assert run.returncode == 0, run.stderr
+    # Without a terminal, a line per finished region set instead of a progress bar.
+    assert run.stdout.count("cisTarget: finished set_") == 3
+    assert "/3, " in run.stdout and "[3/3, " in run.stdout
+    assert "one by one" not in run.stdout
+
+    with caplog.at_level("WARNING"):
+        main([*ctx, "--output_folder", str(tmp_path / "sequential"), "--n_jobs", "2"])
+    assert "analysing region sets one by one" in caplog.text
+    for bed in beds:
+        name = bed.stem
+        parallel = read_hdf5(tmp_path / "parallel" / f"motif_enrichment_cistarget_{name}.hdf5")
+        sequential = read_hdf5(tmp_path / "sequential" / f"motif_enrichment_cistarget_{name}.hdf5")
+        _assert_same_result(parallel[name], sequential[name])

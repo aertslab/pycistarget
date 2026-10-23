@@ -82,7 +82,7 @@ class cisTargetDatabase:
                 "Loading complete cistarget database, this can take a long time and consumes a lot of memory!"
             )
             regions_to_db = None
-            db_rankings = db.load_full()
+            regions_in_db = set(db.region_ids)
         else:
             if isinstance(region_sets, dict):
                 regions_to_db = {
@@ -103,7 +103,11 @@ class cisTargetDatabase:
                 )
             if prefix is not None:
                 regions_in_db = {f"{prefix}__{x}" for x in regions_in_db}
-            db_rankings = db.load(regions_in_db)
+        # Read in chunks into one array: about half the peak memory of reading all columns at once.
+        rankings, motifs, columns = db.load_array(regions_in_db)
+        db_rankings = pd.DataFrame(
+            rankings, index=motifs, columns=pd.Index(columns, name="regions"), copy=False
+        )
         if prefix is not None:
             db_rankings.columns = [x.split("__")[1] for x in db_rankings.columns]
         return regions_to_db, db_rankings, db.total_regions

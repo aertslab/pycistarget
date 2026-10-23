@@ -187,6 +187,7 @@ def add_parser_for_motif_enrichment_cistarget(subparser: argparse._SubParsersAct
             output_mode=arg.output_mode,
             write_html=arg.write_html,
             force=arg.force,
+            n_jobs=arg.n_jobs,
         )
 
     parser.set_defaults(func=cistarget)
@@ -204,7 +205,17 @@ def add_parser_for_motif_enrichment_cistarget(subparser: argparse._SubParsersAct
         nargs="+",
         required=True,
         help="Path to bed file on which to run motif enrichment analysis. Several bed files can "
-        "be given: each one is analysed separately (one output file per bed file).",
+        "be given: each one is analysed separately (one output file per bed file), reading the "
+        "database once for the regions of all bed files.",
+    )
+    parser.add_argument(
+        "--n_jobs",
+        dest="n_jobs",
+        type=int,
+        default=1,
+        help="Number of bed files to analyse in parallel. The processes share the database in "
+        "memory; each one needs extra memory for the analysis of one bed file. "
+        "Defaults to: %(default)s",
     )
     parser.add_argument(
         "--fr_overlap_w_ctx_db",

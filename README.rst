@@ -45,10 +45,12 @@ Differentially enriched motifs between foreground and background regions (uses t
 		--output_folder out \
 		--species homo_sapiens
 
-To analyse several region sets, pass several bed files: ``--bed_fname`` analyses each bed file separately (one output file per bed file) and ``--one_vs_all_beds`` runs DEM for each bed file against all other bed files, reading the database only once::
+To analyse several region sets, pass several bed files: ``--bed_fname`` analyses each bed file separately (one output file per bed file) and ``--one_vs_all_beds`` runs DEM for each bed file against all other bed files. Both read the database only once, for the regions of all bed files (which needs more memory than for a single bed file)::
 
-	$ pycistarget cistarget --bed_fname topics/*.bed ...
+	$ pycistarget cistarget --bed_fname topics/*.bed --n_jobs 8 ...
 	$ pycistarget dem --one_vs_all_beds topics/*.bed ...
+
+For ``cistarget``, ``--n_jobs`` analyses several bed files in parallel (processes that share the database in memory), with a progress bar. Each process needs extra memory for one bed file (e.g. 75 bed files on a 488k region database: 14 GB with 1 process, 26 GB with 8 processes, 3.7x faster).
 
 Motif-to-TF annotations are downloaded from the cisTarget webservers, unless a local file is provided with ``--path_to_motif_annotations``. If the annotations can not be loaded (e.g. without internet access), the analysis fails, unless ``--force`` is given: the results then have no TF annotations and no cistromes.
 See ``pycistarget cistarget --help`` and ``pycistarget dem --help`` for all options.

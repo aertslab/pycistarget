@@ -20,6 +20,7 @@ dependencies = [
     "tables>=3.9",
     "numba>=0.59",
     "scikit-learn>=1.3",
+    "tqdm>=4.66",
 ]
 
 [project.optional-dependencies]

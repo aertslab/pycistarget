@@ -13,7 +13,7 @@
 
 ### New features
 - `pycistarget create_db`: create cisTarget motif databases (scores and rankings), replacing `create_cistarget_motif_databases.py` from create_cisTarget_databases. Motifs are scored with a reimplementation of Cluster-Buster that gives the same scores as `cbust -f 4 -c 0.0 -r 10000 -b <padding> -t 1 [-l]` (it does the same floating point operations and libm calls, so it matches Cluster-Buster run on the same platform), and the rankings use the same seeded tie-breaking, so the databases are identical.
-- `pycistarget cistarget --bed_fname a.bed b.bed ...`: analyse several region sets in one call (one output file per bed file).
+- `pycistarget cistarget --bed_fname a.bed b.bed ...`: analyse several region sets in one call (one output file per bed file), reading the database only once (for the regions of all bed files). `--n_jobs` analyses bed files in parallel, with a progress bar.
 - `pycistarget dem --one_vs_all_beds a.bed b.bed ...`: DEM of each bed file against all other bed files, reading the database only once. The result for `a.bed` is the same as `--foreground_beds a.bed --background_beds <all others> --name a_vs_all`.
 - `DEM.run` accepts scores loaded once with `DEMDatabase.load_scores`, to run several analyses on the same database regions.
 - `--force` (`force=True` for `cisTarget` / `DEM`): run without motif-to-TF annotations when they can not be loaded (e.g. no connection to the cisTarget webservers, or no annotations for the species), instead of failing. The results have empty annotation columns and no cistromes.
