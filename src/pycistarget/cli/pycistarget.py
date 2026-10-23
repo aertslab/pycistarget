@@ -36,6 +36,9 @@ CREATE_DB_COMMAND_DESCRIPTION = (
 PLOT_CALL_COMMAND = "plot"
 PLOT_COMMAND_DESCRIPTION = 'Plot motif logos of enriched motifs with their scores (needs: pip install "pycistarget[plot]").'
 
+# Species for which motif-to-TF annotations can be downloaded (see pycistarget.utils).
+SPECIES = ["homo_sapiens", "mus_musculus", "drosophila_melanogaster"]
+
 CISTARGET_DEFAULTS = dict(
     fraction_overlap_w_cistarget_database=0.4,
     auc_threshold=0.005,
@@ -75,8 +78,10 @@ def _add_common_arguments(parser: argparse.ArgumentParser, defaults: dict, analy
         dest="species",
         type=str,
         required=True,
+        metavar="SPECIES",
         help="Species used for the analysis. This parameter is used to download the correct "
-        "motif-to-TF annotations from the cisTarget webservers.",
+        f"motif-to-TF annotations from the cisTarget webservers. Available: {', '.join(SPECIES)}. "
+        "For other species, provide the annotations with --path_to_motif_annotations.",
     )
     parser.add_argument(
         "--path_to_motif_annotations",

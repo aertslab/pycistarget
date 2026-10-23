@@ -277,3 +277,14 @@ def test_force_without_annotations_for_species(synthetic):
     result.run_ctx(cisTargetDatabase(synthetic.rankings_db, region_sets=regions))
     assert len(result.motif_enrichment) > 0
     assert result.motif_enrichment["Direct_annot"].isna().all()
+
+
+def test_species_in_help(capsys):
+    from pycistarget.cli.pycistarget import SPECIES
+    from pycistarget.utils import _SPECIES_TO_ANNOTATION_NAME
+
+    assert SPECIES == list(_SPECIES_TO_ANNOTATION_NAME)
+    with pytest.raises(SystemExit):
+        main(["cistarget", "--help"])
+    help_text = " ".join(capsys.readouterr().out.split())
+    assert "Available: homo_sapiens, mus_musculus, drosophila_melanogaster" in help_text
