@@ -64,6 +64,7 @@ def run_cistarget_command(
     name: str | None = None,
     output_mode: Literal["tsv", "hdf5", "hdf5+"] = "hdf5",
     write_html: bool = True,
+    force: bool = False,
 ):
     """
     Run pycisTarget on a region set.
@@ -111,6 +112,9 @@ def run_cistarget_command(
         hdf5+: an existing hdf5 file will be appended with the full motifs enrichment results.
     write_html
         Whether or not to save the results as an html file.
+    force
+        If the motif-to-TF annotations can not be loaded, continue without annotations and
+        cistromes (with a warning) instead of failing.
     """
     bed_fnames = [bed_fname] if isinstance(bed_fname, str) else list(bed_fname)
     if name is not None and len(bed_fnames) > 1:
@@ -138,6 +142,7 @@ def run_cistarget_command(
             annotation_to_use=annotations_to_use,
             motif_similarity_fdr=motif_similarity_fdr,
             orthologous_identity_threshold=orthologous_identity_threshold,
+            force=force,
         )
         cistarget_result.run_ctx(ctx_db)
         del ctx_db
@@ -170,6 +175,7 @@ def run_dem_command(
     name: str | None = None,
     output_mode: Literal["tsv", "hdf5", "hdf5+"] = "hdf5",
     write_html: bool = True,
+    force: bool = False,
 ):
     """
     Run DEM analysis between foreground and background regions.
@@ -211,6 +217,7 @@ def run_dem_command(
         seed=seed,
         output_mode=output_mode,
         write_html=write_html,
+        force=force,
     )
 
 
@@ -236,6 +243,7 @@ def run_dem_one_vs_all_command(
     seed: int = 555,
     output_mode: Literal["tsv", "hdf5", "hdf5+"] = "hdf5",
     write_html: bool = True,
+    force: bool = False,
 ):
     """
     Run DEM analysis for each bed file against all other bed files.
@@ -287,6 +295,7 @@ def run_dem_one_vs_all_command(
             seed=seed,
             output_mode=output_mode,
             write_html=write_html,
+            force=force,
         )
 
 
@@ -314,6 +323,7 @@ def _run_dem_contrast(
     seed: int,
     output_mode: Literal["tsv", "hdf5", "hdf5+"],
     write_html: bool,
+    force: bool,
 ):
     foreground_regions, background_regions = get_foreground_and_background_regions(
         foreground_region_sets=foreground_region_sets,
@@ -338,6 +348,7 @@ def _run_dem_contrast(
         annotation_to_use=annotations_to_use,
         motif_similarity_fdr=motif_similarity_fdr,
         orthologous_identity_threshold=orthologous_identity_threshold,
+        force=force,
     )
     dem_result.run(dem_db, scores)
     _write_result(dem_result, output_folder, "motif_enrichment_dem", output_mode, write_html)

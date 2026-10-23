@@ -221,3 +221,59 @@ def test_cli_rejects_invalid_batch_arguments(synthetic, tmp_path):
         main(["cistarget", "--cistarget_db_fname", str(synthetic.rankings_db), "--species",
               "homo_sapiens", "--output_folder", str(tmp_path), "--name", "x",
               "--bed_fname", str(synthetic.foreground_bed), str(synthetic.background_bed)])  # fmt: skip
+
+
+def test_force_runs_without_motif_annotations(synthetic, cistarget_result, tmp_path, caplog):
+    """With --force, a missing motif-to-TF annotation gives results without annotations/cistromes."""
+    missing = tmp_path / "missing_annotations.tbl"
+    common = ["--species", "homo_sapiens", "--path_to_motif_annotations", str(missing)]
+    ctx = [
+        "cistarget", "--cistarget_db_fname", str(synthetic.rankings_db),
+        "--auc_threshold", "0.05", "--rank_threshold", "0.2", *common,
+    ]  # fmt: skip
+    beds = [synthetic.foreground_bed, synthetic.background_bed]
+    with pytest.raises(RuntimeError, match="Unable to load motif-to-TF annotations"):
+        main([*ctx, "--bed_fname", str(beds[0]), "--output_folder", str(tmp_path / "fail")])
+
+    with caplog.at_level("WARNING"):
+        main(
+            [*ctx, "--bed_fname", *map(str, beds), "--output_folder", str(tmp_path / "ctx"),
+             "--write_html", "--force"]
+        )  # fmt: skip
+        main(
+            ["dem", "--dem_db_fname", str(synthetic.scores_db),
+             "--foreground_beds", str(beds[0]), "--background_beds", str(beds[1]),
+             "--output_folder", str(tmp_path / "dem"), "--name", "fg_vs_bg", "--force", *common]
+        )  # fmt: skip
+    # One warning, the annotations are not loaded again for each region set.
+    assert caplog.text.count("Continuing without motif-to-TF annotations") == 1
+
+    result = read_hdf5(tmp_path / "ctx" / "motif_enrichment_cistarget_foreground.hdf5")[
+        "foreground"
+    ]
+    expected = cistarget_result.motif_enrichment
+    pd.testing.assert_series_equal(
+        result.motif_enrichment["NES"], expected["NES"], check_names=False, check_index_type=False
+    )
+    assert result.motif_enrichment[ANNOTATIONS[0]].isna().all()
+    # read_hdf5 returns lower case keys.
+    assert result.cistromes == {"database": {}, "region_set": {}}
+    assert result.motif_hits["region_set"] == cistarget_result.motif_hits["Region_set"]
+    dem = read_hdf5(tmp_path / "dem" / "motif_enrichment_dem_fg_vs_bg.hdf5")["fg_vs_bg"]
+    assert set(dem.motif_enrichment.index) == set(ENRICHED_MOTIFS)
+    assert dem.cistromes == {"database": {}, "region_set": {}}
+
+
+def test_force_without_annotations_for_species(synthetic):
+    regions = pr.read_bed(str(synthetic.foreground_bed))
+    result = cisTarget(
+        region_set=regions,
+        name="fg",
+        species="danio_rerio",  # type: ignore[arg-type]
+        auc_threshold=0.05,
+        rank_threshold=0.2,
+        force=True,
+    )
+    result.run_ctx(cisTargetDatabase(synthetic.rankings_db, region_sets=regions))
+    assert len(result.motif_enrichment) > 0
+    assert result.motif_enrichment["Direct_annot"].isna().all()

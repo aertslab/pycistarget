@@ -50,7 +50,7 @@ To analyse several region sets, pass several bed files: ``--bed_fname`` analyses
 	$ pycistarget cistarget --bed_fname topics/*.bed ...
 	$ pycistarget dem --one_vs_all_beds topics/*.bed ...
 
-Motif-to-TF annotations are downloaded from the cisTarget webservers, unless a local file is provided with ``--path_to_motif_annotations``.
+Motif-to-TF annotations are downloaded from the cisTarget webservers, unless a local file is provided with ``--path_to_motif_annotations``. If the annotations can not be loaded (e.g. without internet access), the analysis fails, unless ``--force`` is given: the results then have no TF annotations and no cistromes.
 See ``pycistarget cistarget --help`` and ``pycistarget dem --help`` for all options.
 
 Results written to hdf5 can be read with ``pycistarget.input_output.read_hdf5``.

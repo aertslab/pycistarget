@@ -144,6 +144,14 @@ def _add_common_arguments(parser: argparse.ArgumentParser, defaults: dict, analy
         action="store_true",
         help="Whether or not to save the results as an html file.",
     )
+    parser.add_argument(
+        "--force",
+        dest="force",
+        action="store_true",
+        help="Run even when the motif-to-TF annotations can not be loaded (e.g. no connection to "
+        "the cisTarget webservers to download them, or no annotations for the species). The "
+        "results then have no TF annotations and no cistromes.",
+    )
 
 
 def add_parser_for_motif_enrichment_cistarget(subparser: argparse._SubParsersAction):
@@ -173,6 +181,7 @@ def add_parser_for_motif_enrichment_cistarget(subparser: argparse._SubParsersAct
             name=arg.name,
             output_mode=arg.output_mode,
             write_html=arg.write_html,
+            force=arg.force,
         )
 
     parser.set_defaults(func=cistarget)
@@ -283,6 +292,7 @@ def add_parser_for_motif_enrichment_dem(subparser: argparse._SubParsersAction):
             seed=arg.seed,
             output_mode=arg.output_mode,
             write_html=arg.write_html,
+            force=arg.force,
         )
 
     parser.set_defaults(func=dem)

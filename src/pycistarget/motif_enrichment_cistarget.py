@@ -146,6 +146,9 @@ class cisTarget(MotifEnrichmentResult):
         Minimal orthology value for considering two TFs orthologous.
     motifs_to_use: List
         A subset of motifs to use for the analysis (None: all).
+    force: bool
+        If the motif-to-TF annotations can not be loaded (e.g. no internet connection to download
+        them), continue without annotations and cistromes (with a warning) instead of failing.
     motif_enrichment: pd.DataFrame
         A dataframe containing motif enrichment results
     motif_hits: Dict
@@ -177,6 +180,7 @@ class cisTarget(MotifEnrichmentResult):
         motif_similarity_fdr: float = 0.001,
         orthologous_identity_threshold: float = 0.0,
         motifs_to_use: list[str] | None = None,
+        force: bool = False,
     ):
         self.region_set = region_set
         self.auc_threshold = auc_threshold
@@ -200,6 +204,7 @@ class cisTarget(MotifEnrichmentResult):
             motif_similarity_fdr=motif_similarity_fdr,
             orthologous_identity_threshold=orthologous_identity_threshold,
             motifs_to_use=motifs_to_use,
+            force=force,
         )
 
     def _set_empty_result(self):

@@ -50,6 +50,10 @@ def _load_motif_annotations_cached(
     )
 
 
+# Motif-to-TF annotations that failed to load (key: arguments of _load_motif_annotations_cached).
+_failed_annotations: dict[tuple, Exception] = {}
+
+
 _METADATA_FIELDS = {
     "cisTarget": [
         "species",
@@ -122,6 +126,7 @@ class MotifEnrichmentResult:
         motif_similarity_fdr: float = 0.001,
         orthologous_identity_threshold: float = 0.0,
         motifs_to_use: list[str] | None = None,
+        force: bool = False,
     ):
         self.name = name
         self.species = species
@@ -135,6 +140,8 @@ class MotifEnrichmentResult:
         self.motif_similarity_fdr = motif_similarity_fdr
         self.orthologous_identity_threshold = orthologous_identity_threshold
         self.motifs_to_use = list(motifs_to_use) if motifs_to_use is not None else None
+        # Run without motif-to-TF annotations (and cistromes) when they can not be loaded.
+        self.force = force
         self.logo_url = f"https://motifcollections.aertslab.org/{self.annotation_version}/logos/"
         self.motif_enrichment = pd.DataFrame()
         self.motif_hits: dict[str, dict[str, list[str]]] = {"Database": {}, "Region_set": {}}
@@ -142,18 +149,27 @@ class MotifEnrichmentResult:
         self.regions_to_db = pd.DataFrame()
 
     def add_motif_annotation(self, add_logo: bool = True):
-        """Add motif-to-TF annotation columns (and a motif logo column) to the motif enrichment table."""
+        """
+        Add motif-to-TF annotation columns (and a motif logo column) to the motif enrichment table.
+
+        If the annotations can not be loaded, an error is raised, unless ``force`` is set: then the
+        annotation columns are left empty (and no cistromes are created), with a warning.
+        """
+        key = (
+            self.species,
+            self.annotation_version,
+            self.path_to_motif_annotations,
+            self.motif_similarity_fdr,
+            self.orthologous_identity_threshold,
+            _mtime(self.path_to_motif_annotations),
+        )
         try:
-            annot_df = _load_motif_annotations_cached(
-                self.species,
-                self.annotation_version,
-                self.path_to_motif_annotations,
-                self.motif_similarity_fdr,
-                self.orthologous_identity_threshold,
-                _mtime(self.path_to_motif_annotations),
-            )
+            if key in _failed_annotations:
+                # Do not try to load (download) them again for each region set.
+                raise _failed_annotations[key]
+            annot_df = _load_motif_annotations_cached(*key)
         except Exception as e:
-            raise RuntimeError(
+            message = (
                 "Unable to load motif-to-TF annotations"
                 + (
                     f" from {self.path_to_motif_annotations}"
@@ -161,7 +177,13 @@ class MotifEnrichmentResult:
                     else " from the cisTarget webserver; provide them with path_to_motif_annotations"
                 )
                 + f": {e}"
-            ) from e
+            )
+            if not self.force:
+                raise RuntimeError(message) from e
+            if key not in _failed_annotations:
+                _failed_annotations[key] = e
+                log.warning(f"{message}. Continuing without motif-to-TF annotations and cistromes.")
+            annot_df = pd.DataFrame(columns=self.annotation_to_use, dtype=object)
         motif_enrichment_w_annot = self.motif_enrichment.merge(
             annot_df[self.annotation_to_use], how="left", left_index=True, right_index=True
         )

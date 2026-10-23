@@ -431,6 +431,9 @@ class DEM(MotifEnrichmentResult):
     Motif scores of foreground and background regions are compared with a Wilcoxon rank-sum test,
     motifs are enriched when the Benjamini-Hochberg adjusted p-value, log2 fold change and
     mean foreground score pass the thresholds.
+
+    With ``force``, the analysis continues without motif-to-TF annotations and cistromes (with a
+    warning) if the annotations can not be loaded (e.g. no internet connection to download them).
     """
 
     _analysis_type = "DEM"
@@ -451,6 +454,7 @@ class DEM(MotifEnrichmentResult):
         motif_similarity_fdr: float = 0.001,
         orthologous_identity_threshold: float = 0.0,
         motifs_to_use: list[str] | None = None,
+        force: bool = False,
     ):
         self.foreground_regions = foreground_regions
         self.background_regions = background_regions
@@ -476,6 +480,7 @@ class DEM(MotifEnrichmentResult):
             motif_similarity_fdr=motif_similarity_fdr,
             orthologous_identity_threshold=orthologous_identity_threshold,
             motifs_to_use=motifs_to_use,
+            force=force,
         )
 
     def run(self, dem_db: DEMDatabase, scores: DEMScores | None = None):
