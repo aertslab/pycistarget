@@ -21,7 +21,7 @@ or, from a clone of this repository, using `uv <https://docs.astral.sh/uv/>`_::
 
 Installing from source compiles the motif scoring code (``rust/``), which needs a `Rust toolchain <https://rustup.rs>`_.
 
-To show results in a notebook (``show_result``), install the ``notebook`` extra: ``pip install "pycistarget[notebook]"``.
+To show results in a notebook (``show_result``), install the ``notebook`` extra: ``pip install "pycistarget[notebook]"``. To plot motif logos (``pycistarget plot``), install the ``plot`` extra: ``pip install "pycistarget[plot]"``.
 
 Usage
 *****
@@ -54,6 +54,45 @@ Motif-to-TF annotations are downloaded from the cisTarget webservers, unless a l
 See ``pycistarget cistarget --help`` and ``pycistarget dem --help`` for all options.
 
 Results written to hdf5 can be read with ``pycistarget.input_output.read_hdf5``.
+
+Plotting
+********
+
+``pycistarget plot`` plots the motif logos of enriched motifs with their score (NES for cisTarget, Log2FC for DEM). It needs the ``plot`` extra: ``pip install "pycistarget[plot]"``.
+The logos are drawn from the Cluster-Buster motif files (``<motif ID>.cb``) of the motif collection; for metaclusters the matrix with the highest information content is drawn. Motifs without a motif file are plotted without a logo (with a warning).
+
+The enriched motifs of one region set, with a bar of their score::
+
+	$ pycistarget plot barplot \
+		--result out/motif_enrichment_cistarget_Topic_1.hdf5 \
+		--motifs_dir v10nr_clust_public/singletons \
+		--output Topic_1.pdf \
+		--threshold 5
+
+A heatmap of the scores across region sets (one column per result)::
+
+	$ pycistarget plot heatmap \
+		--results out/motif_enrichment_dem_*_vs_all.hdf5 \
+		--motifs_dir v10nr_clust_public/singletons \
+		--output dem.pdf \
+		--top 5
+
+``--threshold`` only plots motifs with at least this score (in at least one region set) and ``--top`` limits the plot to the motifs with the highest scores (in at least one region set).
+
+The same plots can be made in Python with ``plot_logo_barplot`` and ``plot_logo_heatmap``. They take result files, results from ``read_hdf5`` (or lists and dictionaries of them) or tables of scores, and return the figure and its axes for further customisation::
+
+	from pycistarget.input_output import read_hdf5
+	from pycistarget.plotting import plot_logo_barplot, plot_logo_heatmap
+
+	results = read_hdf5("out/motif_enrichment_cistarget_Topic_1.hdf5")
+	plot = plot_logo_barplot(results["Topic_1"], "v10nr_clust_public/singletons", top=20, color="black")
+	plot.ax.set_xlim(0, 30)
+	plot.save("Topic_1.pdf")
+
+	plot = plot_logo_heatmap(["out/a.hdf5", "out/b.hdf5"], "v10nr_clust_public/singletons", threshold=5, cmap="viridis")
+	plot.colorbar.set_label("NES")
+
+See ``help(plot_logo_barplot)`` and ``help(plot_logo_heatmap)`` for all options; ``load_logo`` and ``draw_logo`` draw single logos in your own figures.
 
 Creating a database
 *******************

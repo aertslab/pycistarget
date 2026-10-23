@@ -24,6 +24,10 @@ dependencies = [
 
 [project.optional-dependencies]
 notebook = ["ipython>=8"]
+plot = [
+    "logomaker>=0.8",
+    "matplotlib>=3.7",
+]
 
 [project.scripts]
 pycistarget = "pycistarget.cli.pycistarget:main"
@@ -37,6 +41,8 @@ dev = [
     "pytest>=8",
     "ruff>=0.6",
     "pandas-stubs",
+    "logomaker>=0.8",
+    "matplotlib>=3.7",
 ]
 
 [build-system]

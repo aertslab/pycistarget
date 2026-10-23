@@ -16,6 +16,7 @@
 - `pycistarget cistarget --bed_fname a.bed b.bed ...`: analyse several region sets in one call (one output file per bed file).
 - `pycistarget dem --one_vs_all_beds a.bed b.bed ...`: DEM of each bed file against all other bed files, reading the database only once. The result for `a.bed` is the same as `--foreground_beds a.bed --background_beds <all others> --name a_vs_all`.
 - `DEM.run` accepts scores loaded once with `DEMDatabase.load_scores`, to run several analyses on the same database regions.
+- `pycistarget plot barplot` and `pycistarget plot heatmap`: plot the logos of enriched motifs (drawn with logomaker from the Cluster-Buster motif files) with their NES or Log2FC, for one region set (bars) or across region sets (heatmap). The same plots are available in Python (`pycistarget.plotting.plot_logo_barplot` / `plot_logo_heatmap`, returning the figure and axes for customisation). Needs the new `plot` extra (`pip install "pycistarget[plot]"`).
 
 ### Performance
 - DEM: loading the background regions was quadratic in the number of regions (hours for a 1-vs-all contrast with version 1.1).

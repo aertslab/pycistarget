@@ -33,6 +33,8 @@ CREATE_DB_COMMAND_DESCRIPTION = (
     "Cluster-Buster motif files. Gives the same databases as create_cistarget_motif_databases.py "
     "from create_cisTarget_databases, but faster."
 )
+PLOT_CALL_COMMAND = "plot"
+PLOT_COMMAND_DESCRIPTION = 'Plot motif logos of enriched motifs with their scores (needs: pip install "pycistarget[plot]").'
 
 CISTARGET_DEFAULTS = dict(
     fraction_overlap_w_cistarget_database=0.4,
@@ -485,6 +487,129 @@ def add_parser_for_create_db(subparser: argparse._SubParsersAction):
     )
 
 
+def _add_plot_arguments(parser: argparse.ArgumentParser):
+    """Arguments shared by the plot subcommands."""
+    parser.add_argument(
+        "--motifs_dir",
+        dest="motifs_dir",
+        type=str,
+        required=True,
+        help="Directory with Cluster-Buster motif files (<motif ID>.cb), used to draw the logos. "
+        "For metaclusters, the matrix with the highest information content is drawn.",
+    )
+    parser.add_argument(
+        "--output",
+        dest="output",
+        type=str,
+        required=True,
+        help="Output file. The format is set by the extension (e.g. .pdf, .png, .svg).",
+    )
+    parser.add_argument(
+        "--threshold",
+        dest="threshold",
+        type=float,
+        default=None,
+        help="Only plot motifs with a score (NES for cisTarget, Log2FC for DEM) of at least this "
+        "value. By default all enriched motifs are plotted.",
+    )
+
+
+def _save_plot(plot, output: str):
+    import matplotlib.pyplot as plt
+
+    plot.save(output)
+    plt.close(plot.figure)
+    logging.getLogger(__name__).info(f"Saved plot to {output}")
+
+
+def add_parser_for_plot(subparser: argparse._SubParsersAction):
+    parser: argparse.ArgumentParser = subparser.add_parser(
+        name=PLOT_CALL_COMMAND,
+        add_help=True,
+        description=PLOT_COMMAND_DESCRIPTION,
+    )
+    parser.set_defaults(func=lambda arg: parser.print_help())
+    plot_subparsers = parser.add_subparsers()
+
+    barplot_parser = plot_subparsers.add_parser(
+        name="barplot",
+        add_help=True,
+        description="Plot the logos of the enriched motifs of one region set, with a bar of their "
+        "score (NES for cisTarget, Log2FC for DEM).",
+    )
+
+    def barplot(arg):
+        from pycistarget.plotting import plot_logo_barplot
+
+        _save_plot(
+            plot_logo_barplot(
+                arg.result, arg.motifs_dir, name=arg.name, threshold=arg.threshold, top=arg.top
+            ),
+            arg.output,
+        )
+
+    barplot_parser.set_defaults(func=barplot)
+    barplot_parser.add_argument(
+        "--result",
+        dest="result",
+        type=str,
+        required=True,
+        help="cisTarget or DEM result (hdf5 or tsv file written by pycistarget cistarget or dem).",
+    )
+    barplot_parser.add_argument(
+        "--name",
+        dest="name",
+        type=str,
+        default=None,
+        help="Name of the result to plot, when the hdf5 file contains several results.",
+    )
+    barplot_parser.add_argument(
+        "--top",
+        dest="top",
+        type=int,
+        default=None,
+        help="Only plot this number of motifs with the highest scores.",
+    )
+    _add_plot_arguments(barplot_parser)
+
+    heatmap_parser = plot_subparsers.add_parser(
+        name="heatmap",
+        add_help=True,
+        description="Plot the logos of the enriched motifs across region sets, with a heatmap of "
+        "their score (NES for cisTarget, Log2FC for DEM) in each region set. Motifs are grouped by "
+        "the region set with their highest score. Motifs that are not enriched in a region set "
+        "have a grey cell.",
+    )
+
+    def heatmap(arg):
+        from pycistarget.plotting import plot_logo_heatmap
+
+        _save_plot(
+            plot_logo_heatmap(arg.results, arg.motifs_dir, threshold=arg.threshold, top=arg.top),
+            arg.output,
+        )
+
+    heatmap_parser.set_defaults(func=heatmap)
+    heatmap_parser.add_argument(
+        "--results",
+        dest="results",
+        type=str,
+        nargs="+",
+        required=True,
+        help="cisTarget or DEM results (hdf5 or tsv files written by pycistarget cistarget or "
+        "dem). Each result is a column of the heatmap.",
+    )
+    heatmap_parser.add_argument(
+        "--top",
+        dest="top",
+        type=int,
+        default=None,
+        help="Only plot motifs that are among this number of motifs with the highest scores in "
+        "at least one region set.",
+    )
+    _add_plot_arguments(heatmap_parser)
+
+
 def create_argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument("--version", action="version", version=f"pycistarget {VERSION}")
@@ -492,6 +617,7 @@ def create_argument_parser() -> argparse.ArgumentParser:
     add_parser_for_motif_enrichment_cistarget(subparsers)
     add_parser_for_motif_enrichment_dem(subparsers)
     add_parser_for_create_db(subparsers)
+    add_parser_for_plot(subparsers)
     return parser
 
 
