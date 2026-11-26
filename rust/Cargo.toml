@@ -11,7 +11,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 numpy = "0.30"
-pyo3 = { version = "0.30", features = ["abi3-py310"] }
+pyo3 = { version = "0.30", features = ["abi3-py312"] }
 rayon = "1.12"
 
 [profile.release]
