@@ -7,7 +7,7 @@ from os import PathLike
 
 import numpy as np
 import pandas as pd
-import pyranges as pr
+import pyranges1 as pr
 
 from pycistarget.database import FeatherCisTargetDatabase
 from pycistarget.motif_enrichment_result import MotifEnrichmentResult, Species

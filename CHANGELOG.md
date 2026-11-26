@@ -3,7 +3,8 @@
 ## 1.2.0
 
 ### Packaging
-- Requires Python >= 3.10; supports numpy 2, pandas 2 and 3.
+- Requires Python >= 3.12; supports numpy 2, pandas 2 and 3.
+- Uses `pyranges1` instead of `pyranges` (0.x). Region sets passed to the Python API (`cisTarget`, `DEM`, `cisTargetDatabase`, ...) should be `pyranges1.PyRanges` objects.
 - Dependencies are declared completely (`numba`, `tables` were missing) and locked with uv (`uv.lock`, replaces `poetry.lock`).
 - `ctxcore` is no longer a dependency (it failed to import with recent setuptools and caused very slow DEM runs).
 - `pyarrow` is capped below 25: pyarrow 25 and 26 use ~7x more memory when reading a subset of regions from a database.

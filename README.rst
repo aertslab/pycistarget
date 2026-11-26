@@ -9,7 +9,7 @@ pycistarget is a python module to perform motif enrichment analysis in sets of r
 Installation
 ************
 
-pycistarget requires Python 3.10 or newer. To install pycistarget::
+pycistarget requires Python 3.12 or newer. To install pycistarget::
 
 	$ pip install git+https://github.com/aertslab/pycistarget
 

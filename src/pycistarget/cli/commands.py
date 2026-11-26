@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 import pandas as pd
-import pyranges as pr
+import pyranges1 as pr
 
 from pycistarget.motif_enrichment_cistarget import cisTarget, cisTargetDatabase
 from pycistarget.motif_enrichment_dem import (
@@ -257,10 +257,7 @@ def run_cistarget_command(
     # of each region set to the database is the same as when it is analysed on its own).
     all_regions = pr.PyRanges(
         pd.concat(
-            [
-                rs.df[["Chromosome", "Start", "End"]].astype({"Chromosome": str})
-                for rs in region_sets
-            ]
+            [rs[["Chromosome", "Start", "End"]].astype({"Chromosome": str}) for rs in region_sets]
         ).drop_duplicates(ignore_index=True)
     )
     ctx_db = cisTargetDatabase(

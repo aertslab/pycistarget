@@ -32,7 +32,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from os import PathLike
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, TypeAlias
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pandas as pd
@@ -74,11 +74,11 @@ _MARGIN_LEFT = 0.2
 _MARGIN_TOP = 0.5
 
 #: A single result: a hdf5/tsv file, a cisTarget/DEM result, or scores per motif.
-Result: TypeAlias = "str | PathLike[str] | MotifEnrichmentResult | pd.Series"
+type Result = str | PathLike[str] | MotifEnrichmentResult | pd.Series
 #: Several results: one of the above, a list of them, a dictionary of named results, or a table
 #: of scores (motifs x region sets).
-Results: TypeAlias = (
-    "Result | Sequence[Result] | Mapping[str, MotifEnrichmentResult | pd.Series] | pd.DataFrame"
+type Results = (
+    Result | Sequence[Result] | Mapping[str, MotifEnrichmentResult | pd.Series] | pd.DataFrame
 )
 
 

@@ -1,6 +1,6 @@
 import h5py
 import pandas as pd
-import pyranges as pr
+import pyranges1 as pr
 import pytest
 
 from pycistarget.cli.pycistarget import main
