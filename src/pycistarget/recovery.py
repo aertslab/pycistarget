@@ -56,7 +56,7 @@ def _auc_areas(rankings: np.ndarray, rank_cutoff: int) -> np.ndarray:
     # the (unnormalised) recovery curve. Summed as integers, so the result is exact.
     areas = np.empty(rankings.shape[0], dtype=np.float64)
     for i in numba.prange(rankings.shape[0]):
-        area = 0
+        area = np.int64(0)
         for j in range(rankings.shape[1]):
             if rankings[i, j] < rank_cutoff:
                 area += rank_cutoff - np.int64(rankings[i, j])
