@@ -11,7 +11,7 @@ from os import PathLike
 import numba
 import numpy as np
 import pandas as pd
-import pyranges as pr
+import pyranges1 as pr
 from sklearn.metrics import roc_curve
 
 from pycistarget.database import FeatherCisTargetDatabase
@@ -582,12 +582,9 @@ def get_foreground_and_background_regions(
     subsampled to ``max_bg_regions`` regions and/or the fraction of promoter regions in
     the background is matched to the fraction of promoters in the foreground.
     """
-    foreground_region_names = set(
-        coord_to_region_names(pd.concat([ranges.df for ranges in foreground_region_sets]))
-    )
+    foreground_region_names = set(coord_to_region_names(pd.concat(foreground_region_sets)))
     background_region_names_set = (
-        set(coord_to_region_names(pd.concat([ranges.df for ranges in background_region_sets])))
-        - foreground_region_names
+        set(coord_to_region_names(pd.concat(background_region_sets))) - foreground_region_names
     )
     if max_bg_regions is not None:
         max_bg_regions = min(max_bg_regions, len(background_region_names_set))
@@ -614,7 +611,7 @@ def get_foreground_and_background_regions(
 
         # Calculate fraction of promoters in foreground
         nr_promoter_in_fg = len(
-            tmp_pr_foreground.count_overlaps(pr_promoter_annotation).df.query("NumberOverlaps > 0")
+            tmp_pr_foreground.count_overlaps(pr_promoter_annotation).query("Count > 0")
         )
         fraction_promoter_fg = nr_promoter_in_fg / len(foreground_regions_sorted)
 
@@ -625,14 +622,12 @@ def get_foreground_and_background_regions(
         nr_allowed_promoters_background = int(n_background * fraction_promoter_fg)
 
         # Separate promoter and non promoter regions in background
-        tmp_background_promoter_overlap = tmp_pr_background.count_overlaps(
-            pr_promoter_annotation
-        ).df
+        tmp_background_promoter_overlap = tmp_pr_background.count_overlaps(pr_promoter_annotation)
         background_region_names_no_promoter = sorted(
-            coord_to_region_names(tmp_background_promoter_overlap.query("NumberOverlaps == 0"))
+            coord_to_region_names(tmp_background_promoter_overlap.query("Count == 0"))
         )
         background_region_names_promoter = sorted(
-            coord_to_region_names(tmp_background_promoter_overlap.query("NumberOverlaps > 0"))
+            coord_to_region_names(tmp_background_promoter_overlap.query("Count > 0"))
         )
 
         # Sample promoter regions from background

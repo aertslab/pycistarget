@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import pyranges as pr
+import pyranges1 as pr
 import pytest
 
 from pycistarget.database import FeatherCisTargetDatabase

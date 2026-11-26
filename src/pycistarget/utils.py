@@ -6,7 +6,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
 
 import pandas as pd
-import pyranges as pr
+import pyranges1 as pr
 
 ANNOTATION_COLUMNS = [
     "Direct_annot",
@@ -27,8 +27,6 @@ _SPECIES_TO_ANNOTATION_NAME = {
 
 def coord_to_region_names(coord: pr.PyRanges | pd.DataFrame) -> list[str]:
     """Convert coordinates to region names (``chrom:start-end``)."""
-    if isinstance(coord, pr.PyRanges):
-        coord = coord.df
     if len(coord) == 0:
         return []
     return [
@@ -98,14 +96,18 @@ def target_to_query(
 
     Returns a dataframe with columns "Target" and "Query" (region names).
     """
-    join_pr = _to_pyranges(target).join(_to_pyranges(query), report_overlap=True)
-    if len(join_pr) == 0:
+    # join_overlaps requires a default integer index.
+    joined = (
+        _to_pyranges(target)
+        .reset_index(drop=True)
+        .join_overlaps(_to_pyranges(query).reset_index(drop=True), report_overlap_column="Overlap")
+    )
+    if len(joined) == 0:
         raise ValueError(
             "None of the regions in the bed file overlap with the cistarget database. "
             "Check whether the chromosome names of the input regions are correctly "
             "formatted and that you are using the correct database."
         )
-    joined = join_pr.df
     overlap_query = joined["Overlap"] / (joined["End_b"] - joined["Start_b"])
     overlap_target = joined["Overlap"] / (joined["End"] - joined["Start"])
     joined = joined[(overlap_query > fraction_overlap) | (overlap_target > fraction_overlap)]

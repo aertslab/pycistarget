@@ -15,7 +15,7 @@ dependencies = [
     # pyarrow 25 and 26 use ~7x more memory (and time) when reading a subset of columns
     # from a cisTarget database (e.g. 9.3 GB instead of 1.3 GB for 20k regions).
     "pyarrow>=15,<25",
-    "pyranges>=0.1.2,<0.2",
+    "pyranges1>=1.5",
     "h5py>=3.10",
     "tables>=3.9",
     "numba>=0.59",
